@@ -1,0 +1,155 @@
+PLUGIN_VISUALSTATISTICS
+	EN	Visual Statistics
+
+PLUGIN_VISUALSTATISTICS_DESC
+	EN	Have a look at your library statistics with charts. Makes them look better but not more interesting.
+
+PLUGIN_STATISTICSLIGH_LOG_DESC
+	EN	Log of plugin VisualStatistics
+
+PLUGIN_VISUALSTATISTICS_LIST
+	EN	Visual Statistics
+
+PLUGIN_VISUALSTATISTICS_SECTION_ARTISTS
+	EN	ARTISTS
+
+PLUGIN_VISUALSTATISTICS_SECTION_ALBUMS
+	EN	ALBUMS
+
+PLUGIN_VISUALSTATISTICS_SECTION_GENRES
+	EN	GENRES
+
+PLUGIN_VISUALSTATISTICS_SECTION_YEARS
+	EN	YEARS
+
+PLUGIN_VISUALSTATISTICS_SECTION_MISC
+	EN	MISC.
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS
+	EN	Artists with most tracks
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS
+	EN	Album artists with most albums (no compilations)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS
+	EN	Artists with most rated tracks
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_ALL
+	EN	Artists with top average rated tracks (incl. unrated tracks)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED
+	EN	Artists with top average rated tracks (rated tracks only)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Artists with most played tracks (highest average playcount)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
+	EN	Artists with most played tracks (number of all tracks played at least once)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
+	EN	Artists - average rating vs. average playcount
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS
+	EN	Albums by year
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_TRACKS
+	EN	Albums with most tracks
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS
+	EN	Albums with most rated tracks
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_ALL
+	EN	Albums with top average rated tracks (incl. unrated tracks)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED
+	EN	Albums with top average rated tracks (rated tracks only)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Albums with most played tracks (highest average playcount)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
+	EN	Albums with most played tracks (number of all tracks played at least once)
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS
+	EN	Genres with most tracks
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_ALBUMS
+	EN	Genres with most albums
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS
+	EN	Genres with most rated tracks
+
+PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_ALL
+	EN	Genres with top average rated tracks (incl. unrated tracks)
+
+PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED
+	EN	Genres with top average rated tracks (rated tracks only)
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Genres with most played tracks (highest average playcount)
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
+	EN	Genres with most played tracks (number of all tracks played at least once)
+
+PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
+	EN	Genres with top average bit rate
+
+PLUGIN_VISUALSTATISTICS_YEARS_TRACKS
+	EN	Tracks by year
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS
+	EN	Years with most tracks
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_ALBUMS
+	EN	Years with most albums
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS
+	EN	Years with most rated tracks
+
+PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_ALL
+	EN	Years with top average rated tracks (incl. unrated tracks)
+
+PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED
+	EN	Years with top average rated tracks (rated tracks only)
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Years with most played tracks (highest average playcount)
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
+	EN	Years with most played tracks (number of all tracks played at least once)
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Decades with most played tracks (highest average playcount)
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
+	EN	Decades with most played tracks (number of all tracks played at least once)
+
+PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
+	EN	Tracks by dated added
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS
+	EN	Audio file formats of local library tracks
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE
+	EN	Tracks by bit rate
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS
+	EN	Tracks by bit rate and audio file format
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_SAMPLE_RATE
+	EN	Tracks by sample rate
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER
+	EN	Tracks by bit rate and audio file format (scatter chart)
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
+	EN	Listening times
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT
+	EN	More library statistics (text)
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
+	EN	LIBRARY STATISTICS
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
+	EN	Most frequently used words in song names
