@@ -75,7 +75,7 @@ sub handleJSON {
 	$log->debug('querytype = '.Dumper($querytype));
 	my $started = time();
 
-	if ($client && $querytype) {
+	if ($querytype) {
 		$response = {
 			error => 0,
 			msg => $querytype,
@@ -96,7 +96,7 @@ my $rowLimit = 50;
 # ---- artists ------- #
 
 sub getDataArtistWithMostTracks {
-	my $sqlstatement = "select t.* from (select contributors.name as roles, count(distinct tracks.id) as nooftracks from contributors
+	my $sqlstatement = "select contributors.name as roles, count(distinct tracks.id) as nooftracks from contributors
 		left join contributor_track on
 			contributors.id=contributor_track.contributor and contributor_track.role in (1,6)
 		left join tracks on
@@ -107,14 +107,13 @@ sub getDataArtistWithMostTracks {
 			contributors.id is not null
 		group by contributors.id
 		order by nooftracks desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataArtistWithMostAlbums {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select t.* from (select contributors.name, count(distinct albums.id) as noofalbums from albums
+	my $sqlstatement = "select contributors.name, count(distinct albums.id) as noofalbums from albums
 		join contributors on
 			albums.contributor = contributors.id
 		left join contributor_track on
@@ -124,13 +123,12 @@ sub getDataArtistWithMostAlbums {
 			and contributors.name is not '$VAstring'
 		group by contributors.name
 		order by noofalbums desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.noofalbums asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataArtistWithMostRatedTracks {
-	my $sqlstatement = "select t.* from (select contributors.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select contributors.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join contributors on
@@ -140,13 +138,12 @@ sub getDataArtistWithMostRatedTracks {
 			and tracks_persistent.rating > 0
 		group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataArtistsWithTopRatedTracksAll {
-	my $sqlstatement = "select t.* from (select contributors.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select contributors.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join contributors on
@@ -155,13 +152,12 @@ sub getDataArtistsWithTopRatedTracksAll {
 			audio=1
 		group by tracks.primary_artist
 		order by avgrating desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.avgrating asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataArtistsWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select t.* from (select contributors.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select contributors.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join contributors on
@@ -171,13 +167,12 @@ sub getDataArtistsWithTopRatedTracksRatedOnly {
 			and tracks_persistent.rating > 0
 		group by tracks.primary_artist
 		order by avgrating desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.avgrating asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataArtistsWithMostPlayedTracks {
-	my $sqlstatement = "select t.* from (select contributors.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select contributors.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join contributors on
@@ -187,13 +182,12 @@ sub getDataArtistsWithMostPlayedTracks {
 			and tracks_persistent.playCount > 0
 		group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataArtistsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select t.* from (select contributors.name, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
+	my $sqlstatement = "select contributors.name, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join contributors on
@@ -202,8 +196,7 @@ sub getDataArtistsWithMostPlayedTracksAverage {
 			audio=1
 		group by tracks.primary_artist
 		order by avgplaycount desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.avgplaycount asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -230,7 +223,7 @@ sub getDataAlbumsByYear {
 }
 
 sub getDataAlbumsWithMostTracks {
-	my $sqlstatement = "select t.* from (select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
@@ -240,13 +233,12 @@ sub getDataAlbumsWithMostTracks {
 			and audio = 1
 		group by albums.title
 		order by nooftracks desc, albums.title asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
 }
 
 sub getDataAlbumsWithMostRatedTracks {
-	my $sqlstatement = "select t.* from (select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
@@ -258,13 +250,12 @@ sub getDataAlbumsWithMostRatedTracks {
 			and tracks_persistent.rating > 0
 		group by albums.title
 		order by nooftracks desc, albums.title asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
 }
 
 sub getDataAlbumsWithTopRatedTracksAll {
-	my $sqlstatement = "select t.* from (select albums.title, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
@@ -275,13 +266,12 @@ sub getDataAlbumsWithTopRatedTracksAll {
 			albums.title is not null
 		group by albums.title
 		order by avgrating desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.avgrating asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
 }
 
 sub getDataAlbumsWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select t.* from (select albums.title, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
@@ -293,13 +283,12 @@ sub getDataAlbumsWithTopRatedTracksRatedOnly {
 			and tracks_persistent.rating > 0
 		group by albums.title
 		order by avgrating desc, contributors.name asc
-		limit $rowLimit) as t
-		order by t.avgrating asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
 }
 
 sub getDataAlbumsWithMostPlayedTracks {
-	my $sqlstatement = "select t.* from (select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
@@ -311,13 +300,12 @@ sub getDataAlbumsWithMostPlayedTracks {
 			and tracks_persistent.playCount > 0
 		group by albums.title
 		order by nooftracks desc, albums.title asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
 }
 
 sub getDataAlbumsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select t.* from (select albums.title, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
@@ -328,15 +316,14 @@ sub getDataAlbumsWithMostPlayedTracksAverage {
 			albums.title is not null
 		group by albums.title
 		order by avgplaycount desc, albums.title asc
-		limit $rowLimit) as t
-		order by t.avgplaycount asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
 }
 
 # ---- genres ---- #
 
 sub getDataGenresWithMostTracks {
-	my $sqlstatement = "select t.* from (select genres.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks
 		join genre_track on
 			tracks.id=genre_track.track
 		join genres on
@@ -346,13 +333,12 @@ sub getDataGenresWithMostTracks {
 			and genres.name is not null
 		group by genres.name
 		order by nooftracks desc, genres.name asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataGenresWithMostAlbums {
-	my $sqlstatement = "select t.* from (select genres.name, count(distinct albums.id) as noofalbums from albums
+	my $sqlstatement = "select genres.name, count(distinct albums.id) as noofalbums from albums
 		left join tracks on
 			tracks.album=albums.id
 		join genre_track on
@@ -363,13 +349,12 @@ sub getDataGenresWithMostAlbums {
 			genres.name is not null
 		group by genres.name
 		order by noofalbums desc, genres.name asc
-		limit $rowLimit) as t
-		order by t.noofalbums asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataGenresWithMostRatedTracks {
-	my $sqlstatement = "select t.* from (select genres.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join genre_track on
@@ -381,13 +366,12 @@ sub getDataGenresWithMostRatedTracks {
 			and tracks_persistent.rating > 0
 		group by genres.name
 		order by nooftracks desc, genres.name asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataGenresWithTopRatedTracksAll {
-	my $sqlstatement = "select t.* from (select genres.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select genres.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join genre_track on
@@ -399,13 +383,12 @@ sub getDataGenresWithTopRatedTracksAll {
 			and genres.name is not null
 		group by genres.name
 		order by avgrating desc, genres.name asc
-		limit $rowLimit) as t
-		order by t.avgrating asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataGenresWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select t.* from (select genres.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select genres.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join genre_track on
@@ -418,13 +401,12 @@ sub getDataGenresWithTopRatedTracksRatedOnly {
 			and tracks_persistent.rating > 0
 		group by genres.name
 		order by avgrating desc, genres.name asc
-		limit $rowLimit) as t
-		order by t.avgrating asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataGenresWithMostPlayedTracks {
-	my $sqlstatement = "select t.* from (select genres.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join genre_track on
@@ -437,13 +419,12 @@ sub getDataGenresWithMostPlayedTracks {
 			and tracks_persistent.playCount > 0
 		group by genres.name
 		order by nooftracks desc, genres.name asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataGenresWithMostPlayedTracksAverage {
-	my $sqlstatement = "select t.* from (select genres.name, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
+	my $sqlstatement = "select genres.name, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		join genre_track on
@@ -456,13 +437,12 @@ sub getDataGenresWithMostPlayedTracksAverage {
 			and tracks_persistent.playCount > 0
 		group by genres.name
 		order by avgplaycount desc, genres.name asc
-		limit $rowLimit) as t
-		order by t.avgplaycount asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataGenresWithTopAverageBitrate {
-	my $sqlstatement = "select t.* from (select genres.name,avg(case when bitrate is null then 0 else round(bitrate/16000)*16 end) as avgbitrate from tracks
+	my $sqlstatement = "select genres.name,avg(case when bitrate is null then 0 else round(bitrate/16000)*16 end) as avgbitrate from tracks
 		join genre_track on
 				tracks.id=genre_track.track
 		join genres on
@@ -471,8 +451,7 @@ sub getDataGenresWithTopAverageBitrate {
 			genres.name is not null
 		group by genres.name
 		order by avgbitrate desc, genres.name asc
-		limit $rowLimit) as t
-		order by t.avgbitrate asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -488,32 +467,30 @@ sub getDataTracksByYear {
 }
 
 sub getDataYearsWithMostTracks {
-	my $sqlstatement = "select t.* from (select year, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select year, count(distinct tracks.id) as nooftracks from tracks
 		where
 			year > 0
 			and year is not null
 		group by year
 		order by nooftracks desc, year asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithMostAlbums {
-	my $sqlstatement = "select t.* from (select year, count(distinct tracks.album) as noofalbums from tracks
+	my $sqlstatement = "select year, count(distinct tracks.album) as noofalbums from tracks
 		where
 			year > 0
 			and year is not null
 			and tracks.album is not null
 		group by year
 		order by noofalbums desc, year asc
-		limit $rowLimit) as t
-		order by t.noofalbums asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithMostRatedTracks {
-	my $sqlstatement = "select t.* from (select year, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select year, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		where
@@ -522,13 +499,12 @@ sub getDataYearsWithMostRatedTracks {
 			and tracks_persistent.rating > 0
 		group by year
 		order by nooftracks desc, year asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithTopRatedTracksAll {
-	my $sqlstatement = "select t.* from (select year, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select year, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		where
@@ -537,13 +513,12 @@ sub getDataYearsWithTopRatedTracksAll {
 			and tracks_persistent.rating > 0
 		group by year
 		order by avgrating desc, year asc
-		limit $rowLimit) as t
-		order by t.avgrating asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select t.* from (select year, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select year, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		where
@@ -552,13 +527,12 @@ sub getDataYearsWithTopRatedTracksRatedOnly {
 			and tracks_persistent.rating > 0
 		group by year
 		order by avgrating desc, year asc
-		limit $rowLimit) as t
-		order by t.avgrating asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithMostPlayedTracks {
-	my $sqlstatement = "select t.* from (select year, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select year, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		where
@@ -567,13 +541,12 @@ sub getDataYearsWithMostPlayedTracks {
 			and tracks_persistent.playCount > 0
 		group by year
 		order by nooftracks desc, year asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select t.* from (select year, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
+	my $sqlstatement = "select year, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		where
@@ -582,13 +555,12 @@ sub getDataYearsWithMostPlayedTracksAverage {
 			and tracks_persistent.playCount > 0
 		group by year
 		order by avgplaycount desc, year asc
-		limit $rowLimit) as t
-		order by t.avgplaycount asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataDecadesWithMostPlayedTracks {
-	my $sqlstatement = "select t.* from (select cast(((tracks.year/10)*10) as int)||'s', count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		where
@@ -597,13 +569,12 @@ sub getDataDecadesWithMostPlayedTracks {
 			and tracks_persistent.playCount > 0
 		group by cast(((tracks.year/10)*10) as int)||'s'
 		order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc
-		limit $rowLimit) as t
-		order by t.nooftracks asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataDecadesWithMostPlayedTracksAverage {
-	my $sqlstatement = "select t.* from (select cast(((tracks.year/10)*10) as int)||'s', avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
 		left join tracks_persistent on
 			tracks.url=tracks_persistent.url
 		where
@@ -612,8 +583,7 @@ sub getDataDecadesWithMostPlayedTracksAverage {
 			and tracks_persistent.playCount > 0
 		group by cast(((tracks.year/10)*10) as int)||'s'
 		order by avgplaycount desc, cast(((tracks.year/10)*10) as int)||'s' asc
-		limit $rowLimit) as t
-		order by t.avgplaycount asc;";
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -1016,7 +986,6 @@ sub getDataTrackTitleMostFrequentWords {
 	my $keyMaxNo = scalar (@keys) > 50 ? 50: scalar (@keys);
 	@keys = reverse @keys;
 	@keys = splice(@keys, 0, $keyMaxNo);
-	@keys = reverse @keys;
 
 	$log->debug(Dumper(\@keys));
 	return \@keys;
