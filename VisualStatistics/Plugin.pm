@@ -934,42 +934,38 @@ sub getDataLibStatsText {
 }
 
 sub getDataTrackTitleMostFrequentWords {
-	my %ignoreCommonWords = ("able" => 1, "about" => 1, "above" => 1, "act" => 1, "adagio" => 1, "after" => 1, "again" => 1, "against" => 1, "ago" => 1, "ain" => 1, "akt" => 1, "album" => 1, "all" => 1, "also" => 1, "alt" => 1, "alternate" => 1, "always" => 1, "among" => 1, "and" => 1, "another" => 1, "any" => 1, "are" => 1, "aria" => 1, "around" => 1, "atto" => 1, "autre" => 1, "away" => 1, "back" => 1, "bad" => 1, "been" => 1, "before" => 1, "behind" => 1, "big" => 1, "black" => 1, "blue" => 1, "bonus" => 1, "but" => 1, "bwv" => 1, "can" => 1, "chanson" => 1, "che" => 1, "come" => 1, "comme" => 1, "con" => 1, "concerto" => 1, "cosa" => 1, "could" => 1, "dans" => 1, "das" => 1, "day" => 1, "del" => 1, "demo" => 1, "dein" => 1, "den" => 1, "der" => 1, "des" => 1, "did" => 1, "die" => 1, "don" => 1, "done" => 1, "down" => 1, "dub" => 1, "dur" => 1, "each" => 1, "edit" => 1, "ein" => 1, "either" => 1, "else" => 1, "est" => 1, "even" => 1, "ever" => 1, "every" => 1, "extended" => 1, "feat" => 1, "featuring" => 1, "first" => 1, "flat" => 1, "for" => 1, "from" => 1, "fur" => 1, "get" => 1, "girl" => 1, "gone" => 1, "gonna" => 1, "good" => 1, "got" => 1, "had" => 1, "has" => 1, "have" => 1, "heart" => 1, "her" => 1, "here" => 1, "him" => 1, "his" => 1, "home" => 1, "how" => 1, "ich" => 1, "iii" => 1, "instrumental" => 1, "interlude" => 1, "intro" => 1, "ist" => 1, "just" => 1, "keep" => 1, "know" => 1, "las" => 1, "les" => 1, "let" => 1, "life" => 1, "like" => 1, "little" => 1, "live" => 1, "long" => 1, "los" => 1, "major" => 1, "make" => 1, "man" => 1, "master" => 1, "may" => 1, "medley" => 1, "mein" => 1, "meu" => 1, "mind" => 1, "mine" => 1, "minor" => 1, "miss" => 1, "mix" => 1, "moderato" => 1, "moi" => 1, "moll" => 1, "molto" => 1, "mon" => 1, "mono" => 1, "more" => 1, "most" => 1, "much" => 1, "music" => 1, "must" => 1, "nao" => 1, "near" => 1, "need" => 1, "never" => 1, "new" => 1, "nicht" => 1, "non" => 1, "not" => 1, "now" => 1, "off" => 1, "old" => 1, "once" => 1, "one" => 1, "only" => 1, "orchestra" => 1, "original" => 1, "ouh" => 1, "our" => 1, "ours" => 1, "out" => 1, "over" => 1, "own" => 1, "part" => 1, "pas" => 1, "piano" => 1, "plus" => 1, "por" => 1, "pour" => 1, "prelude" => 1, "presto" => 1, "quartet" => 1, "que" => 1, "qui" => 1, "quite" => 1, "radio" => 1, "rather" => 1, "recitativo" => 1, "recorded" => 1, "remix" => 1, "right" => 1, "rock" => 1, "roll" => 1, "sao" => 1, "say" => 1, "scene" => 1, "see" => 1, "seem" => 1, "session" => 1, "she" => 1, "side" => 1, "single" => 1, "skit" => 1, "solo" => 1, "some" => 1, "something" => 1, "somos" => 1, "son" => 1, "sonata" => 1, "song" => 1, "sous" => 1, "stereo" => 1, "still" => 1, "street" => 1, "such" => 1, "suite" => 1, "symphony" => 1, "take" => 1, "tel" => 1, "tempo" => 1, "than" => 1, "that" => 1, "the" => 1, "their" => 1, "them" => 1, "then" => 1, "there" => 1, "these" => 1, "they" => 1, "thing" => 1, "think" => 1, "this" => 1, "those" => 1, "though" => 1, "thought" => 1, "three" => 1, "through" => 1, "thus" => 1, "time" => 1, "together" => 1, "too" => 1, "track" => 1, "trio" => 1, "try" => 1, "two" => 1, "una" => 1, "und" => 1, "under" => 1, "une" => 1, "until" => 1, "use" => 1, "version" => 1, "very" => 1, "vivace" => 1, "vocal" => 1, "wanna" => 1, "want" => 1, "was" => 1, "way" => 1, "well" => 1, "went" => 1, "were" => 1, "what" => 1, "when" => 1, "where" => 1, "whether" => 1, "which" => 1, "while" => 1, "who" => 1, "whose" => 1, "why" => 1, "will" => 1, "with" => 1, "world" => 1, "yet" => 1, "you" => 1, "your" => 1);
+	my %ignoreCommonWords = map {
+		$_ => 1
+	} ("able", "about", "above", "acoustic", "act", "adagio", "after", "again", "against", "ago", "ain", "air", "akt", "album", "all", "allegretto", "allegro", "also", "alt", "alternate", "always", "among", "and", "andante", "another", "any", "are", "aria", "around", "atto", "autre", "away", "back", "bad", "beat", "been", "before", "behind", "big", "black", "blue", "bonus", "but", "bwv", "can", "chanson", "che", "club", "come", "comme", "con", "concerto", "cosa", "could", "dans", "das", "day", "days", "dein", "del", "demo", "den", "der", "des", "did", "die", "don", "done", "down", "dub", "dur", "each", "edit", "ein", "either", "else", "end", "est", "even", "ever", "every", "everything", "extended", "feat", "featuring", "first", "flat", "for", "from", "fur", "get", "girl", "going", "gone", "gonna", "good", "got", "gotta", "had", "has", "have", "heart", "her", "here", "hey", "him", "his", "home", "how", "ich", "iii", "instrumental", "interlude", "intro", "ist", "just", "keep", "know", "las", "last", "les", "let", "life", "like", "little", "live", "long", "los", "major", "make", "man", "master", "may", "medley", "mein", "meu", "mind", "mine", "minor", "miss", "mix", "moderato", "moi", "moll", "molto", "mon", "mono", "more", "most", "much", "music", "must", "nao", "near", "need", "never", "new", "nicht", "nobody", "non", "not", "nothing", "now", "off", "old", "once", "one", "only", "orchestra", "original", "ouh", "our", "ours", "out", "over", "own", "part", "pas", "piano", "please", "plus", "por", "pour", "prelude", "presto", "quartet", "que", "qui", "quite", "radio", "rather", "recitativo", "recorded", "remix", "right", "rock", "roll", "sao", "say", "scene", "see", "seem", "session", "she", "side", "single", "skit", "solo", "some", "something", "somos", "son", "sonata", "song", "sous", "stereo", "still", "street", "such", "suite", "symphony", "szene", "take", "teil", "tel", "tempo", "than", "that", "the", "their", "them", "then", "there", "these", "they", "thing", "think", "this", "those", "though", "thought", "three", "through", "thus", "time", "titel", "together", "too", "track", "trio", "try", "two", "una", "und", "under", "une", "until", "use", "version", "very", "vivace", "vocal", "wanna", "want", "was", "way", "well", "went", "were", "what", "when", "where", "whether", "which", "while", "who", "whose", "why", "will", "with", "without", "woo", "world", "yet", "you", "your");
+
 	my $dbh = getCurrentDBH();
 	my $sqlstatement = "select tracks.titlesearch from tracks
 		where
-			tracks.titlesearch is not null
-			and length(tracks.titlesearch) > 2
+			length(tracks.titlesearch) > 2
 			and tracks.audio = 1
-		group by tracks.titlesearch
-		order by tracks.titlesearch asc;";
+		group by tracks.titlesearch";
 	my $thisTitle;
 	my %frequentwords;
 	my $sth = $dbh->prepare($sqlstatement);
 	$sth->execute();
 	$sth->bind_columns(undef, \$thisTitle);
 	while ($sth->fetch()) {
+		next unless $thisTitle;
 		my @words = split /\W+/, $thisTitle; #skip non-word characters
 		foreach my $word(@words){
 			chomp $word;
 			$word = lc $word;
 			$word =~ s/^\s+|\s+$//g; #remove beginning/trailing whitespace
 			if ((length $word < 3) || $ignoreCommonWords{$word}) {next;}
-			my $key = $word;
-			if (exists $frequentwords{$key}) {
-				$frequentwords{$key}++;
-			} else {
-				$frequentwords{$key} = 1;
-			}
+			$frequentwords{$word} ||= 0;
+			$frequentwords{$word}++;
 		}
 	}
 
-	my $itemCount = 0;
 	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or "\F$b" cmp "\F$a"} keys %frequentwords) {
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or "\F$a" cmp "\F$b"} keys %frequentwords) {
 		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
-		$itemCount++;
- 		if ($itemCount == 50) {last;}
+ 		last if scalar @keys >= 50;
 	};
 
 	$log->debug(Dumper(\@keys));
