@@ -2,7 +2,7 @@ PLUGIN_VISUALSTATISTICS
 	EN	Visual Statistics
 
 PLUGIN_VISUALSTATISTICS_DESC
-	EN	Have a look at your library statistics with charts. Makes them look better but not more interesting.
+	EN	Have a look at your library statistics with charts
 
 PLUGIN_STATISTICSLIGH_LOG_DESC
 	EN	Log of plugin VisualStatistics
