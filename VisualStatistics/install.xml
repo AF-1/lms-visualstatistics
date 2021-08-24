@@ -3,7 +3,7 @@
 	<id>af8d4c02-48a4-093b-c831-0a9a7f7ae652</id>
 	<name>PLUGIN_VISUALSTATISTICS</name>
 	<module>Plugins::VisualStatistics::Plugin</module>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 	<description>PLUGIN_VISUALSTATISTICS_DESC</description>
 	<creator>AF</creator>
 	<icon>plugins/VisualStatistics/html/images/visualstatistics_svg.png</icon>

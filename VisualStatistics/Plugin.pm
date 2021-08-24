@@ -61,7 +61,7 @@ sub handleWeb {
 	my $host = $params->{host} || (Slim::Utils::Network::serverAddr() . ':' . preferences('server')->get('httpport'));
 	$params->{squeezebox_server} = 'http://' . $host . '/' . JSON_URL;
 
-	my $ratedTrackCountSQL = "select count(*) from tracks,tracks_persistent where tracks.url=tracks_persistent.url and audio=1 and rating>0";
+	my $ratedTrackCountSQL = "select count(*) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and audio=1 and rating>0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL) || 0;
 	$params->{ratedtrackcount} = $ratedTrackCount;
 
@@ -98,11 +98,11 @@ my $rowLimit = 50;
 sub getDataArtistWithMostTracks {
 	my $sqlstatement = "select contributors.name as roles, count(distinct tracks.id) as nooftracks from contributors
 		left join contributor_track on
-			contributors.id=contributor_track.contributor and contributor_track.role in (1,6)
+			contributor_track.contributor = contributors.id and contributor_track.role in (1,6)
 		left join tracks on
-			contributor_track.track=tracks.id
+			tracks.id = contributor_track.track
 		left join albums on
-			albums.id=tracks.album
+			albums.id = tracks.album
 		where
 			contributors.id is not null
 		group by contributors.id
@@ -115,9 +115,9 @@ sub getDataArtistWithMostAlbums {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $sqlstatement = "select contributors.name, count(distinct albums.id) as noofalbums from albums
 		join contributors on
-			albums.contributor = contributors.id
+			contributors.id = albums.contributor
 		left join contributor_track on
-			albums.contributor=contributor_track.contributor and contributor_track.role in (1,5)
+			contributor_track.contributor = albums.contributor and contributor_track.role in (1,5)
 		where
 			compilation is not 1
 			and contributors.name is not '$VAstring'
@@ -130,9 +130,9 @@ sub getDataArtistWithMostAlbums {
 sub getDataArtistWithMostRatedTracks {
 	my $sqlstatement = "select contributors.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
-			tracks.primary_artist = contributors.id
+			contributors.id = tracks.primary_artist
 		where
 			audio=1
 			and tracks_persistent.rating > 0
@@ -143,11 +143,11 @@ sub getDataArtistWithMostRatedTracks {
 }
 
 sub getDataArtistsWithTopRatedTracksAll {
-	my $sqlstatement = "select contributors.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
-			tracks.primary_artist = contributors.id
+			contributors.id = tracks.primary_artist
 		where
 			audio=1
 		group by tracks.primary_artist
@@ -157,11 +157,11 @@ sub getDataArtistsWithTopRatedTracksAll {
 }
 
 sub getDataArtistsWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select contributors.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
-			tracks.primary_artist = contributors.id
+			contributors.id = tracks.primary_artist
 		where
 			audio=1
 			and tracks_persistent.rating > 0
@@ -174,9 +174,9 @@ sub getDataArtistsWithTopRatedTracksRatedOnly {
 sub getDataArtistsWithMostPlayedTracks {
 	my $sqlstatement = "select contributors.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
-			tracks.primary_artist = contributors.id
+			contributors.id = tracks.primary_artist
 		where
 			audio=1
 			and tracks_persistent.playCount > 0
@@ -187,11 +187,11 @@ sub getDataArtistsWithMostPlayedTracks {
 }
 
 sub getDataArtistsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select contributors.name, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
+	my $sqlstatement = "select contributors.name, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
-			tracks.primary_artist = contributors.id
+			contributors.id = tracks.primary_artist
 		where
 			audio=1
 		group by tracks.primary_artist
@@ -201,11 +201,11 @@ sub getDataArtistsWithMostPlayedTracksAverage {
 }
 
 sub getDataArtistsRatingPlaycount {
-	my $sqlstatement = "select t.* from (select avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating, contributors.name from tracks
+	my $sqlstatement = "select t.* from (select avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
-			tracks.primary_artist = contributors.id
+			contributors.id = tracks.primary_artist
 		where
 			audio=1
 		group by tracks.primary_artist) as t
@@ -244,7 +244,7 @@ sub getDataAlbumsWithMostRatedTracks {
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
 			and tracks_persistent.rating > 0
@@ -255,13 +255,13 @@ sub getDataAlbumsWithMostRatedTracks {
 }
 
 sub getDataAlbumsWithTopRatedTracksAll {
-	my $sqlstatement = "select albums.title, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
 		group by albums.title
@@ -271,13 +271,13 @@ sub getDataAlbumsWithTopRatedTracksAll {
 }
 
 sub getDataAlbumsWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select albums.title, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
 			and tracks_persistent.rating > 0
@@ -294,7 +294,7 @@ sub getDataAlbumsWithMostPlayedTracks {
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
 			and tracks_persistent.playCount > 0
@@ -305,13 +305,13 @@ sub getDataAlbumsWithMostPlayedTracks {
 }
 
 sub getDataAlbumsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select albums.title, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, contributors.name from albums
 		join tracks on
 			tracks.album=albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
 		group by albums.title
@@ -325,9 +325,9 @@ sub getDataAlbumsWithMostPlayedTracksAverage {
 sub getDataGenresWithMostTracks {
 	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks
 		join genre_track on
-			tracks.id=genre_track.track
+			genre_track.track = tracks.id
 		join genres on
-			genre_track.genre=genres.id
+			genres.id = genre_track.genre
 		where
 			audio=1
 			and genres.name is not null
@@ -340,11 +340,11 @@ sub getDataGenresWithMostTracks {
 sub getDataGenresWithMostAlbums {
 	my $sqlstatement = "select genres.name, count(distinct albums.id) as noofalbums from albums
 		left join tracks on
-			tracks.album=albums.id
+			tracks.album = albums.id
 		join genre_track on
-			tracks.id=genre_track.track
+			genre_track.track = tracks.id
 		join genres on
-			genre_track.genre=genres.id
+			genres.id = genre_track.genre
 		where
 			genres.name is not null
 		group by genres.name
@@ -356,11 +356,11 @@ sub getDataGenresWithMostAlbums {
 sub getDataGenresWithMostRatedTracks {
 	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join genre_track on
-			tracks.id=genre_track.track
+			genre_track.track = tracks.id
 		join genres on
-			genre_track.genre=genres.id
+			genres.id = genre_track.genre
 		where
 			genres.name is not null
 			and tracks_persistent.rating > 0
@@ -371,13 +371,13 @@ sub getDataGenresWithMostRatedTracks {
 }
 
 sub getDataGenresWithTopRatedTracksAll {
-	my $sqlstatement = "select genres.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select genres.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join genre_track on
-			tracks.id=genre_track.track
+			genre_track.track = tracks.id
 		join genres on
-			genre_track.genre=genres.id
+			genres.id = genre_track.genre
 		where
 			audio=1
 			and genres.name is not null
@@ -388,13 +388,13 @@ sub getDataGenresWithTopRatedTracksAll {
 }
 
 sub getDataGenresWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select genres.name, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select genres.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join genre_track on
-			tracks.id=genre_track.track
+			genre_track.track = tracks.id
 		join genres on
-			genre_track.genre=genres.id
+			genres.id = genre_track.genre
 		where
 			audio=1
 			and genres.name is not null
@@ -408,11 +408,11 @@ sub getDataGenresWithTopRatedTracksRatedOnly {
 sub getDataGenresWithMostPlayedTracks {
 	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join genre_track on
-			tracks.id=genre_track.track
+			genre_track.track = tracks.id
 		join genres on
-			genre_track.genre=genres.id
+			genres.id = genre_track.genre
 		where
 			audio=1
 			and genres.name is not null
@@ -424,13 +424,13 @@ sub getDataGenresWithMostPlayedTracks {
 }
 
 sub getDataGenresWithMostPlayedTracksAverage {
-	my $sqlstatement = "select genres.name, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
+	my $sqlstatement = "select genres.name, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		join genre_track on
-			tracks.id=genre_track.track
+			genre_track.track = tracks.id
 		join genres on
-			genre_track.genre=genres.id
+			genres.id = genre_track.genre
 		where
 			audio=1
 			and genres.name is not null
@@ -442,7 +442,7 @@ sub getDataGenresWithMostPlayedTracksAverage {
 }
 
 sub getDataGenresWithTopAverageBitrate {
-	my $sqlstatement = "select genres.name,avg(case when bitrate is null then 0 else round(bitrate/16000)*16 end) as avgbitrate from tracks
+	my $sqlstatement = "select genres.name, avg(round(ifnull(bitrate,0)/16000)*16) as avgbitrate from tracks
 		join genre_track on
 				tracks.id=genre_track.track
 		join genres on
@@ -492,7 +492,7 @@ sub getDataYearsWithMostAlbums {
 sub getDataYearsWithMostRatedTracks {
 	my $sqlstatement = "select year, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			year > 0
 			and year is not null
@@ -504,9 +504,9 @@ sub getDataYearsWithMostRatedTracks {
 }
 
 sub getDataYearsWithTopRatedTracksAll {
-	my $sqlstatement = "select year, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			year > 0
 			and year is not null
@@ -518,9 +518,9 @@ sub getDataYearsWithTopRatedTracksAll {
 }
 
 sub getDataYearsWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select year, avg(case when tracks_persistent.rating is null then 0 else tracks_persistent.rating/20 end) as avgrating from tracks
+	my $sqlstatement = "select year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			year > 0
 			and year is not null
@@ -534,7 +534,7 @@ sub getDataYearsWithTopRatedTracksRatedOnly {
 sub getDataYearsWithMostPlayedTracks {
 	my $sqlstatement = "select year, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			year > 0
 			and year is not null
@@ -546,9 +546,9 @@ sub getDataYearsWithMostPlayedTracks {
 }
 
 sub getDataYearsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select year, avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
+	my $sqlstatement = "select year, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			year > 0
 			and year is not null
@@ -562,7 +562,7 @@ sub getDataYearsWithMostPlayedTracksAverage {
 sub getDataDecadesWithMostPlayedTracks {
 	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			year > 0
 			and year is not null
@@ -574,9 +574,9 @@ sub getDataDecadesWithMostPlayedTracks {
 }
 
 sub getDataDecadesWithMostPlayedTracksAverage {
-	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', avg(case when tracks_persistent.playCount is null then 0 else tracks_persistent.playCount end) as avgplaycount from tracks
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			year > 0
 			and year is not null
@@ -590,7 +590,7 @@ sub getDataDecadesWithMostPlayedTracksAverage {
 sub getDataTracksByDateAdded {
 	my $sqlstatement = "select strftime('%d-%m-%Y',tracks_persistent.added, 'unixepoch', 'localtime') as dateadded, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			tracks_persistent.added > 0
 			and tracks_persistent.added is not null
@@ -786,7 +786,7 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 sub getDataListeningTimes {
 	my $sqlstatement = "select strftime('%H:%M',tracks_persistent.lastPlayed, 'unixepoch', 'localtime') as timelastplayed, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			tracks_persistent.lastPlayed > 0
 			and tracks_persistent.lastPlayed is not null
@@ -817,7 +817,7 @@ sub getDataLibStatsText {
 	my $totalLibrarySize = quickSQLcount($totalLibrarySizeSQL);
 	push (@result, {'name' => 'Total library size:', 'value' => $totalLibrarySize});
 
-	my $libraryAgeinSecsSQL = "select (strftime('%s', 'now', 'localtime') - min(tracks_persistent.added)) from tracks join tracks_persistent on tracks.url=tracks_persistent.url where tracks.audio=1";
+	my $libraryAgeinSecsSQL = "select (strftime('%s', 'now', 'localtime') - min(tracks_persistent.added)) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio=1";
 	my $libraryAge = prettifyTime(quickSQLcount($libraryAgeinSecsSQL));
 	push (@result, {'name' => 'Libary Age:', 'value' => $libraryAge});
 
@@ -846,9 +846,9 @@ sub getDataLibStatsText {
 		left join contributor_track on
 			contributor_track.contributor=contributors.id and contributor_track.role=1
 		left join tracks on
-			contributor_track.track=tracks.id
+			tracks.id = contributor_track.track
 		join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			tracks.audio=1
 			and tracks_persistent.playcount>0";
@@ -873,7 +873,7 @@ sub getDataLibStatsText {
 		left join tracks on
 			tracks.album=albums.id
 		join tracks_persistent on
-			tracks.url=tracks_persistent.url
+			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			tracks.audio=1
 			and tracks_persistent.playcount>0";
@@ -894,17 +894,17 @@ sub getDataLibStatsText {
 	my $losslessTrackCountPercentage = sprintf("%.1f", $losslessTrackCountFloat).'%';
 	push (@result, {'name' => 'Lossless songs:', 'value' => $losslessTrackCountPercentage});
 
-	my $ratedTrackCountSQL = "select count(*) from tracks,tracks_persistent where tracks.url=tracks_persistent.url and audio=1 and rating>0";
+	my $ratedTrackCountSQL = "select count(*) from tracks, tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and audio=1 and rating>0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL);
 	my $ratedTrackCountPercentage = sprintf("%.1f", ($ratedTrackCount/$trackCount * 100)).'%';
 	push (@result, {'name' => 'Rated songs:', 'value' => $ratedTrackCountPercentage});
 
-	my $songsPlayedOnceSQL = "select count(*) from tracks join tracks_persistent on tracks.url=tracks_persistent.url where audio=1 and tracks_persistent.playcount>0";
+	my $songsPlayedOnceSQL = "select count(*) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where audio=1 and tracks_persistent.playcount>0";
 	my $songsPlayedOnceFloat = quickSQLcount($songsPlayedOnceSQL)/$trackCount * 100;
 	my $songsPlayedOncePercentage = sprintf("%.1f", $songsPlayedOnceFloat).'%';
 	push (@result, {'name' => 'Songs played at least once:', 'value' => $songsPlayedOncePercentage});
 
-	my $songsPlayedTotalSQL = "select sum(tracks_persistent.playcount) from tracks join tracks_persistent on tracks.url=tracks_persistent.url where audio=1 and tracks_persistent.playcount>0";
+	my $songsPlayedTotalSQL = "select sum(tracks_persistent.playcount) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where audio=1 and tracks_persistent.playcount>0";
 	my $songsPlayedTotal = quickSQLcount($songsPlayedTotalSQL);
 	push (@result, {'name' => 'Total play count (incl. repeated):', 'value' => $songsPlayedTotal});
 
