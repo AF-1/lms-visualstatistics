@@ -819,7 +819,7 @@ sub getDataLibStatsText {
 
 	my $libraryAgeinSecsSQL = "select (strftime('%s', 'now', 'localtime') - min(tracks_persistent.added)) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio=1";
 	my $libraryAge = prettifyTime(quickSQLcount($libraryAgeinSecsSQL));
-	push (@result, {'name' => 'Libary Age:', 'value' => $libraryAge});
+	push (@result, {'name' => 'Library Age:', 'value' => $libraryAge});
 
 	my $artistCountSQL = "select count(distinct contributors.id) from contributors
 	join contributor_track on
