@@ -61,7 +61,7 @@ sub handleWeb {
 	my $host = $params->{host} || (Slim::Utils::Network::serverAddr() . ':' . preferences('server')->get('httpport'));
 	$params->{squeezebox_server} = 'http://' . $host . '/' . JSON_URL;
 
-	my $ratedTrackCountSQL = "select count(*) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and audio=1 and rating>0";
+	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL) || 0;
 	$params->{ratedtrackcount} = $ratedTrackCount;
 
@@ -96,16 +96,20 @@ my $rowLimit = 50;
 # ---- artists ------- #
 
 sub getDataArtistWithMostTracks {
-	my $sqlstatement = "select contributors.name as roles, count(distinct tracks.id) as nooftracks from contributors
-		left join contributor_track on
-			contributor_track.contributor = contributors.id and contributor_track.role in (1,6)
-		left join tracks on
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from contributors
+		join contributor_track on
+			contributor_track.contributor = contributors.id and contributor_track.role in (1,5,6)
+		join tracks on
 			tracks.id = contributor_track.track
-		left join albums on
+		join albums on
 			albums.id = tracks.album
 		where
 			contributors.id is not null
-		group by contributors.id
+			and contributors.name is not '$VAstring'
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by contributors.name
 		order by nooftracks desc, contributors.name asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
@@ -113,10 +117,10 @@ sub getDataArtistWithMostTracks {
 
 sub getDataArtistWithMostAlbums {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select contributors.name, count(distinct albums.id) as noofalbums from albums
+	my $sqlstatement = "select distinct contributors.name, count(distinct albums.id) as noofalbums from albums
 		join contributors on
 			contributors.id = albums.contributor
-		left join contributor_track on
+		join contributor_track on
 			contributor_track.contributor = albums.contributor and contributor_track.role in (1,5)
 		where
 			compilation is not 1
@@ -128,13 +132,16 @@ sub getDataArtistWithMostAlbums {
 }
 
 sub getDataArtistWithMostRatedTracks {
-	my $sqlstatement = "select contributors.name, count(distinct tracks.id) as nooftracks from tracks
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
 			contributors.id = tracks.primary_artist
 		where
-			audio=1
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
 			and tracks_persistent.rating > 0
 		group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
@@ -143,13 +150,16 @@ sub getDataArtistWithMostRatedTracks {
 }
 
 sub getDataArtistsWithTopRatedTracksAll {
-	my $sqlstatement = "select contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
 			contributors.id = tracks.primary_artist
 		where
-			audio=1
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
 		group by tracks.primary_artist
 		order by avgrating desc, contributors.name asc
 		limit $rowLimit;";
@@ -157,13 +167,16 @@ sub getDataArtistsWithTopRatedTracksAll {
 }
 
 sub getDataArtistsWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
 			contributors.id = tracks.primary_artist
 		where
-			audio=1
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
 			and tracks_persistent.rating > 0
 		group by tracks.primary_artist
 		order by avgrating desc, contributors.name asc
@@ -172,13 +185,16 @@ sub getDataArtistsWithTopRatedTracksRatedOnly {
 }
 
 sub getDataArtistsWithMostPlayedTracks {
-	my $sqlstatement = "select contributors.name, count(distinct tracks.id) as nooftracks from tracks
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
 			contributors.id = tracks.primary_artist
 		where
-			audio=1
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
 			and tracks_persistent.playCount > 0
 		group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
@@ -187,13 +203,16 @@ sub getDataArtistsWithMostPlayedTracks {
 }
 
 sub getDataArtistsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select contributors.name, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
 			contributors.id = tracks.primary_artist
 		where
-			audio=1
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
 		group by tracks.primary_artist
 		order by avgplaycount desc, contributors.name asc
 		limit $rowLimit;";
@@ -201,13 +220,16 @@ sub getDataArtistsWithMostPlayedTracksAverage {
 }
 
 sub getDataArtistsRatingPlaycount {
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $sqlstatement = "select t.* from (select avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
 			contributors.id = tracks.primary_artist
 		where
-			audio=1
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
 		group by tracks.primary_artist) as t
 		where (t.avgplaycount >= 0.05 and t.avgrating >= 0.05);";
 	return executeSQLstatement($sqlstatement, 3);
@@ -216,7 +238,12 @@ sub getDataArtistsRatingPlaycount {
 # ---- albums ---- #
 
 sub getDataAlbumsByYear {
-	my $sqlstatement = "select case when year>0 then year else 'Unknown' end, count(distinct albums.id) as noofalbums from albums
+	my $sqlstatement = "select case when albums.year > 0 then albums.year else 'Unknown' end, count(distinct albums.id) as noofalbums from albums
+		join tracks on
+			tracks.album = albums.id
+		where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by albums.year
 		order by albums.year asc";
 	return executeSQLstatement($sqlstatement);
@@ -225,12 +252,13 @@ sub getDataAlbumsByYear {
 sub getDataAlbumsWithMostTracks {
 	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
 		join tracks on
-			tracks.album=albums.id
+			tracks.album = albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		where
 			albums.title is not null
-			and audio = 1
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by albums.title
 		order by nooftracks desc, albums.title asc
 		limit $rowLimit;";
@@ -240,13 +268,15 @@ sub getDataAlbumsWithMostTracks {
 sub getDataAlbumsWithMostRatedTracks {
 	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
 		join tracks on
-			tracks.album=albums.id
+			tracks.album = albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.rating > 0
 		group by albums.title
 		order by nooftracks desc, albums.title asc
@@ -257,13 +287,15 @@ sub getDataAlbumsWithMostRatedTracks {
 sub getDataAlbumsWithTopRatedTracksAll {
 	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from albums
 		join tracks on
-			tracks.album=albums.id
+			tracks.album = albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by albums.title
 		order by avgrating desc, contributors.name asc
 		limit $rowLimit;";
@@ -273,13 +305,15 @@ sub getDataAlbumsWithTopRatedTracksAll {
 sub getDataAlbumsWithTopRatedTracksRatedOnly {
 	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from albums
 		join tracks on
-			tracks.album=albums.id
+			tracks.album = albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.rating > 0
 		group by albums.title
 		order by avgrating desc, contributors.name asc
@@ -290,13 +324,15 @@ sub getDataAlbumsWithTopRatedTracksRatedOnly {
 sub getDataAlbumsWithMostPlayedTracks {
 	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
 		join tracks on
-			tracks.album=albums.id
+			tracks.album = albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.playCount > 0
 		group by albums.title
 		order by nooftracks desc, albums.title asc
@@ -307,13 +343,15 @@ sub getDataAlbumsWithMostPlayedTracks {
 sub getDataAlbumsWithMostPlayedTracksAverage {
 	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, contributors.name from albums
 		join tracks on
-			tracks.album=albums.id
+			tracks.album = albums.id
 		join contributors on
 			contributors.id = albums.contributor
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by albums.title
 		order by avgplaycount desc, albums.title asc
 		limit $rowLimit;";
@@ -329,8 +367,9 @@ sub getDataGenresWithMostTracks {
 		join genres on
 			genres.id = genre_track.genre
 		where
-			audio=1
-			and genres.name is not null
+			genres.name is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by genres.name
 		order by nooftracks desc, genres.name asc
 		limit $rowLimit;";
@@ -339,7 +378,7 @@ sub getDataGenresWithMostTracks {
 
 sub getDataGenresWithMostAlbums {
 	my $sqlstatement = "select genres.name, count(distinct albums.id) as noofalbums from albums
-		left join tracks on
+		join tracks on
 			tracks.album = albums.id
 		join genre_track on
 			genre_track.track = tracks.id
@@ -347,6 +386,8 @@ sub getDataGenresWithMostAlbums {
 			genres.id = genre_track.genre
 		where
 			genres.name is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by genres.name
 		order by noofalbums desc, genres.name asc
 		limit $rowLimit;";
@@ -363,6 +404,8 @@ sub getDataGenresWithMostRatedTracks {
 			genres.id = genre_track.genre
 		where
 			genres.name is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.rating > 0
 		group by genres.name
 		order by nooftracks desc, genres.name asc
@@ -379,8 +422,9 @@ sub getDataGenresWithTopRatedTracksAll {
 		join genres on
 			genres.id = genre_track.genre
 		where
-			audio=1
-			and genres.name is not null
+			genres.name is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by genres.name
 		order by avgrating desc, genres.name asc
 		limit $rowLimit;";
@@ -396,8 +440,9 @@ sub getDataGenresWithTopRatedTracksRatedOnly {
 		join genres on
 			genres.id = genre_track.genre
 		where
-			audio=1
-			and genres.name is not null
+			genres.name is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.rating > 0
 		group by genres.name
 		order by avgrating desc, genres.name asc
@@ -414,8 +459,9 @@ sub getDataGenresWithMostPlayedTracks {
 		join genres on
 			genres.id = genre_track.genre
 		where
-			audio=1
-			and genres.name is not null
+			genres.name is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.playCount > 0
 		group by genres.name
 		order by nooftracks desc, genres.name asc
@@ -432,8 +478,9 @@ sub getDataGenresWithMostPlayedTracksAverage {
 		join genres on
 			genres.id = genre_track.genre
 		where
-			audio=1
-			and genres.name is not null
+			genres.name is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.playCount > 0
 		group by genres.name
 		order by avgplaycount desc, genres.name asc
@@ -442,13 +489,15 @@ sub getDataGenresWithMostPlayedTracksAverage {
 }
 
 sub getDataGenresWithTopAverageBitrate {
-	my $sqlstatement = "select genres.name, avg(round(ifnull(bitrate,0)/16000)*16) as avgbitrate from tracks
+	my $sqlstatement = "select genres.name, avg(round(ifnull(tracks.bitrate,0)/16000)*16) as avgbitrate from tracks
 		join genre_track on
-				tracks.id=genre_track.track
+			tracks.id=genre_track.track
 		join genres on
-				genre_track.genre=genres.id
+			genre_track.genre=genres.id
 		where
 			genres.name is not null
+			and	tracks.audio = 1
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by genres.name
 		order by avgbitrate desc, genres.name asc
 		limit $rowLimit;";
@@ -458,21 +507,25 @@ sub getDataGenresWithTopAverageBitrate {
 # ---- years ---- #
 
 sub getDataTracksByYear {
-	my $sqlstatement = "select case when year > 0 then year else 'Unknown' end, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select case when tracks.year > 0 then tracks.year else 'Unknown' end, count(distinct tracks.id) as nooftracks from tracks
 		where
-			year is not null
-		group by year
-		order by year asc;";
+			tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by tracks.year
+		order by tracks.year asc;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithMostTracks {
-	my $sqlstatement = "select year, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks
 		where
-			year > 0
-			and year is not null
-		group by year
-		order by nooftracks desc, year asc
+			tracks.year > 0
+			and tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by tracks.year
+		order by nooftracks desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
@@ -480,67 +533,76 @@ sub getDataYearsWithMostTracks {
 sub getDataYearsWithMostAlbums {
 	my $sqlstatement = "select year, count(distinct tracks.album) as noofalbums from tracks
 		where
-			year > 0
-			and year is not null
+			tracks.year > 0
+			and tracks.year is not null
 			and tracks.album is not null
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and	(tracks.audio = 1 or tracks.extid is not null)
 		group by year
-		order by noofalbums desc, year asc
+		order by noofalbums desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithMostRatedTracks {
-	my $sqlstatement = "select year, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
-			year > 0
-			and year is not null
+			tracks.year > 0
+			and tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.rating > 0
-		group by year
-		order by nooftracks desc, year asc
+		group by tracks.year
+		order by nooftracks desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithTopRatedTracksAll {
-	my $sqlstatement = "select year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
+	my $sqlstatement = "select tracks.year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
-			year > 0
-			and year is not null
-			and tracks_persistent.rating > 0
-		group by year
-		order by avgrating desc, year asc
+			tracks.year > 0
+			and tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by tracks.year
+		order by avgrating desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithTopRatedTracksRatedOnly {
-	my $sqlstatement = "select year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
+	my $sqlstatement = "select tracks.year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
-			year > 0
-			and year is not null
+			tracks.year > 0
+			and tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.rating > 0
-		group by year
-		order by avgrating desc, year asc
+		group by tracks.year
+		order by avgrating desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataYearsWithMostPlayedTracks {
-	my $sqlstatement = "select year, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
-			year > 0
-			and year is not null
+			tracks.year > 0
+			and tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.playCount > 0
-		group by year
-		order by nooftracks desc, year asc
+		group by tracks.year
+		order by nooftracks desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
@@ -550,11 +612,13 @@ sub getDataYearsWithMostPlayedTracksAverage {
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
-			year > 0
-			and year is not null
+			tracks.year > 0
+			and tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.playCount > 0
-		group by year
-		order by avgplaycount desc, year asc
+		group by tracks.year
+		order by avgplaycount desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
@@ -564,8 +628,10 @@ sub getDataDecadesWithMostPlayedTracks {
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
-			year > 0
-			and year is not null
+			tracks.year > 0
+			and tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.playCount > 0
 		group by cast(((tracks.year/10)*10) as int)||'s'
 		order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc
@@ -578,8 +644,10 @@ sub getDataDecadesWithMostPlayedTracksAverage {
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
-			year > 0
-			and year is not null
+			tracks.year > 0
+			and tracks.year is not null
+			and	(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and tracks_persistent.playCount > 0
 		group by cast(((tracks.year/10)*10) as int)||'s'
 		order by avgplaycount desc, cast(((tracks.year/10)*10) as int)||'s' asc
@@ -604,7 +672,8 @@ sub getDataTracksByDateAdded {
 sub getDataAudioFileFormats {
 	my $sqlstatement = "select tracks.content_type, count(distinct tracks.id) as nooftypes from tracks
 		where
-			tracks.audio=1
+			tracks.audio = 1
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by tracks.content_type
 		order by nooftypes desc";
 	return executeSQLstatement($sqlstatement);
@@ -613,15 +682,15 @@ sub getDataAudioFileFormats {
 sub getDataTracksByBitrate {
 	my $sqlstatement = "select round(bitrate/16000)*16, count(distinct tracks.id) as nooftracks from tracks
 		where
-			audio=1
-			and bitrate is not null
-			and bitrate > 0
+			tracks.audio = 1
+			and tracks.bitrate is not null
+			and tracks.bitrate > 0
 		group by (case
-			when round(bitrate/16000)*16 > 1400 then round(bitrate/160000)*160
-			when round(bitrate/16000)*16 < 10 then 16
-			else round(bitrate/16000)*16
+			when round(tracks.bitrate/16000)*16 > 1400 then round(tracks.bitrate/160000)*160
+			when round(tracks.bitrate/16000)*16 < 10 then 16
+			else round(tracks.bitrate/16000)*16
 			end)
-		order by bitrate asc;";
+		order by tracks.bitrate asc;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -655,11 +724,11 @@ sub getDataTracksByBitrateAudioFileFormat {
 		my $subData = '';
 		my $sqlbitrate = "select tracks.content_type, count(distinct tracks.id) as nooftracks from tracks
 			where
-				tracks.audio=1
-				and bitrate is not null
-				and round(bitrate/10000)*10 >= $minVal
-				and round(bitrate/10000)*10 < $maxVal
-				and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' AND tracks.content_type != 'dir')
+				tracks.audio = 1
+				and tracks.bitrate is not null
+				and round(tracks.bitrate/10000)*10 >= $minVal
+				and round(tracks.bitrate/10000)*10 < $maxVal
+				and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
 			group by tracks.content_type
 			order by tracks.content_type asc";
 		my $sth = $dbh->prepare($sqlbitrate);
@@ -681,9 +750,9 @@ sub getDataTracksByBitrateAudioFileFormat {
 
 	my $sqlfileformats = "select distinct tracks.content_type from tracks
 		where
-			tracks.audio=1
+			tracks.audio = 1
 			and tracks.remote = 0
-			and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' AND tracks.content_type != 'dir')
+			and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
 		group by tracks.content_type
 		order by tracks.content_type asc";
 	my @fileFormatsComplete = ();
@@ -701,7 +770,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 	if (scalar(@fileFormatsNoBitrate) > 0) {
 		foreach my $fileFormatNoBitrate (@fileFormatsNoBitrate) {
 			my $sqlfileformatsnobitrate = "select count(distinct tracks.id) from tracks
-				where tracks.audio=1 and tracks.content_type=\"$fileFormatNoBitrate\"";
+				where tracks.audio = 1 and tracks.content_type=\"$fileFormatNoBitrate\"";
 			my $sth = $dbh->prepare($sqlfileformatsnobitrate);
 			my $fileFormatCount = 0;
 			$sth->execute();
@@ -725,10 +794,10 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 	my @result = ();
 	my $sqlfileformats = "select distinct tracks.content_type from tracks
 		where
-			tracks.audio=1
-			and bitrate is not null
-			and bitrate > 0
-			and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' AND tracks.content_type != 'dir')
+			tracks.audio = 1
+			and tracks.bitrate is not null
+			and tracks.bitrate > 0
+			and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
 		group by tracks.content_type
 		order by tracks.content_type asc";
 	my @fileFormatsComplete = ();
@@ -743,19 +812,19 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 	$sth->finish();
 	foreach my $thisFileFormat (@fileFormatsComplete) {
 		my $subData = '';
-		my $sqlbitrate = "select round(bitrate/16000)*16, count(distinct tracks.id) as nooftracks from tracks
+		my $sqlbitrate = "select round(tracks.bitrate/16000)*16, count(distinct tracks.id) as nooftracks from tracks
 		where
-			audio=1
+			tracks.audio = 1
 			and tracks.remote = 0
 			and tracks.content_type=\"$thisFileFormat\"
-			and bitrate is not null
-			and bitrate > 0
+			and tracks.bitrate is not null
+			and tracks.bitrate > 0
 		group by (case
-			when round(bitrate/16000)*16 > 1400 then round(bitrate/160000)*160
-			when round(bitrate/16000)*16 < 10 then 16
-			else round(bitrate/16000)*16
+			when round(tracks.bitrate/16000)*16 > 1400 then round(tracks.bitrate/160000)*160
+			when round(tracks.bitrate/16000)*16 < 10 then 16
+			else round(tracks.bitrate/16000)*16
 			end)
-		order by bitrate asc;";
+		order by tracks.bitrate asc;";
 		my $sth = $dbh->prepare($sqlbitrate);
  		#eval {
 			$sth->execute();
@@ -797,135 +866,124 @@ sub getDataListeningTimes {
 
 sub getDataLibStatsText {
 	my @result = ();
-	my $trackCountSQL = "select count(*) from tracks where audio=1";
+	my $trackCountSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCount = quickSQLcount($trackCountSQL);
 	push (@result, {'name' => 'Total tracks:', 'value' => $trackCount});
 
-	my $trackCountLocalSQL = "select count(*) from tracks where audio=1 and tracks.remote=0";
+	my $trackCountLocalSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.remote = 0 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCountLocal = quickSQLcount($trackCountLocalSQL);
 	push (@result, {'name' => 'Total local tracks:', 'value' => $trackCountLocal});
 
-	my $trackCountRemoteSQL = "select count(*) from tracks where audio=1 and tracks.remote=1";
+	my $trackCountRemoteSQL = "select count(distinct tracks.id) from tracks where tracks.audio =1 and tracks.remote = 1 and tracks.extid is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCountRemote = quickSQLcount($trackCountRemoteSQL);
 	push (@result, {'name' => 'Total remote tracks:', 'value' => $trackCountRemote});
 
-	my $totalTimeSQL = "select sum(secs) from tracks where tracks.audio=1";
+	my $totalTimeSQL = "select sum(secs) from tracks where tracks.audio = 1 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $totalTime = prettifyTime(quickSQLcount($totalTimeSQL));
 	push (@result, {'name' => 'Total playing time:', 'value' => $totalTime});
 
-	my $totalLibrarySizeSQL = "select round((sum(filesize)/1024/1024/1024),2)||' GB' from tracks where tracks.audio=1 and tracks.remote=0";
+	my $totalLibrarySizeSQL = "select round((sum(filesize)/1024/1024/1024),2)||' GB' from tracks where tracks.audio = 1 and tracks.remote = 0 and tracks.filesize is not null";
 	my $totalLibrarySize = quickSQLcount($totalLibrarySizeSQL);
 	push (@result, {'name' => 'Total library size:', 'value' => $totalLibrarySize});
 
-	my $libraryAgeinSecsSQL = "select (strftime('%s', 'now', 'localtime') - min(tracks_persistent.added)) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio=1";
+	my $libraryAgeinSecsSQL = "select (strftime('%s', 'now', 'localtime') - min(tracks_persistent.added)) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio = 1";
 	my $libraryAge = prettifyTime(quickSQLcount($libraryAgeinSecsSQL));
 	push (@result, {'name' => 'Library Age:', 'value' => $libraryAge});
 
-	my $artistCountSQL = "select count(distinct contributors.id) from contributors
-	join contributor_track on
-		contributor_track.contributor=contributors.id and
-		contributor_track.role=1";
+	my $artistCountSQL = "select count(distinct contributor_track.contributor) from contributor_track where contributor_track.role in (1,5,6)";
 	my $artistCount = quickSQLcount($artistCountSQL);
 	push (@result, {'name' => 'Artists:', 'value' => $artistCount});
 
-	my $albumArtistCountSQL = "select count(distinct contributors.id) from contributors
-	join contributor_track on
-		contributor_track.contributor=contributors.id and
-		contributor_track.role=5";
+	my $albumArtistCountSQL = "select count(distinct contributor_track.contributor) from contributor_track where contributor_track.role = 5";
 	my $albumArtistCount = quickSQLcount($albumArtistCountSQL);
 	push (@result, {'name' => 'Album artists:', 'value' => $albumArtistCount});
 
-	my $composerCountSQL = "select count(distinct contributors.id) from contributors
-	join contributor_track on
-		contributor_track.contributor=contributors.id and
-		contributor_track.role=2";
+	my $composerCountSQL = "select count(distinct contributor_track.contributor) from contributor_track where contributor_track.role = 2";
 	my $composerCount = quickSQLcount($composerCountSQL);
 	push (@result, {'name' => 'Composers:', 'value' => $composerCount});
 
-	my $artistsPlayedSQL = "select count(distinct contributors.id) from contributors
-		left join contributor_track on
-			contributor_track.contributor=contributors.id and contributor_track.role=1
-		left join tracks on
+	my $artistsPlayedSQL = "select count(distinct contributor_track.contributor) from contributor_track
+		join tracks on
 			tracks.id = contributor_track.track
 		join tracks_persistent on
-			tracks_persistent.urlmd5 = tracks.urlmd5
+			tracks_persistent.urlmd5 = tracks.urlmd5 and tracks_persistent.playcount > 0
 		where
-			tracks.audio=1
-			and tracks_persistent.playcount>0";
+			tracks.audio = 1
+			and contributor_track.role in (1,5,6)";
 	my $artistsPlayedFloat = quickSQLcount($artistsPlayedSQL)/$artistCount * 100;
 	my $artistsPlayedPercentage = sprintf("%.1f", $artistsPlayedFloat).'%';
 	push (@result, {'name' => 'Artists played:', 'value' => $artistsPlayedPercentage});
 
-	my $albumsCountSQL = "select count(*) from albums";
+	my $albumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id where tracks.audio = 1";
 	my $albumsCount = quickSQLcount($albumsCountSQL);
 	push (@result, {'name' => 'Albums:', 'value' => $albumsCount});
 
-	my $compilationsCountSQL = "select count(*) from albums where compilation=1";
+	my $compilationsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id where tracks.audio = 1 and albums.compilation = 1";
 	my $compilationsCountFloat = quickSQLcount($compilationsCountSQL)/$albumsCount * 100;
 	my $compilationsCountPercentage = sprintf("%.1f", $compilationsCountFloat).'%';
 	push (@result, {'name' => 'Compilations:', 'value' => $compilationsCountPercentage});
 
-	my $artistAlbumsCountSQL = "select count(*) from albums where compilation is null or compilation = 0";
+	my $artistAlbumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id where tracks.audio = 1 and (albums.compilation is null or albums.compilation = 0)";
 	my $artistAlbumsCount = quickSQLcount($artistAlbumsCountSQL);
 	push (@result, {'name' => 'Artist albums:', 'value' => $artistAlbumsCount});
 
 	my $albumsPlayedSQL = "select count(distinct albums.id) from albums
-		left join tracks on
-			tracks.album=albums.id
+		join tracks on
+			tracks.album = albums.id
 		join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		where
-			tracks.audio=1
-			and tracks_persistent.playcount>0";
+			tracks.audio = 1
+			and tracks_persistent.playcount > 0";
 	my $albumsPlayedFloat = quickSQLcount($albumsPlayedSQL)/$albumsCount * 100;
 	my $albumsPlayedPercentage = sprintf("%.1f", $albumsPlayedFloat).'%';
 	push (@result, {'name' => 'Albums played:', 'value' => $albumsPlayedPercentage});
 
-	my $albumsNoArtworkSQL = "select count(distinct albums.id) from albums where artwork is null";
+	my $albumsNoArtworkSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id where tracks.audio = 1 and albums.artwork is null";
 	my $albumsNoArtwork = quickSQLcount($albumsNoArtworkSQL);
 	push (@result, {'name' => 'Albums without artwork:', 'value' => $albumsNoArtwork});
 
-	my $genreCountSQL = "select count(*) from genres";
+	my $genreCountSQL = "select count(distinct genres.id) from genres";
 	my $genreCount = quickSQLcount($genreCountSQL);
 	push (@result, {'name' => 'Genres:', 'value' => $genreCount});
 
-	my $losslessTrackCountSQL = "select count(*) from tracks where audio=1 and lossless=1";
+	my $losslessTrackCountSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.lossless = 1";
 	my $losslessTrackCountFloat = quickSQLcount($losslessTrackCountSQL)/$trackCount * 100;
 	my $losslessTrackCountPercentage = sprintf("%.1f", $losslessTrackCountFloat).'%';
 	push (@result, {'name' => 'Lossless songs:', 'value' => $losslessTrackCountPercentage});
 
-	my $ratedTrackCountSQL = "select count(*) from tracks, tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and audio=1 and rating>0";
+	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks, tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL);
 	my $ratedTrackCountPercentage = sprintf("%.1f", ($ratedTrackCount/$trackCount * 100)).'%';
 	push (@result, {'name' => 'Rated songs:', 'value' => $ratedTrackCountPercentage});
 
-	my $songsPlayedOnceSQL = "select count(*) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where audio=1 and tracks_persistent.playcount>0";
+	my $songsPlayedOnceSQL = "select count(distinct tracks.id) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio = 1 and tracks_persistent.playcount > 0";
 	my $songsPlayedOnceFloat = quickSQLcount($songsPlayedOnceSQL)/$trackCount * 100;
 	my $songsPlayedOncePercentage = sprintf("%.1f", $songsPlayedOnceFloat).'%';
 	push (@result, {'name' => 'Songs played at least once:', 'value' => $songsPlayedOncePercentage});
 
-	my $songsPlayedTotalSQL = "select sum(tracks_persistent.playcount) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where audio=1 and tracks_persistent.playcount>0";
+	my $songsPlayedTotalSQL = "select sum(tracks_persistent.playcount) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio = 1 and tracks_persistent.playcount > 0";
 	my $songsPlayedTotal = quickSQLcount($songsPlayedTotalSQL);
 	push (@result, {'name' => 'Total play count (incl. repeated):', 'value' => $songsPlayedTotal});
 
-	my $avgTrackLengthSQL = "select strftime('%M:%S', avg(secs)/86400.0) from tracks where tracks.audio=1";
+	my $avgTrackLengthSQL = "select strftime('%M:%S', avg(secs)/86400.0) from tracks where tracks.audio = 1";
 	my $avgTrackLength = quickSQLcount($avgTrackLengthSQL);
 	push (@result, {'name' => 'Average track length:', 'value' => $avgTrackLength.' mins'});
 
-	my $avgBitrateSQL = "select round((avg(bitrate)/10000)*10) from tracks where tracks.audio=1";
+	my $avgBitrateSQL = "select round((avg(bitrate)/10000)*10) from tracks where tracks.audio = 1 and tracks.bitrate is not null";
 	my $avgBitrate = quickSQLcount($avgBitrateSQL);
 	push (@result, {'name' => 'Average bit rate:', 'value' => $avgBitrate.' kbps'});
 
-	my$avgFileSizeSQL = "select round((avg(filesize)/(1024*1024)), 2)||' MB' from tracks where tracks.audio=1 and tracks.remote=0";
+	my$avgFileSizeSQL = "select round((avg(filesize)/(1024*1024)), 2)||' MB' from tracks where tracks.audio = 1 and tracks.remote=0 and tracks.filesize is not null";
 	my $avgFileSize = quickSQLcount($avgFileSizeSQL);
 	push (@result, {'name' => 'Average file size:', 'value' => $avgFileSize});
 
-	my $tracksWithLyricsSQL = "select count(distinct tracks.id) from tracks where tracks.audio=1 and tracks.lyrics is not null";
+	my $tracksWithLyricsSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.lyrics is not null";
 	my $tracksWithLyricsFloat = quickSQLcount($tracksWithLyricsSQL)/$trackCount * 100;
 	my $tracksWithLyricsPercentage = sprintf("%.1f", $tracksWithLyricsFloat).'%';
 	push (@result, {'name' => 'Tracks with lyrics:', 'value' => $tracksWithLyricsPercentage});
 
-	my $tracksNoReplayGainSQL = "select count(distinct tracks.id) from tracks where tracks.audio=1 and tracks.replay_gain is null";
+	my $tracksNoReplayGainSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_gain is null";
 	my $tracksNoReplayGain = quickSQLcount($tracksNoReplayGainSQL);
 	push (@result, {'name' => 'Tracks without replay gain:', 'value' => $tracksNoReplayGain});
 
