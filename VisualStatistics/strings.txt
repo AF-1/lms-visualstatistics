@@ -125,7 +125,7 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 	EN	Decades with most played tracks (number of all tracks played at least once)
 
 PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
-	EN	Tracks by dated added
+	EN	Tracks by date added
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS
 	EN	Audio file formats of local library tracks
