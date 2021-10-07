@@ -36,7 +36,6 @@ use Time::HiRes qw(time);
 use Data::Dumper;
 
 use constant LIST_URL => 'plugins/VisualStatistics/html/list.html';
-use constant TEXTDATA_URL => 'plugins/VisualStatistics/html/list.html';
 use constant JSON_URL => 'plugins/VisualStatistics/getdata.html';
 
 my $log = Slim::Utils::Log->addLogCategory({
@@ -64,7 +63,6 @@ sub handleWeb {
 	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL) || 0;
 	$params->{ratedtrackcount} = $ratedTrackCount;
-
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);
 }
 

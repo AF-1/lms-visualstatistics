@@ -1,26 +1,54 @@
 [% pagetitle = 'PLUGIN_VISUALSTATISTICS' | string; pageicon = 'PLUGIN_VISUALSTATISTICS' %]
-[% pwd_list = [ pagetitle ] %]
+[% noHomeLink = 1 %]
+[%- pwd_list = BLOCK -%]
+	<a href="[% webroot %]index.html?player=[% player | uri %]">
+		[% "HOMEMENU" | string %]
+	</a> > 
+		[% "PLUGIN_VISUALSTATISTICS" | string %]
+[% END -%]
 [% PROCESS pageheader.html %]
-
+<style>
+[% IF systemSkin == "material" %]
+.vsleftarrow {fill: rgb(240, 240, 240);}
+.vsback-btn:hover {background-color:rgba(96, 96, 96, 1);}
+.vsback-btn:active {background-color:rgba(133, 133, 133, 1);}
+[% ELSE %]
+.vsleftarrow {fill: rgb(102, 102, 102);}
+.vsback-btn:hover {background-color:rgba(96, 96, 96, 0.2);}
+.vsback-btn:active {background-color:rgba(133, 133, 133, 0.4);}
+[% END %]
+</style>
 <script type="text/javascript">
 	if(top != self) top.location.replace(location);
 	[% IF systemSkin == "material" %]
 		var colorSchemeLight = false;
+		var elements = document.getElementsByClassName('vsleftarrow');
+		for (var i = 0; i < elements.length; i++){
+			elements[i].style.fill = "rgba(240, 240, 240, 1)";
+		}
 	[% ELSE %]
 		var colorSchemeLight = true;
+		var elements = document.getElementsByClassName('vsleftarrow');
+		for (var i = 0; i < elements.length; i++){
+			elements[i].style.fill = "rgba(102, 102, 102, 1)";
+		}
 	[% END %]
 </script>
 <script type="text/javascript" src="js/chart.min.js"></script>
 <script type="text/javascript" src="js/chartjs-plugin-datalabels.min.js"></script>
 <script type="text/javascript" src="js/chartjs-config.min.js"></script>
 <link rel="stylesheet" type="text/css" href="style.css" />
-<br>
-<div class="toggle_container">
-	<label class="toggle">
-		<input id="toggleswitch_colorscheme" type="checkbox">
-		<span class="roundbutton"></span>
-	</label>
-	<span class="toggleswitch_text">charts color scheme: <span class="toggleswitch_text_strong" id="colorscheme_value">light</span></span>
+<div class="topline">
+	<div class="vsback-btn">
+	<a href="[% webroot %]index.html"><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="0px" height="0px" viewBox="0 0 980 980" xml:space="preserve" class="vsbackbtnsvg"><path class="vsleftarrow" d="m245 735-244-245 244-245 245-245 44 43c24 24 43 44 43 44 0 1-76 78-170 171l-169 170h742v124h-742l169 170 170 170-87 87s-111-110-245-244z"/></svg></a>
+	</div>
+	<div class="toggle_container">
+		<label class="toggle">
+			<input id="toggleswitch_colorscheme" type="checkbox">
+			<span class="roundbutton"></span>
+		</label>
+		<span class="toggleswitch_text">charts color scheme: <span class="toggleswitch_text_strong" id="colorscheme_value">light</span></span>
+	</div>
 </div>
 <br>
 <div id="main" class="main">
