@@ -25,11 +25,7 @@
 	if(top != self) top.location.replace(location);
 	var colorSchemeLight = true;
 [% END %]
-[% IF usefullscreen == 1 %]
-	var usefullscreen = 1;
-[% ELSE %]
-	var usefullscreen = 0;
-[% END %]
+	var usefullscreen = [% usefullscreen %];
 </script>
 <script type="text/javascript" src="js/chart.min.js"></script>
 <script type="text/javascript" src="js/chartjs-plugin-datalabels.min.js"></script>

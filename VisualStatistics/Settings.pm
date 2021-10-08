@@ -44,7 +44,7 @@ sub name {
 }
 
 sub page {
-	return Slim::Web::HTTP::CSRF->protectURI('plugins/VisualStatistics/html/settings/basic.html');
+	return Slim::Web::HTTP::CSRF->protectURI('plugins/VisualStatistics/settings/basic.html');
 }
 
 sub prefs {
