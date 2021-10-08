@@ -3,7 +3,7 @@
 [%- pwd_list = BLOCK -%]
 	<a href="[% webroot %]index.html?player=[% player | uri %]">
 		[% "HOMEMENU" | string %]
-	</a> > 
+	</a> >
 		[% "PLUGIN_VISUALSTATISTICS" | string %]
 [% END -%]
 [% PROCESS pageheader.html %]
@@ -27,6 +27,8 @@
 [% END %]
 [% IF usefullscreen == 1 %]
 	var usefullscreen = 1;
+[% ELSE %]
+	var usefullscreen = 0;
 [% END %]
 </script>
 <script type="text/javascript" src="js/chart.min.js"></script>
