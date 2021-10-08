@@ -1,0 +1,7 @@
+[% page = "PLUGIN_VISUALSTATISTICS" %]
+[% PROCESS settings/header.html %]
+	[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC" %]
+		<input type="checkbox" name="pref_usefullscreen" id="usefullscreen" [% IF prefs.usefullscreen %] checked [% END %]">
+	[% END %]
+
+[% PROCESS settings/footer.html %]

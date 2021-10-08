@@ -35,6 +35,7 @@ use URI::Escape;
 use Time::HiRes qw(time);
 use Data::Dumper;
 
+use Plugins::VisualStatistics::Settings;
 use constant LIST_URL => 'plugins/VisualStatistics/html/list.html';
 use constant JSON_URL => 'plugins/VisualStatistics/getdata.html';
 
@@ -49,6 +50,7 @@ my $prefs = preferences('plugin.visualstatistics');
 sub initPlugin {
 	my $class = shift;
 	$class->SUPER::initPlugin(@_);
+	Plugins::VisualStatistics::Settings->new();
 
 	Slim::Web::Pages->addPageFunction(LIST_URL, \&handleWeb);
 	Slim::Web::Pages->addPageFunction(JSON_URL, \&handleJSON);
@@ -63,6 +65,7 @@ sub handleWeb {
 	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL) || 0;
 	$params->{ratedtrackcount} = $ratedTrackCount;
+	$params->{usefullscreen} = $prefs->get('usefullscreen') ? 1 : 0;
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);
 }
 

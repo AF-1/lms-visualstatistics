@@ -7,6 +7,15 @@ PLUGIN_VISUALSTATISTICS_DESC
 PLUGIN_STATISTICSLIGH_LOG_DESC
 	EN	Log of plugin VisualStatistics
 
+PLUGIN_VISUALSTATISTICS_SETTINGS
+	EN	Settings
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
+	EN	Use OS fullscreen mode
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC
+	EN	If checked <i>Visual Statistics</i> will try to display the charts in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It's just an unsupported experimental setting.
+
 PLUGIN_VISUALSTATISTICS_LIST
 	EN	Visual Statistics
 
