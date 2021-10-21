@@ -988,6 +988,13 @@ sub getDataLibStatsText {
 	my $tracksNoReplayGain = quickSQLcount($tracksNoReplayGainSQL);
 	push (@result, {'name' => 'Tracks without replay gain:', 'value' => $tracksNoReplayGain});
 
+	my $mp3tagversionsSQL = "select tracks.tagversion as thistagversion, count(distinct tracks.id) from tracks where tracks.audio=1 and tracks.content_type = 'mp3'and tracks.tagversion is not null group by tracks.tagversion";
+	my $mp3tagversions = executeSQLstatement($mp3tagversionsSQL);
+	my @sortedmp3tagversions =  sort { $a->{'xAxis'} cmp $b->{'xAxis'} } @{$mp3tagversions};
+	foreach my $thismp3tagversion (@sortedmp3tagversions) {
+		push (@result, {'name' => 'MP3 tracks with '.$thismp3tagversion->{'xAxis'}.' tags:', 'value' => $thismp3tagversion->{'yAxis'}});
+	}
+
 	$log->debug(Dumper(\@result));
 	return \@result;
 }
