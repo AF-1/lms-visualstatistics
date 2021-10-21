@@ -4,8 +4,11 @@ Visual Statistics
 A plugin for [Logitech Media Server](https://github.com/Logitech/slimserver)<br>
 
 <br>
-Displays statistics of your LMS music library using all kinds of charts.<br><br>
-Go to Home Menu > Extras > Visual Statistics
+Displays statistics of your LMS music library using all kinds of charts. Hovering over segments, bars, or data points will display more information.<br>
+
+Go to *Home Menu* > *Extras* > *Visual Statistics*
+<br><br>
+While the charts scale down please note that this plugin was designed for wide/big screens.
 <br><br>
 
 ## Installation
