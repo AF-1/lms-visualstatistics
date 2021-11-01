@@ -38,7 +38,18 @@
 		<span class="roundbutton"></span>
 	</label>
 	<span class="toggleswitch_text">charts color scheme: <span class="toggleswitch_text_strong" id="colorscheme_value">light</span></span>
-</div><br>
+</div>
+[% IF virtuallibraries %]
+<br>
+<div class="selectvl">
+	<select name="vlselect" id="vlselect">
+		[% FOREACH library = virtuallibraries %]
+			<option value="[% library.library_id %]" [% IF library.library_id == vlselect %]selected='selected' [% END %]>[% library.name %]</option>
+		[% END %]
+	</select>
+</div>
+[% END %]
+<br>
 <div id="main" class="main">
 	<details><summary>[% 'PLUGIN_VISUALSTATISTICS_SECTION_ARTISTS' | string %]</summary>
 		<div class="filler"></div>
@@ -453,6 +464,19 @@
 		var toggle = document.getElementById('toggleswitch_colorscheme');
 		toggle.checked = !toggle.checked;
 	[% END %]
-</script>
 
+	document.getElementById('vlselect').addEventListener('change', function() {
+		//console.log(this.value);
+		[% IF systemSkin == "material" %]
+		console.log('does not work in Material');
+		//lmsCommand("", ["pref", "plugin.visualstatistics:selectedvirtuallibrary", this.value]);
+		[% ELSE %]
+		ajaxRequest('/jsonrpc.js', {
+			id: 1,
+			method: "slim.request",
+			params: ["", ["pref","plugin.visualstatistics:selectedvirtuallibrary", this.value]]
+		});
+	[% END %]
+	});
+</script>
 [% PROCESS pagefooter.html %]
