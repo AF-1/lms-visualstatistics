@@ -72,9 +72,7 @@ sub handleWeb {
 	$prefs->set('selectedvirtuallibrary', '');
 	my $virtualLibraries = getVirtualLibraries();
 	my $VLcount = scalar @{$virtualLibraries};
-	if ($VLcount > 0) {
-		$params->{virtuallibraries} = $virtualLibraries;
-	}
+	$params->{virtuallibraries} = $virtualLibraries;
 	$params->{ratedtrackcount} = $ratedTrackCount;
 	$params->{usefullscreen} = $prefs->get('usefullscreen') ? 1 : 0;
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);

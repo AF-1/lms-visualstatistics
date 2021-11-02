@@ -39,7 +39,6 @@
 	</label>
 	<span class="toggleswitch_text">charts color scheme: <span class="toggleswitch_text_strong" id="colorscheme_value">light</span></span>
 </div>
-[% IF virtuallibraries %]
 <br>
 <div class="selectvl">
 	<select name="vlselect" id="vlselect">
@@ -48,7 +47,6 @@
 		[% END %]
 	</select>
 </div>
-[% END %]
 <br>
 <div id="main" class="main">
 	<details><summary>[% 'PLUGIN_VISUALSTATISTICS_SECTION_ARTISTS' | string %]</summary>
@@ -453,7 +451,7 @@
 		<div class="libstatwrapper">
 			<span class="theader">[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER' | string %]</span>
 		<table id="libstatstext" border="0"></table>
-		</div
+		</div>
 	</div>
 </div>
 
@@ -466,7 +464,7 @@
 	[% END %]
 
 	document.getElementById('vlselect').addEventListener('change', function() {
-		[% IF systemSkin == "material" %]
+	[% IF systemSkin == "material" %]
 		const url = "[% squeezebox_server_jsondatareq %]";
 		const vsBody = JSON.stringify({
 			id: 1,
@@ -480,7 +478,7 @@
 			//console.log(vspref.responseText);
 		};
 		vspref.send(vsBody);
-		[% ELSE %]
+	[% ELSE %]
 		ajaxRequest('/jsonrpc.js', {
 			id: 1,
 			method: "slim.request",
