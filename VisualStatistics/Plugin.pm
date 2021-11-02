@@ -64,7 +64,7 @@ sub initPlugin {
 sub handleWeb {
 	my ($client, $params, $callback, $httpClient, $httpResponse, $request) = @_;
 	my $host = $params->{host} || (Slim::Utils::Network::serverAddr() . ':' . preferences('server')->get('httpport'));
-	$params->{squeezebox_server} = 'http://' . $host . '/' . JSON_URL;
+	$params->{squeezebox_server_jsondatareq} = 'http://' . $host . '/jsonrpc.js';
 
 	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL) || 0;

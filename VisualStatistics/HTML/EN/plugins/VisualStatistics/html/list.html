@@ -466,10 +466,20 @@
 	[% END %]
 
 	document.getElementById('vlselect').addEventListener('change', function() {
-		//console.log(this.value);
 		[% IF systemSkin == "material" %]
-		console.log('does not work in Material');
-		//lmsCommand("", ["pref", "plugin.visualstatistics:selectedvirtuallibrary", this.value]);
+		const url = "[% squeezebox_server_jsondatareq %]";
+		const vsBody = JSON.stringify({
+			id: 1,
+			method: 'slim.request',
+			params: ['', ['pref', 'plugin.visualstatistics:selectedvirtuallibrary', this.value]]
+		});
+		var vspref = new XMLHttpRequest();
+		vspref.open("POST", url);
+		vspref.setRequestHeader("Content-type", "application/json");
+		vspref.onreadystatechange = function () {
+			//console.log(vspref.responseText);
+		};
+		vspref.send(vsBody);
 		[% ELSE %]
 		ajaxRequest('/jsonrpc.js', {
 			id: 1,
