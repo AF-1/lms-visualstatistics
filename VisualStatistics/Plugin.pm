@@ -1275,29 +1275,16 @@ sub getVirtualLibraries {
 	my $libraries = Slim::Music::VirtualLibraries->getLibraries();
 	$log->debug('ALL virtual libraries: '.Dumper($libraries));
 
-	my $localonlyname = Slim::Music::VirtualLibraries->getNameForId('localTracksOnly');
-	my $preferlocalname = Slim::Music::VirtualLibraries->getNameForId('preferLocalLibraryOnly');
-
-	my %hiddenVLs;
-	if ((defined $localonlyname) && ($localonlyname ne '') && (defined $preferlocalname) && ($preferlocalname ne '')) {
-		%hiddenVLs = map {
-		$_ => 1
-		} ($preferlocalname, $localonlyname);
-	}
-	$log->debug('hidden libraries: '.Dumper(\%hiddenVLs));
-
 	while (my ($k, $v) = each %{$libraries}) {
-		my $count = Slim::Utils::Misc::delimitThousands(Slim::Music::VirtualLibraries->getTrackCount($k));
+		my $count = Slim::Utils::Misc::delimitThousands(Slim::Music::VirtualLibraries->getTrackCount($k)) + 0;
 		my $name = Slim::Music::VirtualLibraries->getNameForId($k);
 		$log->debug("VL: ".$name." (".$count.")");
 
-		unless ($hiddenVLs{$name}) {
-			push @items, {
-				name => Slim::Utils::Unicode::utf8decode($name, 'utf8')." (".$count.($count eq '1' ? " track)" : " tracks)"),
-				sortName => Slim::Utils::Unicode::utf8decode($name, 'utf8'),
-				library_id => $k,
-			};
-		}
+		push @items, {
+			name => Slim::Utils::Unicode::utf8decode($name, 'utf8')." (".$count.($count == 1 ? " track)" : " tracks)"),
+			sortName => Slim::Utils::Unicode::utf8decode($name, 'utf8'),
+			library_id => $k,
+		};
 	}
 	push @items, {
 		name => "Complete Library (Default)",
