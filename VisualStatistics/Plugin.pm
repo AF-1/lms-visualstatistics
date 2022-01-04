@@ -1,7 +1,7 @@
 #
 # Visual Statistics
 #
-# (c) 2021 AF-1
+# (c) 2021-2022 AF-1
 #
 # GPLv3 license
 # This program is free software: you can redistribute it and/or modify
