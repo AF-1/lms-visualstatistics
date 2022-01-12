@@ -949,7 +949,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 			$sth->finish();
 			$subDataOthers = $subDataOthers.', "'.$fileFormatNoBitrate.'": '.$fileFormatCount;
 		}
-		$subDataOthers = '{"x": "No bitrate"'.$subDataOthers.'}';
+		$subDataOthers = '{"x": "'.string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE").'"'.$subDataOthers.'}';
 		push(@result, $subDataOthers);
 	}
 
@@ -1050,39 +1050,39 @@ sub getDataLibStatsText {
 	my @result = ();
 	my $trackCountSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCount = quickSQLcount($trackCountSQL);
-	push (@result, {'name' => 'Total tracks:', 'value' => $trackCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS").':', 'value' => $trackCount});
 
 	my $trackCountLocalSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.remote = 0 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCountLocal = quickSQLcount($trackCountLocalSQL);
-	push (@result, {'name' => 'Total local tracks:', 'value' => $trackCountLocal});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSLOCAL").':', 'value' => $trackCountLocal});
 
 	my $trackCountRemoteSQL = "select count(distinct tracks.id) from tracks where tracks.audio =1 and tracks.remote = 1 and tracks.extid is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCountRemote = quickSQLcount($trackCountRemoteSQL);
-	push (@result, {'name' => 'Total remote tracks:', 'value' => $trackCountRemote});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSREMOTE").':', 'value' => $trackCountRemote});
 
 	my $totalTimeSQL = "select sum(secs) from tracks where tracks.audio = 1 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $totalTime = prettifyTime(quickSQLcount($totalTimeSQL));
-	push (@result, {'name' => 'Total playing time:', 'value' => $totalTime});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALPLAYINGTIME").':', 'value' => $totalTime});
 
 	my $totalLibrarySizeSQL = "select round((sum(filesize)/1024/1024/1024),2)||' GB' from tracks where tracks.audio = 1 and tracks.remote = 0 and tracks.filesize is not null";
 	my $totalLibrarySize = quickSQLcount($totalLibrarySizeSQL);
-	push (@result, {'name' => 'Total library size:', 'value' => $totalLibrarySize});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALLIBSIZE").':', 'value' => $totalLibrarySize});
 
 	my $libraryAgeinSecsSQL = "select (strftime('%s', 'now', 'localtime') - min(tracks_persistent.added)) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio = 1";
 	my $libraryAge = prettifyTime(quickSQLcount($libraryAgeinSecsSQL));
-	push (@result, {'name' => 'Library age:', 'value' => $libraryAge});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALIBAGE").':', 'value' => $libraryAge});
 
 	my $artistCountSQL = "select count(distinct contributor_track.contributor) from contributor_track where contributor_track.role in (1,5,6)";
 	my $artistCount = quickSQLcount($artistCountSQL);
-	push (@result, {'name' => 'Artists:', 'value' => $artistCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS").':', 'value' => $artistCount});
 
 	my $albumArtistCountSQL = "select count(distinct contributor_track.contributor) from contributor_track where contributor_track.role = 5";
 	my $albumArtistCount = quickSQLcount($albumArtistCountSQL);
-	push (@result, {'name' => 'Album artists:', 'value' => $albumArtistCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AARTISTS").':', 'value' => $albumArtistCount});
 
 	my $composerCountSQL = "select count(distinct contributor_track.contributor) from contributor_track where contributor_track.role = 2";
 	my $composerCount = quickSQLcount($composerCountSQL);
-	push (@result, {'name' => 'Composers:', 'value' => $composerCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPOSERS").':', 'value' => $composerCount});
 
 	my $artistsPlayedSQL = "select count(distinct contributor_track.contributor) from contributor_track
 		join tracks on
@@ -1094,20 +1094,20 @@ sub getDataLibStatsText {
 			and contributor_track.role in (1,5,6)";
 	my $artistsPlayedFloat = quickSQLcount($artistsPlayedSQL)/$artistCount * 100;
 	my $artistsPlayedPercentage = sprintf("%.1f", $artistsPlayedFloat).'%';
-	push (@result, {'name' => 'Artists played:', 'value' => $artistsPlayedPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTSPLAYED").':', 'value' => $artistsPlayedPercentage});
 
 	my $albumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id where tracks.audio = 1";
 	my $albumsCount = quickSQLcount($albumsCountSQL);
-	push (@result, {'name' => 'Albums:', 'value' => $albumsCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS").':', 'value' => $albumsCount});
 
 	my $compilationsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id where tracks.audio = 1 and albums.compilation = 1";
 	my $compilationsCountFloat = quickSQLcount($compilationsCountSQL)/$albumsCount * 100;
 	my $compilationsCountPercentage = sprintf("%.1f", $compilationsCountFloat).'%';
-	push (@result, {'name' => 'Compilations:', 'value' => $compilationsCountPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPIS").':', 'value' => $compilationsCountPercentage});
 
 	my $artistAlbumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id where tracks.audio = 1 and (albums.compilation is null or albums.compilation = 0)";
 	my $artistAlbumsCount = quickSQLcount($artistAlbumsCountSQL);
-	push (@result, {'name' => 'Artist albums:', 'value' => $artistAlbumsCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AALBUMS").':', 'value' => $artistAlbumsCount});
 
 	my $albumsPlayedSQL = "select count(distinct albums.id) from albums
 		join tracks on
@@ -1119,61 +1119,61 @@ sub getDataLibStatsText {
 			and tracks_persistent.playcount > 0";
 	my $albumsPlayedFloat = quickSQLcount($albumsPlayedSQL)/$albumsCount * 100;
 	my $albumsPlayedPercentage = sprintf("%.1f", $albumsPlayedFloat).'%';
-	push (@result, {'name' => 'Albums played:', 'value' => $albumsPlayedPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSPLAYED").':', 'value' => $albumsPlayedPercentage});
 
 	my $albumsNoArtworkSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id where tracks.audio = 1 and albums.artwork is null";
 	my $albumsNoArtwork = quickSQLcount($albumsNoArtworkSQL);
-	push (@result, {'name' => 'Albums without artwork:', 'value' => $albumsNoArtwork});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK").':', 'value' => $albumsNoArtwork});
 
 	my $genreCountSQL = "select count(distinct genres.id) from genres";
 	my $genreCount = quickSQLcount($genreCountSQL);
-	push (@result, {'name' => 'Genres:', 'value' => $genreCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES").':', 'value' => $genreCount});
 
 	my $losslessTrackCountSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.lossless = 1";
 	my $losslessTrackCountFloat = quickSQLcount($losslessTrackCountSQL)/$trackCount * 100;
 	my $losslessTrackCountPercentage = sprintf("%.1f", $losslessTrackCountFloat).'%';
-	push (@result, {'name' => 'Lossless songs:', 'value' => $losslessTrackCountPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_LOSSLESS").':', 'value' => $losslessTrackCountPercentage});
 
 	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks, tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL);
 	my $ratedTrackCountPercentage = sprintf("%.1f", ($ratedTrackCount/$trackCount * 100)).'%';
-	push (@result, {'name' => 'Rated songs:', 'value' => $ratedTrackCountPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_RATEDTRACKS").':', 'value' => $ratedTrackCountPercentage});
 
 	my $songsPlayedOnceSQL = "select count(distinct tracks.id) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio = 1 and tracks_persistent.playcount > 0";
 	my $songsPlayedOnceFloat = quickSQLcount($songsPlayedOnceSQL)/$trackCount * 100;
 	my $songsPlayedOncePercentage = sprintf("%.1f", $songsPlayedOnceFloat).'%';
-	push (@result, {'name' => 'Songs played at least once:', 'value' => $songsPlayedOncePercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYED").':', 'value' => $songsPlayedOncePercentage});
 
 	my $songsPlayedTotalSQL = "select sum(tracks_persistent.playcount) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio = 1 and tracks_persistent.playcount > 0";
 	my $songsPlayedTotal = quickSQLcount($songsPlayedTotalSQL);
-	push (@result, {'name' => 'Total play count (incl. repeated):', 'value' => $songsPlayedTotal});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYCOUNTTOTAL").':', 'value' => $songsPlayedTotal});
 
 	my $avgTrackLengthSQL = "select strftime('%M:%S', avg(secs)/86400.0) from tracks where tracks.audio = 1";
 	my $avgTrackLength = quickSQLcount($avgTrackLengthSQL);
-	push (@result, {'name' => 'Average track length:', 'value' => $avgTrackLength.' mins'});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSAVGLENGTH").':', 'value' => $avgTrackLength.' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS")});
 
 	my $avgBitrateSQL = "select round((avg(bitrate)/10000)*10) from tracks where tracks.audio = 1 and tracks.bitrate is not null";
 	my $avgBitrate = quickSQLcount($avgBitrateSQL);
-	push (@result, {'name' => 'Average bit rate:', 'value' => $avgBitrate.' kbps'});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGBITRATE").':', 'value' => $avgBitrate.' kbps'});
 
 	my$avgFileSizeSQL = "select round((avg(filesize)/(1024*1024)), 2)||' MB' from tracks where tracks.audio = 1 and tracks.remote=0 and tracks.filesize is not null";
 	my $avgFileSize = quickSQLcount($avgFileSizeSQL);
-	push (@result, {'name' => 'Average file size:', 'value' => $avgFileSize});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGFILESIZE").':', 'value' => $avgFileSize});
 
 	my $tracksWithLyricsSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.lyrics is not null";
 	my $tracksWithLyricsFloat = quickSQLcount($tracksWithLyricsSQL)/$trackCount * 100;
 	my $tracksWithLyricsPercentage = sprintf("%.1f", $tracksWithLyricsFloat).'%';
-	push (@result, {'name' => 'Tracks with lyrics:', 'value' => $tracksWithLyricsPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHLYRICS").':', 'value' => $tracksWithLyricsPercentage});
 
 	my $tracksNoReplayGainSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_gain is null";
 	my $tracksNoReplayGain = quickSQLcount($tracksNoReplayGainSQL);
-	push (@result, {'name' => 'Tracks without replay gain:', 'value' => $tracksNoReplayGain});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN").':', 'value' => $tracksNoReplayGain});
 
 	my $mp3tagversionsSQL = "select tracks.tagversion as thistagversion, count(distinct tracks.id) from tracks where tracks.audio=1 and tracks.content_type = 'mp3'and tracks.tagversion is not null group by tracks.tagversion";
 	my $mp3tagversions = executeSQLstatement($mp3tagversionsSQL);
 	my @sortedmp3tagversions = sort { $a->{'xAxis'} cmp $b->{'xAxis'} } @{$mp3tagversions};
 	foreach my $thismp3tagversion (@sortedmp3tagversions) {
-		push (@result, {'name' => 'MP3 tracks with '.$thismp3tagversion->{'xAxis'}.' tags:', 'value' => $thismp3tagversion->{'yAxis'}});
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS").' '.$thismp3tagversion->{'xAxis'}.' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS").':', 'value' => $thismp3tagversion->{'yAxis'}});
 	}
 
 	$log->debug(Dumper(\@result));
@@ -1281,13 +1281,13 @@ sub getVirtualLibraries {
 		$log->debug("VL: ".$name." (".$count.")");
 
 		push @items, {
-			name => Slim::Utils::Unicode::utf8decode($name, 'utf8')." (".$count.($count == 1 ? " track)" : " tracks)"),
+			name => Slim::Utils::Unicode::utf8decode($name, 'utf8')." (".$count.($count == 1 ? " ".string("PLUGIN_VISUALSTATISTICS_VL_TRACK").")" : " ".string("PLUGIN_VISUALSTATISTICS_VL_TRACKS").")"),
 			sortName => Slim::Utils::Unicode::utf8decode($name, 'utf8'),
 			library_id => $k,
 		};
 	}
 	push @items, {
-		name => "Complete Library (Default)",
+		name => string("PLUGIN_VISUALSTATISTICS_VL_COMPLETELIB_NAME"),
 		sortName => " Complete Library",
 		library_id => undef,
 	};
@@ -1307,7 +1307,7 @@ sub prettifyTime {
 	my $days = (int($timeinseconds / (60*60*24))) % 7;
 	my $weeks = (int($timeinseconds / (60*60*24*7))) % 52;
 	my $years = (int($timeinseconds / (60*60*24*365))) % 10;
-	my $prettyTime = (($years > 0 ? $years.($years == 1 ? ' year  ' : ' years  ') : '').($weeks > 0 ? $weeks.($weeks == 1 ? ' week  ' : ' weeks  ') : '').($days > 0 ? $days.($days == 1 ? ' day  ' : ' days  ') : '').($hours > 0 ? $hours.($hours == 1 ? ' hour  ' : ' hours  ') : '').($minutes > 0 ? $minutes.($minutes == 1 ? ' minute  ' : ' minutes  ') : '').($seconds > 0 ? $seconds.($seconds == 1 ? ' second' : ' seconds') : ''));
+	my $prettyTime = (($years > 0 ? $years.($years == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEAR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEARS").'  ') : '').($weeks > 0 ? $weeks.($weeks == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEK").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEKS").'  ') : '').($days > 0 ? $days.($days == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAY").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAYS").'  ') : '').($hours > 0 ? $hours.($hours == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOUR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOURS").'  ') : '').($minutes > 0 ? $minutes.($minutes == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMIN").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS").'  ') : '').($seconds > 0 ? $seconds.($seconds == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESEC") : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESECS")) : ''));
 	return $prettyTime;
 }
 

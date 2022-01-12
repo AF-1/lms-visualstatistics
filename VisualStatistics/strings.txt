@@ -1,164 +1,438 @@
 PLUGIN_VISUALSTATISTICS
 	EN	Visual Statistics
+	NL	Visuele Statistieken
 
 PLUGIN_VISUALSTATISTICS_DESC
 	EN	Have a look at your library statistics with charts
+	NL	Bekijk jouw mediabibliotheek statistieken door middel van grafieken
 
 PLUGIN_STATISTICSLIGH_LOG_DESC
 	EN	Log of plugin VisualStatistics
+	NL	Log van plug-in Visuele Statistieken
 
 PLUGIN_VISUALSTATISTICS_SETTINGS
 	EN	Settings
+	NL	Instellingen
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
+	NL	Gebruik OS volledig schermmodus
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC
 	EN	If checked <i>Visual Statistics</i> will try to display the charts in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It's just an unsupported experimental setting.
+	NL	Indien aangevinkt zal de plug-in <i>Visuale Statistieken</i> de grafieken tonen in (OS) volledig schermmodus. Werkt met de webbrowsers Firefox, Chrome en Edge, maar niet met Safari. Deze instelling is experimenteel.
 
 PLUGIN_VISUALSTATISTICS_LIST
 	EN	Visual Statistics
+	NL	Visuele Statistieken
+
+PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME
+	EN	Charts color scheme
+s
+PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_LIGHT
+	EN	light
+
+PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_DARK
+	EN	dark
 
 PLUGIN_VISUALSTATISTICS_SECTION_ARTISTS
 	EN	ARTISTS
+	NL	ARTIESTEN
 
 PLUGIN_VISUALSTATISTICS_SECTION_ALBUMS
 	EN	ALBUMS
+	NL	ALBUMS
 
 PLUGIN_VISUALSTATISTICS_SECTION_GENRES
 	EN	GENRES
+	NL	GENRES
 
 PLUGIN_VISUALSTATISTICS_SECTION_YEARS
 	EN	YEARS
+	NL	JAREN
 
 PLUGIN_VISUALSTATISTICS_SECTION_MISC
 	EN	MISC.
+	NL	OVERIG
+
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS
 	EN	Artists with most tracks
+	NL	Artiesten met de meeste nummers
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS
 	EN	Album artists with most albums (no compilations)
+	NL	Albumartiesten met de meeste nummers (geen compilaties)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS
 	EN	Artists with most rated tracks
+	NL	Artiesten met de meeste nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_ALL
 	EN	Artists with top average rated tracks (incl. unrated tracks)
+	NL	Artiesten met de nummers met de hoogste gemiddelde waardering (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED
 	EN	Artists with top average rated tracks (rated tracks only)
-
-PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Artists with most played tracks (highest average playcount)
+	NL	Artiesten met de nummers met de hoogste gemiddelde waardering (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
 	EN	Artists with most played tracks (number of all tracks played at least once)
+	NL	Artiesten met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Artists with most played tracks (highest average playcount)
+	NL	Artiesten met de meeste gespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
 	EN	Artists - average rating vs. average playcount
+	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
+
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS
 	EN	Albums by year
+	NL	Albums per jaar
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_TRACKS
 	EN	Albums with most tracks
+	NL	Albums met de meeste nummers
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS
 	EN	Albums with most rated tracks
+	NL	Albums met de meeste nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_ALL
 	EN	Albums with top average rated tracks (incl. unrated tracks)
+	NL	Albums met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED
 	EN	Albums with top average rated tracks (rated tracks only)
-
-PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Albums with most played tracks (highest average playcount)
+	NL	Albums met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
 	EN	Albums with most played tracks (number of all tracks played at least once)
+	NL	Albums met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Albums with most played tracks (highest average playcount)
+	NL	Albums met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
+
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS
 	EN	Genres with most tracks
+	NL	Genres met de meeste nummers
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_ALBUMS
 	EN	Genres with most albums
+	NL	Genres met de meeste albums
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS
 	EN	Genres with most rated tracks
+	NL	Genres met de meeste nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_ALL
 	EN	Genres with top average rated tracks (incl. unrated tracks)
+	NL	Genres met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED
 	EN	Genres with top average rated tracks (rated tracks only)
-
-PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Genres with most played tracks (highest average playcount)
+	NL	Genres met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
 	EN	Genres with most played tracks (number of all tracks played at least once)
+	NL	Genres met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Genres with most played tracks (highest average playcount)
+	NL	Genres met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
 	EN	Genres with top average bit rate
+	NL	Genres met de hoogste gemiddelde bitsnelheid
+
 
 PLUGIN_VISUALSTATISTICS_YEARS_TRACKS
 	EN	Tracks by year
+	NL	Nummers per jaar
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS
 	EN	Years with most tracks
+	NL	Jaren met de meeste nummers
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_ALBUMS
 	EN	Years with most albums
+	NL	Jaren met de meeste albums
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS
 	EN	Years with most rated tracks
+	NL	Jaren met de meeste nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_ALL
 	EN	Years with top average rated tracks (incl. unrated tracks)
+	NL	Jaren met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED
 	EN	Years with top average rated tracks (rated tracks only)
-
-PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Years with most played tracks (highest average playcount)
+	NL	Jaren met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
 	EN	Years with most played tracks (number of all tracks played at least once)
+	NL	Jaren met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Decades with most played tracks (highest average playcount)
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Years with most played tracks (highest average playcount)
+	NL	Jaren met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 	EN	Decades with most played tracks (number of all tracks played at least once)
+	NL	Decennia met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE
+	EN	Decades with most played tracks (highest average playcount)
+	NL	Decennia met de meeste afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
 	EN	Tracks by date added
+	NL	Nummers per toegevoegde datum
+
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS
 	EN	Audio file formats of local library tracks
+	NL	Bestandsformaten van nummers in de lokale mediabibliotheek
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE
 	EN	Tracks by bit rate
+	NL	Nummers per bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS
 	EN	Tracks by bit rate and audio file format
+	NL	Nummers per bitsnelheid en bestandsformaat
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_SAMPLE_RATE
 	EN	Tracks by sample rate
+	NL	Nummers per samplefrequentie
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER
 	EN	Tracks by bit rate and audio file format (scatter chart)
+	NL	Nummers per bitsnelheid en bestandsformaat (scatter grafiek)
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
 	EN	Listening times
+	NL	Luistertijden
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT
 	EN	More library statistics (text)
+	NL	Meer mediabibliotheek statistieken (tekst)
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
 	EN	LIBRARY STATISTICS
+	NL	MEDIABIBLIOTHEEK STATISTIEKEN
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
 	EN	Most frequently used words in song names
+	NL	Meest gebruikte woorden in namen van nummers
+
+
+PLUGIN_VISUALSTATISTICS_VL_COMPLETELIB_NAME
+	EN	Complete Library (Default)
+
+PLUGIN_VISUALSTATISTICS_VL_TRACK
+	EN	Track
+
+PLUGIN_VISUALSTATISTICS_VL_TRACKS
+	EN	Tracks
+
+PLUGIN_VISUALSTATISTICS_VL_STAR
+	EN	star
+
+PLUGIN_VISUALSTATISTICS_VL_STARS
+	EN	stars
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE
+	EN	average bit rate (kbps)
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
+	EN	average playcount
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT_SHORT
+	EN	Avg. play count
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
+	EN	Avg. artist rating
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST
+	EN	average rating/play count for artist
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING
+	EN	average track rating (stars)
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATING
+	EN	Average rating (stars)
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT
+	EN	number of albums
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT
+	EN	number of rated tracks
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT
+	EN	number of tracks
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT
+	EN	word count
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_BITRATE
+	EN	Bit rate
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE
+	EN	No bit rate
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME
+	EN	Listening Time
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS
+	EN	Total tracks
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSLOCAL
+	EN	Total local tracks
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSREMOTE
+	EN	Total remote tracks
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALPLAYINGTIME
+	EN	Total playing time
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEAR
+	EN	year
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEARS
+	EN	years
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEK
+	EN	week
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEKS
+	EN	weeks
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAY
+	EN	day
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAYS
+	EN	days
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOUR
+	EN	hour
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOURS
+	EN	hours
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMIN
+	EN	minute
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS
+	EN	minutes
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESEC
+	EN	second
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESECS
+	EN	seconds
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALLIBSIZE
+	EN	Total library size
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALIBAGE
+	EN	Library age
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS
+	EN	Artists
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AARTISTS
+	EN	Album artists
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPOSERS
+	EN	Composers
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTSPLAYED
+	EN	Artists played
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS
+	EN	Albums
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPIS
+	EN	Compilations
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AALBUMS
+	EN	Artist albums
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSPLAYED
+	EN	Albums played
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK
+	EN	Albums without artwork
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES
+	EN	Genres
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_LOSSLESS
+	EN	Lossless songs
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_RATEDTRACKS
+	EN	Rated songs
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYED
+	EN	Songs played at least once
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYCOUNTTOTAL
+	EN	Total play count (incl. repeated)
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSAVGLENGTH
+	EN	Average track length
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGBITRATE
+	EN	Average bit rate
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGFILESIZE
+	EN	Average file size
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHLYRICS
+	EN	Tracks with lyrics
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN
+	EN	Tracks without replay gain
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS
+	EN	MP3 tracks with
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS
+	EN	tags
+
+PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS
+	EN	Hover over bars for more information.
+
+PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS
+	EN	Click on legend items to hide them, hover over segments for more information.
+
+PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS
+	EN	Hover over data points for more information.
+
+PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SCATTER_FILEFORMATS
+	EN	Click on file formats in legend to hide them, hover over points for more information.
+
+PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_HORIZONTAL
+	EN	Switch to <span class="button-font-strong">horizontal</span> layout
+
+PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_VERTICAL
+	EN	Switch to <span class="button-font-strong">vertical</span> layout
+
+PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_REVERSE
+	EN	<span class="button-font-strong">Reverse</span> order
+
+PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_RESTORE_DEFAULT
+	EN	<span class="button-font-strong">Restore</span> default order
+
+PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_SHOW
+	EN	<span class="button-font-strong">Show</span> data labels
+
+PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_HIDE
+	EN	<span class="button-font-strong">Hide</span> data labels

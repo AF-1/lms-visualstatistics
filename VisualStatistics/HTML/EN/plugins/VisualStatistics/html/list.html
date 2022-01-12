@@ -1,4 +1,4 @@
-[% pagetitle = 'PLUGIN_VISUALSTATISTICS' | string; pageicon = 'PLUGIN_VISUALSTATISTICS' %]
+[% pagetitle = 'PLUGIN_VISUALSTATISTICS' | string pageicon = 'PLUGIN_VISUALSTATISTICS' %]
 [% noHomeLink = 1 %]
 [%- pwd_list = BLOCK -%]
 	<a href="[% webroot %]index.html?player=[% player | uri %]">
@@ -37,7 +37,7 @@
 		<input id="toggleswitch_colorscheme" type="checkbox">
 		<span class="roundbutton"></span>
 	</label>
-	<span class="toggleswitch_text">charts color scheme: <span class="toggleswitch_text_strong" id="colorscheme_value">light</span></span>
+	<span class="toggleswitch_text">[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME" | string %]: <span class="toggleswitch_text_strong" id="colorscheme_value">[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_LIGHT" | string %]</span></span>
 </div>
 <br>
 <div class="selectvl">
@@ -54,7 +54,7 @@
 		<div class="wrapper" id="getDataArtistWithMostTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistWithMostTracks');">
-						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -62,7 +62,7 @@
 		<div class="wrapper" id="getDataArtistWithMostAlbums">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistWithMostAlbums')">
-						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS' | string %]
 					</div>
 				</div>
 		</div>
@@ -71,7 +71,7 @@
 		<div class="wrapper" id="getDataArtistWithMostRatedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistWithMostRatedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -79,7 +79,7 @@
 		<div class="wrapper" id="getDataArtistsWithTopRatedTracksAll">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithTopRatedTracksAll')">
-						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_ALL' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_ALL' | string %]
 					</div>
 				</div>
 		</div>
@@ -87,7 +87,7 @@
 		<div class="wrapper" id="getDataArtistsWithTopRatedTracksRatedOnly">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithTopRatedTracksRatedOnly')">
-						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED' | string %]
 					</div>
 				</div>
 		</div>
@@ -96,7 +96,7 @@
 		<div class="wrapper" id="getDataArtistsWithMostPlayedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithMostPlayedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -104,7 +104,7 @@
 		<div class="wrapper" id="getDataArtistsWithMostPlayedTracksAverage">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithMostPlayedTracksAverage')">
-						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE' | string %]
 					</div>
 				</div>
 		</div>
@@ -113,7 +113,7 @@
 		<div class="wrapper" id="getDataArtistsRatingPlaycount">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsRatingPlaycount')">
-						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT' | string %]
 					</div>
 				</div>
 		</div>
@@ -127,7 +127,7 @@
 		<div class="wrapper" id="getDataAlbumsByYear">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsByYear')">
-						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS' | string %]
 					</div>
 				</div>
 		</div>
@@ -135,7 +135,7 @@
 		<div class="wrapper" id="getDataAlbumsWithMostTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithMostTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -144,7 +144,7 @@
 		<div class="wrapper" id="getDataAlbumsWithMostRatedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithMostRatedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -152,7 +152,7 @@
 		<div class="wrapper" id="getDataAlbumsWithTopRatedTracksAll">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithTopRatedTracksAll')">
-						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_ALL' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_ALL' | string %]
 					</div>
 				</div>
 		</div>
@@ -160,7 +160,7 @@
 		<div class="wrapper" id="getDataAlbumsWithTopRatedTracksRatedOnly">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithTopRatedTracksRatedOnly')">
-						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED' | string %]
 					</div>
 				</div>
 		</div>
@@ -169,7 +169,7 @@
 		<div class="wrapper" id="getDataAlbumsWithMostPlayedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithMostPlayedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -177,7 +177,7 @@
 		<div class="wrapper" id="getDataAlbumsWithMostPlayedTracksAverage">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithMostPlayedTracksAverage')">
-						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE' | string %]
 					</div>
 				</div>
 		</div>
@@ -190,7 +190,7 @@
 		<div class="wrapper" id="getDataGenresWithMostTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithMostTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -198,7 +198,7 @@
 		<div class="wrapper" id="getDataGenresWithMostAlbums">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithMostAlbums')">
-						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_ALBUMS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_ALBUMS' | string %]
 					</div>
 				</div>
 		</div>
@@ -207,7 +207,7 @@
 		<div class="wrapper" id="getDataGenresWithMostRatedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithMostRatedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -215,7 +215,7 @@
 		<div class="wrapper" id="getDataGenresWithTopRatedTracksAll">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithTopRatedTracksAll')">
-						[% 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_ALL' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_ALL' | string %]
 					</div>
 				</div>
 		</div>
@@ -223,7 +223,7 @@
 		<div class="wrapper" id="getDataGenresWithTopRatedTracksRatedOnly">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithTopRatedTracksRatedOnly')">
-						[% 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED' | string %]
 					</div>
 				</div>
 		</div>
@@ -232,7 +232,7 @@
 		<div class="wrapper" id="getDataGenresWithMostPlayedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithMostPlayedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -240,7 +240,7 @@
 		<div class="wrapper" id="getDataGenresWithMostPlayedTracksAverage">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithMostPlayedTracksAverage')">
-						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE' | string %]
 					</div>
 				</div>
 		</div>
@@ -248,7 +248,7 @@
 		<div class="wrapper" id="getDataGenresWithTopAverageBitrate">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithTopAverageBitrate')">
-						[% 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE' | string %]
 					</div>
 				</div>
 		</div>
@@ -261,7 +261,7 @@
 		<div class="wrapper" id="getDataTracksByYear">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTracksByYear')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -269,7 +269,7 @@
 		<div class="wrapper" id="getDataYearsWithMostTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithMostTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -277,7 +277,7 @@
 		<div class="wrapper" id="getDataYearsWithMostAlbums">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithMostAlbums')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_ALBUMS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_ALBUMS' | string %]
 					</div>
 				</div>
 		</div>
@@ -286,7 +286,7 @@
 		<div class="wrapper" id="getDataYearsWithMostRatedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithMostRatedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -294,7 +294,7 @@
 		<div class="wrapper" id="getDataYearsWithTopRatedTracksAll">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithTopRatedTracksAll')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_ALL' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_ALL' | string %]
 					</div>
 				</div>
 		</div>
@@ -302,7 +302,7 @@
 		<div class="wrapper" id="getDataYearsWithTopRatedTracksRatedOnly">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithTopRatedTracksRatedOnly')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED' | string %]
 					</div>
 				</div>
 		</div>
@@ -311,7 +311,7 @@
 		<div class="wrapper" id="getDataYearsWithMostPlayedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithMostPlayedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -319,7 +319,7 @@
 		<div class="wrapper" id="getDataYearsWithMostPlayedTracksAverage">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithMostPlayedTracksAverage')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE' | string %]
 					</div>
 				</div>
 		</div>
@@ -327,7 +327,7 @@
 		<div class="wrapper" id="getDataDecadesWithMostPlayedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataDecadesWithMostPlayedTracks')">
-						[% 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS' | string %]
 					</div>
 				</div>
 		</div>
@@ -335,7 +335,7 @@
 		<div class="wrapper" id="getDataDecadesWithMostPlayedTracksAverage">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataDecadesWithMostPlayedTracksAverage')">
-						[% 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE' | string %]
 					</div>
 				</div>
 		</div>
@@ -343,7 +343,7 @@
 		<div class="wrapper" id="getDataTracksByDateAdded">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTracksByDateAdded')">
-						[% 'PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED' | string %]
 					</div>
 				</div>
 		</div>
@@ -356,7 +356,7 @@
 		<div class="wrapper" id="getDataAudioFileFormats">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAudioFileFormats')">
-						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS' | string %]
 					</div>
 				</div>
 		</div>
@@ -364,7 +364,7 @@
 		<div class="wrapper" id="getDataTracksByBitrate">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTracksByBitrate')">
-						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE' | string %]
 					</div>
 				</div>
 		</div>
@@ -372,7 +372,7 @@
 		<div class="wrapper" id="getDataTracksByBitrateAudioFileFormat">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTracksByBitrateAudioFileFormat')">
-						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS' | string %]
 					</div>
 				</div>
 		</div>
@@ -380,7 +380,7 @@
 		<div class="wrapper" id="getDataTracksByBitrateAudioFileFormatScatter">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTracksByBitrateAudioFileFormatScatter')">
-						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER' | string %]
 					</div>
 				</div>
 		</div>
@@ -388,7 +388,7 @@
 		<div class="wrapper" id="getDataTracksBySampleRate">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTracksBySampleRate')">
-						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_SAMPLE_RATE' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_SAMPLE_RATE' | string %]
 					</div>
 				</div>
 		</div>
@@ -396,7 +396,7 @@
 		<div class="wrapper" id="getDataListeningTimes">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataListeningTimes')">
-						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES' | string %]
 					</div>
 				</div>
 		</div>
@@ -404,7 +404,7 @@
 		<div class="wrapper" id="getDataLibStatsText">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataLibStatsText')">
-						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT' | string %]
 					</div>
 				</div>
 		</div>
@@ -412,7 +412,7 @@
 		<div class="wrapper" id="getDataTrackTitleMostFrequentWords">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTrackTitleMostFrequentWords')">
-						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS' | string; %]
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS' | string %]
 					</div>
 				</div>
 		</div>
@@ -428,17 +428,17 @@
 			<div id="button_container">
 				<div class="chartbuttons" id="container_togglebtn_layout">
 					<span>
-						<button class="button-font" id="togglebtn_layout">Switch to <span class="button-font-strong">vertical</span> layout</button>
+						<button class="button-font" id="togglebtn_layout">[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_VERTICAL" | string %]</button>
 					</span>
 				</div>
 				<div class="chartbuttons" id="container_togglebtn_order">
 					<span>
-						<button class="button-font" id="togglebtn_order"><span class="button-font-strong">Reverse</span> order</button>
+						<button class="button-font" id="togglebtn_order">[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_REVERSE" | string %]</button>
 					</span>
 				</div>
 				<div class="chartbuttons" id="container_togglebtn_datalabels">
 					<span>
-						<button class="button-font hidedatalabels" id="togglebtn_datalabels"><span class="button-font-strong">Show</span> data labels</button>
+						<button class="button-font hidedatalabels" id="togglebtn_datalabels">[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_SHOW" | string %]</button>
 					</span>
 				</div>
 			</div>
@@ -455,10 +455,92 @@
 	</div>
 </div>
 
+<script type="text/javascript">
+	const languageStrings = {
+	getDataArtistWithMostTracks:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS" | string %]',
+	getDataArtistWithMostAlbums:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS" | string %]',
+	getDataArtistWithMostRatedTracks:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS" | string %]',
+	getDataArtistsWithTopRatedTracksAll:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_ALL" | string %]',
+	getDataArtistsWithTopRatedTracksRatedOnly:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED" | string %]',
+	getDataArtistsWithMostPlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS" | string %]',
+	getDataArtistsWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE" | string %]',
+	getDataArtistsRatingPlaycount:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT" | string %]',
+
+	getDataAlbumsByYear:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS" | string %]',
+	getDataAlbumsWithMostTracks:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_TRACKS" | string %]',
+	getDataAlbumsWithMostRatedTracks:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS" | string %]',
+	getDataAlbumsWithTopRatedTracksAll:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_ALL" | string %]',
+	getDataAlbumsWithTopRatedTracksRatedOnly:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED" | string %]',
+	getDataAlbumsWithMostPlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS" | string %]',
+	getDataAlbumsWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE" | string %]',
+
+	getDataGenresWithMostTracks:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS" | string %]',
+	getDataGenresWithMostAlbums:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_ALBUMS" | string %]',
+	getDataGenresWithMostRatedTracks:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS" | string %]',
+	getDataGenresWithTopRatedTracksAll:'[% "PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_ALL" | string %]',
+	getDataGenresWithTopRatedTracksRatedOnly:'[% "PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED" | string %]',
+	getDataGenresWithMostPlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS" | string %]',
+	getDataGenresWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE" | string %]',
+	getDataGenresWithTopAverageBitrate:'[% "PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE" | string %]',
+
+	getDataTracksByYear:'[% "PLUGIN_VISUALSTATISTICS_YEARS_TRACKS" | string %]',
+	getDataYearsWithMostTracks:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS" | string %]',
+	getDataYearsWithMostAlbums:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_ALBUMS" | string %]',
+	getDataYearsWithMostRatedTracks:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS" | string %]',
+	getDataYearsWithTopRatedTracksAll:'[% "PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_ALL" | string %]',
+	getDataYearsWithTopRatedTracksRatedOnly:'[% "PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED" | string %]',
+	getDataYearsWithMostPlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS" | string %]',
+	getDataYearsWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE" | string %]',
+	getDataDecadesWithMostPlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS" | string %]',
+	getDataDecadesWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE" | string %]',
+	getDataTracksByDateAdded:'[% "PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED" | string %]',
+
+	getDataAudioFileFormats:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS" | string %]',
+	getDataTracksByBitrate:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE" | string %]',
+	getDataTracksByBitrateAudioFileFormat:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS" | string %]',
+	getDataTracksBySampleRate:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_SAMPLE_RATE" | string %]',
+	getDataTracksByBitrateAudioFileFormatScatter:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER" | string %]',
+	getDataListeningTimes:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES" | string %]',
+	getDataTrackTitleMostFrequentWords:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS" | string %]',
+
+	VLchartlabelAverageBitrate:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE" | string %]',
+	VLchartlabelAveragePlayCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT" | string %]',
+	VLchartlabelAveragePlayCountShort:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT_SHORT" | string %]',
+	VLchartlabelAverageArtistRating:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING" | string %]',
+	VLchartlabelAverageRatingPlayCountForArtist:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST" | string %]',
+	VLchartlabelAverageTrackRating:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING" | string %]',
+	VLchartlabelAverageRating:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATING" | string %]',
+	VLchartlabelAlbumCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT" | string %]',
+	VLchartlabelRatedTrackCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT" | string %]',
+	VLchartlabelTrackCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT" | string %]',
+	VLchartlabelWordCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT" | string %]',
+	VLchartlabelBitrate:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_BITRATE" | string %]',
+	VLchartlabelNoBitrate:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE" | string %]',
+	VLchartlabelListeningTime:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME" | string %]',
+	VLchartlabelTrack:'[% "PLUGIN_VISUALSTATISTICS_VL_TRACK" | string %]',
+	VLchartlabelTracks:'[% "PLUGIN_VISUALSTATISTICS_VL_TRACKS" | string %]',
+	VLchartlabelStar:'[% "PLUGIN_VISUALSTATISTICS_VL_STAR" | string %]',
+	VLchartlabelStars:'[% "PLUGIN_VISUALSTATISTICS_VL_STARS" | string %]',
+
+	colorSchemeLight:'[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_LIGHT" | string %]',
+	colorSchemeDark:'[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_DARK" | string %]',
+	subtitleBars:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS" | string %]',
+	subtitleSegments:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS" | string %]',
+	subtitleDataPoints:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS" | string %]',
+	subtitleScatterFileFormats:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SCATTER_FILEFORMATS" | string %]',
+	buttonLayoutSwitchToHorizontal:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_HORIZONTAL" | string %]',
+	buttonLayoutSwitchToVertical:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_VERTICAL" | string %]',
+	buttonOrderReverse:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_REVERSE" | string %]',
+	buttonOrderRestoreDefault:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_RESTORE_DEFAULT" | string %]',
+	buttonLabelsShow:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_SHOW" | string %]',
+	buttonLabelsHide:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_HIDE" | string %]',
+	};
+</script>
+
 <script type="text/javascript" src="js/showchart.min.js"></script>
 <script type="text/javascript">
 	[% IF systemSkin == "material" %]
-		document.getElementById('colorscheme_value').innerHTML = 'dark';
+		document.getElementById('colorscheme_value').innerHTML = '[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_DARK" | string %]';
 		var toggle = document.getElementById('toggleswitch_colorscheme');
 		toggle.checked = !toggle.checked;
 	[% END %]
