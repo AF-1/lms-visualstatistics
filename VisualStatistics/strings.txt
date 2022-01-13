@@ -64,7 +64,7 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS
 	EN	Album artists with most albums (no compilations)
-	NL	Albumartiesten met de meeste nummers (geen compilaties)
+	NL	Albumartiesten met de meeste albums (geen compilaties)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS
 	EN	Artists with most rated tracks
