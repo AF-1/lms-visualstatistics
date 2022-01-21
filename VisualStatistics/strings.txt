@@ -1,503 +1,629 @@
 PLUGIN_VISUALSTATISTICS
 	EN	Visual Statistics
+	FR	Statistiques Visuelles
 	NL	Visuele Statistieken
 
 PLUGIN_VISUALSTATISTICS_DESC
 	EN	Have a look at your library statistics with charts
+	FR	Explorez les statistiques de votre librairie avec des graphiques
 	NL	Bekijk jouw mediabibliotheek statistieken door middel van grafieken
 
 PLUGIN_STATISTICSLIGH_LOG_DESC
 	EN	Log of plugin VisualStatistics
+	FR	Log du plugin Statistiques Visuelles
 	NL	Log van plug-in Visuele Statistieken
 
 PLUGIN_VISUALSTATISTICS_SETTINGS
 	EN	Settings
+	FR	Réglages
 	NL	Instellingen
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
+	FR	Utiliser le mode plein écran de l'OS
 	NL	Gebruik OS volledig schermmodus
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC
 	EN	If checked <i>Visual Statistics</i> will try to display the charts in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It's just an unsupported experimental setting.
+	FR	Si activé <i>Statistiques Visuelles</i> tentera d'afficher les graphiques dans le mode plein écran (de l'OS), ils devraient remplir l'écran entier. Fonctionne sur Firefox, Chrome et Edge mais pas sur Safari. Aucunes promesses ni garanties. C'est juste un réglage expérimental non supporté.
 	NL	Indien aangevinkt zal de plug-in <i>Visuale Statistieken</i> de grafieken tonen in (OS) volledig schermmodus. Werkt met de webbrowsers Firefox, Chrome en Edge, maar niet met Safari. Deze instelling wordt niet ondersteund en is experimenteel.
 
 PLUGIN_VISUALSTATISTICS_LIST
 	EN	Visual Statistics
+	FR	Statistiques Visuelles
 	NL	Visuele Statistieken
 
 PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME
 	EN	Charts color schemes
+	FR	Theme de coleur des graphiques
 	NL	Kleurthema voor grafieken
 	
 PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_LIGHT
 	EN	light
+	FR	léger
 	NL	licht
 
 PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_DARK
 	EN	dark
+	FR	sombre
 	NL	donker
 
 PLUGIN_VISUALSTATISTICS_SECTION_ARTISTS
 	EN	ARTISTS
+	FR	ARTISTES
 	NL	ARTIESTEN
 
 PLUGIN_VISUALSTATISTICS_SECTION_ALBUMS
 	EN	ALBUMS
+	FR	ALBUMS
 	NL	ALBUMS
 
 PLUGIN_VISUALSTATISTICS_SECTION_GENRES
 	EN	GENRES
+	FR	GENRES
 	NL	GENRES
 
 PLUGIN_VISUALSTATISTICS_SECTION_YEARS
 	EN	YEARS
+	FR	ANNÉES
 	NL	JAREN
 
 PLUGIN_VISUALSTATISTICS_SECTION_MISC
 	EN	MISC.
+	FR	AUTRES
 	NL	OVERIG
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS
 	EN	Artists with most tracks
+	FR	Artistes avec le plus de morceaux
 	NL	Artiesten met de meeste nummers
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS
 	EN	Album artists with most albums (no compilations)
+	FR	Artistes d'album avec le plus d'albums (pas de compilations)
 	NL	Albumartiesten met de meeste albums (geen compilaties)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS
 	EN	Artists with most rated tracks
+	FR	Artistes avec le plus de morceaux notés
 	NL	Artiesten met de meeste nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_ALL
 	EN	Artists with top average rated tracks (incl. unrated tracks)
+	FR	Artistes avec la meilleure note moyenne des morceaux (en incluant les morceaux non notés)
 	NL	Artiesten met de nummers met de hoogste gemiddelde waardering (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED
 	EN	Artists with top average rated tracks (rated tracks only)
+	FR	Artistes avec la meilleure note moyenne des morceaux (morceaux notés seulement)
 	NL	Artiesten met de nummers met de hoogste gemiddelde waardering (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
 	EN	Artists with most played tracks (number of all tracks played at least once)
+	FR	Artistes avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Artiesten met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Artists with most played tracks (highest average playcount)
+	FR	Artites avec le plus de morceaux joués (nombre d'écoute moyen le plus élevé)
 	NL	Artiesten met de meeste gespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
 	EN	Artists - average rating vs. average playcount
+	FR	Artistes - note moyenne vs. nombre d'écoute moyen
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS
 	EN	Albums by year
+	FR	Albums par année
 	NL	Albums per jaar
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_TRACKS
 	EN	Albums with most tracks
+	FR	Albums avec le plus de morceaux
 	NL	Albums met de meeste nummers
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS
 	EN	Albums with most rated tracks
+	FR	Albums avec le plus de morceaux notés
 	NL	Albums met de meeste nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_ALL
 	EN	Albums with top average rated tracks (incl. unrated tracks)
+	FR	Albums avec la note moyenne de morceaux la plus haute (incl. les morceaux non notés)
 	NL	Albums met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED
 	EN	Albums with top average rated tracks (rated tracks only)
+	FR	Albums avec la note moyenne de morceaux la plus haute (seulement les morceaux notés)
 	NL	Albums met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
 	EN	Albums with most played tracks (number of all tracks played at least once)
+	FR	Albums avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Albums met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Albums with most played tracks (highest average playcount)
+	FR	Albums avec le plus de morceaux joués (nombre d'écoute moyen le plus élevé)
 	NL	Albums met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS
 	EN	Genres with most tracks
+	FR	Genres avec le plus de morceaux
 	NL	Genres met de meeste nummers
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_ALBUMS
 	EN	Genres with most albums
+	FR	Genres avec le plus d'albums
 	NL	Genres met de meeste albums
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS
 	EN	Genres with most rated tracks
+	FR	Genre avec le plus de morceaux notés
 	NL	Genres met de meeste nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_ALL
 	EN	Genres with top average rated tracks (incl. unrated tracks)
+	FR	Genres avec la note moyenne de morceaux la plus haute (incl. les morceaux non notés)
 	NL	Genres met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED
 	EN	Genres with top average rated tracks (rated tracks only)
+	FR	Genres avec la note moyenne de morceaux la plus haute (seulement les morceaux notés)
 	NL	Genres met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
 	EN	Genres with most played tracks (number of all tracks played at least once)
+	FR	Genres avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Genres met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Genres with most played tracks (highest average playcount)
+	FR	Genres avec le plus de morceaux joués (nombre d'écoute moyen le plus élevé)
 	NL	Genres met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
 	EN	Genres with top average bit rate
+	FR	Genres avec le plus haut débit moyen
 	NL	Genres met de hoogste gemiddelde bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_YEARS_TRACKS
 	EN	Tracks by year
+	FR	Morceaux par année
 	NL	Nummers per jaar
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS
 	EN	Years with most tracks
+	FR	Années avec le plus de morceaux
 	NL	Jaren met de meeste nummers
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_ALBUMS
 	EN	Years with most albums
+	FR	Années avec le plus d'albums
 	NL	Jaren met de meeste albums
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS
 	EN	Years with most rated tracks
+	FR	Années avec le plus de morceaux notés
 	NL	Jaren met de meeste nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_ALL
 	EN	Years with top average rated tracks (incl. unrated tracks)
+	FR	Années
 	NL	Jaren met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED
 	EN	Years with top average rated tracks (rated tracks only)
+	FR	Années avec la note moyenne de morceaux la plus haute (incl. les morceaux non notés)
 	NL	Jaren met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
 	EN	Years with most played tracks (number of all tracks played at least once)
+	FR	Années avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Jaren met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Years with most played tracks (highest average playcount)
+	FR	Années avec le plus de morceaux joués (nombre d'écoute moyen le plus élevé)
 	NL	Jaren met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 	EN	Decades with most played tracks (number of all tracks played at least once)
+	FR	Décennies avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Decennia met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Decades with most played tracks (highest average playcount)
+	FR	Décennies avec le plus de morceaux joués (nombre d'écoute moyen le plus élevé)
 	NL	Decennia met de meeste afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
 	EN	Tracks by date added
+	FR	Morceaux par date d'ajout
 	NL	Nummers per toegevoegde datum
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS
 	EN	Audio file formats of local library tracks
+	FR	Format des fichiers audio de la bibliothèque musicale locale
 	NL	Bestandsformaten van nummers in de lokale mediabibliotheek
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE
 	EN	Tracks by bit rate
+	FR	Morceaux par débit
 	NL	Nummers per bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS
 	EN	Tracks by bit rate and audio file format
+	FR	Morceaux par débit et format du fichier audio
 	NL	Nummers per bitsnelheid en bestandsformaat
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_SAMPLE_RATE
 	EN	Tracks by sample rate
+	FR	Morceaux par taux d'échantillonage
 	NL	Nummers per samplefrequentie
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER
 	EN	Tracks by bit rate and audio file format (scatter chart)
+	FR	Morceaux par débit et format du fichier audio (graphe de dispersion)
 	NL	Nummers per bitsnelheid en bestandsformaat (scatter grafiek)
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
 	EN	Listening times
+	FR	Heures d'écoute
 	NL	Luistertijden
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT
 	EN	More library statistics (text)
+	FR	Plus de statistiques de la bibliothèque musicale (texte)
 	NL	Meer mediabibliotheek statistieken (tekst)
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
 	EN	LIBRARY STATISTICS
+	FR	STATISTIQUES DE LA BIBLIOTHEQUE MUSCICALE
 	NL	MEDIABIBLIOTHEEK STATISTIEKEN
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
 	EN	Most frequently used words in song names
+	FR	Mots les plus utilisés dans les titres des chansons
 	NL	Meest gebruikte woorden in namen van nummers
 
 PLUGIN_VISUALSTATISTICS_VL_COMPLETELIB_NAME
 	EN	Complete Library (Default)
+	FR	bibliothèque musicale complète (par défaut)
 	NL	Gehele mediabibliotheek (standaard)
 
 PLUGIN_VISUALSTATISTICS_VL_TRACK
 	EN	Track
+	FR	Morceau
 	NL	Nummer
 	
 PLUGIN_VISUALSTATISTICS_VL_TRACKS
 	EN	Tracks
+	FR	Morceaux
 	NL	Nummers
 
 PLUGIN_VISUALSTATISTICS_VL_STAR
 	EN	star
+	FR	étoile
 	NL	ster
 
 PLUGIN_VISUALSTATISTICS_VL_STARS
 	EN	stars
+	FR	étoiles
 	NL	sterren
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE
 	EN	average bit rate (kbps)
+	FR	débit moyen (kbps)
 	NL	gemiddelde bitsnelheid (kbps)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
 	EN	average playcount
+	FR	nombre d'écoute moyen
 	NL	gemiddeld aantal keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT_SHORT
 	EN	Avg. play count
+	FR	Nombre d'écoute moy.
 	NL	Gem. aantal keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
 	EN	Avg. artist rating
+	FR	Note moy. de l'artiste
 	NL	Gem. artiest rating
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST
 	EN	average rating/play count for artist
+	FR	note moyenne/nombre d'écoute de l'artiste
 	NL	gemiddelde beoordeling/aantal keren afgespeeld voor artiest
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING
 	EN	average track rating (stars)
+	FR	note moyenne des morceaux (étoiles)
 	NL	gemiddelde beoordeling (sterren) van nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATING
 	EN	Average rating (stars)
+	FR	Note moyenne (étoiles)
 	NL	Gemiddelde rating (sterren)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT
 	EN	number of albums
+	FR	nombre d'albums
 	NL	aantal albums
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT
 	EN	number of rated tracks
+	FR	nombre de morceaux notés
 	NL	aantal nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT
 	EN	number of tracks
+	FR	nombre de morceaux
 	NL	aantal nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT
 	EN	word count
+	FR	nombre de mots
 	NL	aantal woorden 
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_BITRATE
 	EN	Bit rate
+	FR	Débit
 	NL	Bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE
 	EN	No bit rate
+	FR	Sans débit
 	NL	Geen bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME
 	EN	Listening Time
+	FR	Temps d'écoute
 	NL	Luistertijd
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS
 	EN	Total tracks
+	FR	Total de morceaux
 	NL	Totaal aantal nummers
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSLOCAL
 	EN	Total local tracks
+	FR	Total de morceaux locaux
 	NL	Totaal aantal lokale nummers
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSREMOTE
 	EN	Total remote tracks
+	FR	Total de morceaux distants
 	NL	Totaal aantal niet lokale nummers
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALPLAYINGTIME
 	EN	Total playing time
+	FR	Temps total de lecture
 	NL	Totale speeltijd
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEAR
 	EN	year
+	FR	année
 	NL	jaar
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEARS
 	EN	years
+	FR	années
 	NL	jaren
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEK
 	EN	week
+	FR	semaine
 	NL	week
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEKS
 	EN	weeks
+	FR	semaines
 	NL	weken
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAY
 	EN	day
+	FR	jour
 	NL	dag
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAYS
 	EN	days
+	FR	jours
 	NL	dagen
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOUR
 	EN	hour
+	FR	heure
 	NL	uur
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOURS
 	EN	hours
+	FR	heures
 	NL	uren
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMIN
 	EN	minute
+	FR	minute
 	NL	minuut
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS
 	EN	minutes
+	FR	minutes
 	NL	minuten
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESEC
 	EN	second
+	FR	seconde
 	NL	seconde
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESECS
 	EN	seconds
+	FR	secondes
 	NL	seconden
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALLIBSIZE
 	EN	Total library size
+	FR	Taille totale de la bibliothèque musicale
 	NL	Totale mediabibliotheek grootte
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALIBAGE
 	EN	Library age
+	FR	Age de la bibliothèque musicale
 	NL	Mediabibliotheek leeftijd
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS
 	EN	Artists
+	FR	Artistes
 	NL	Artiesten
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AARTISTS
 	EN	Album artists
+	FR	Artistes d'Album
 	NL	Albumartiesten
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPOSERS
 	EN	Composers
+	FR	Compositeurs
 	NL	Componisten
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTSPLAYED
 	EN	Artists played
+	FR	Artites joués
 	NL	Artiesten afgespeeld
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS
 	EN	Albums
+	FR	Albums
 	NL	Albums
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPIS
 	EN	Compilations
+	FR	Compilations
 	NL	Verzamelingen
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AALBUMS
 	EN	Artist albums
+	FR	Artite des albums
 	NL	Artiest albums
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSPLAYED
 	EN	Albums played
+	FR	Albums joués
 	NL	Albums afgespeeld
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK
 	EN	Albums without artwork
+	FR	Albums sans couverture
 	NL	Albums zonder albumhoes
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES
 	EN	Genres
+	FR	Genres
 	NL	Genres
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_LOSSLESS
 	EN	Lossless songs
+	FR	Morceaux sans pertes
 	NL	Lossless nummers
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_RATEDTRACKS
 	EN	Rated songs
+	FR	Morceaux notés
 	NL	Beoordeelde nummers
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYED
 	EN	Songs played at least once
+	FR	Morceaux joués au moins une fois
 	NL	Aantal nummers dat minstens één keer is afgespeeld
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYCOUNTTOTAL
 	EN	Total play count (incl. repeated)
+	FR	Nombre total d'écoutes (incluant les répétitions)
 	NL	Totaal aantal keren afgespeeld (incl. herhaald)
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSAVGLENGTH
 	EN	Average track length
+	FR	Longeur moyenne des morceaux
 	NL	Gemiddelde duur van nummer
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGBITRATE
 	EN	Average bit rate
+	FR	Débit moyen
 	NL	Gemiddelde bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGFILESIZE
 	EN	Average file size
+	FR	Taille moyenne des fichiers
 	NL	Gemiddelde bestandsgrootte
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHLYRICS
 	EN	Tracks with lyrics
+	FR	Morceaux avec paroles
 	NL	Nummers met songteksten
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN
 	EN	Tracks without replay gain
+	FR	Morceaux sans replay gain
 	NL	Nummers zonder replay gain
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS
 	EN	MP3 tracks with
+	FR	Morceaux MP3 avec
 	NL	MP3 nummers met
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS
 	EN	tags
+	FR	tags
 	NL	tags
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS
 	EN	Hover over bars for more information.
+	FR	Survolez les barres pour plus d'informations.
 	NL	Ga met de cursor over de grafiek voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS
 	EN	Click on legend items to hide them, hover over segments for more information.
+	FR	Cliquez sur les éléments de la légende pour les cacher, survolez les segments pour plus d'informations.
 	NL	Klik op legenda items om ze te verbergen, ga met de cursor over de grafiek voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS
 	EN	Hover over data points for more information.
+	FR	Survolez les points de données pour plus d'informations.
 	NL	Ga met de cursor over de grafiek voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SCATTER_FILEFORMATS
 	EN	Click on file formats in legend to hide them, hover over points for more information.
+	FR	Cliquez sur le format de fichier dans la légende pour les cacher, survolez les points pour plus d'informations.
 	NL	Klik op bestandsformaten in de legenda om ze te verbergen, ga met de cursor over de grafiek voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_HORIZONTAL
 	EN	Switch to <span class="button-font-strong">horizontal</span> layout
+	FR	Basculer vers l'affichage <span class="button-font-strong">horizontal</span>
 	NL	Naar <span class="button-font-strong">horizontale</span> layout
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_VERTICAL
 	EN	Switch to <span class="button-font-strong">vertical</span> layout
+	FR	Basculer vers l'affichage <span class="button-font-strong">vertical</span>
 	NL	Naar <span class="button-font-strong">verticale</span> layout
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_REVERSE
 	EN	<span class="button-font-strong">Reverse</span> order
+	FR	<span class="button-font-strong">Inverser</span> l'ordre
 	NL	<span class="button-font-strong">Omgekeerde</span> volgorde
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_RESTORE_DEFAULT
 	EN	<span class="button-font-strong">Restore</span> default order
+	FR	<span class="button-font-strong">Restorer</span> l'ordre par défaut
 	NL	<span class="button-font-strong">Herstel</span> standaard volgorde
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_SHOW
 	EN	<span class="button-font-strong">Show</span> data labels
+	FR	<span class="button-font-strong">Afficher</span> les données
 	NL	<span class="button-font-strong">Toon</span> data labels
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_HIDE
 	EN	<span class="button-font-strong">Hide</span> data labels
+	FR	<span class="button-font-strong">Masquer</span> les données
 	NL	<span class="button-font-strong">Verberg</span> data labels
