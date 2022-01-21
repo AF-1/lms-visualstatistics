@@ -35,7 +35,7 @@ PLUGIN_VISUALSTATISTICS_LIST
 
 PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME
 	EN	Charts color schemes
-	FR	Theme de coleur des graphiques
+	FR	Theme de couleur des graphiques
 	NL	Kleurthema voor grafieken
 	
 PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_LIGHT
@@ -90,12 +90,12 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_ALL
 	EN	Artists with top average rated tracks (incl. unrated tracks)
-	FR	Artistes avec la meilleure note moyenne des morceaux (en incluant les morceaux non notés)
+	FR	Artistes avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
 	NL	Artiesten met de nummers met de hoogste gemiddelde waardering (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED
 	EN	Artists with top average rated tracks (rated tracks only)
-	FR	Artistes avec la meilleure note moyenne des morceaux (morceaux notés seulement)
+	FR	Artistes avec la meilleure note moyenne de morceaux (seulement les morceaux notés)
 	NL	Artiesten met de nummers met de hoogste gemiddelde waardering (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
@@ -130,12 +130,12 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_ALL
 	EN	Albums with top average rated tracks (incl. unrated tracks)
-	FR	Albums avec la note moyenne de morceaux la plus haute (incl. les morceaux non notés)
+	FR	Albums avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
 	NL	Albums met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED
 	EN	Albums with top average rated tracks (rated tracks only)
-	FR	Albums avec la note moyenne de morceaux la plus haute (seulement les morceaux notés)
+	FR	Albums avec la meilleure note moyenne de morceaux (seulement les morceaux notés)
 	NL	Albums met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
@@ -165,12 +165,12 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_ALL
 	EN	Genres with top average rated tracks (incl. unrated tracks)
-	FR	Genres avec la note moyenne de morceaux la plus haute (incl. les morceaux non notés)
+	FR	Genres avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
 	NL	Genres met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED
 	EN	Genres with top average rated tracks (rated tracks only)
-	FR	Genres avec la note moyenne de morceaux la plus haute (seulement les morceaux notés)
+	FR	Genres avec la meilleure note moyenne de morceaux (seulement les morceaux notés)
 	NL	Genres met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
@@ -210,12 +210,12 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_ALL
 	EN	Years with top average rated tracks (incl. unrated tracks)
-	FR	Années
+	FR	Années avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
 	NL	Jaren met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED
 	EN	Years with top average rated tracks (rated tracks only)
-	FR	Années avec la note moyenne de morceaux la plus haute (incl. les morceaux non notés)
+	FR	Années avec la meilleure note moyenne de morceaux (seulement les morceaux notés)
 	NL	Jaren met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
@@ -280,7 +280,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
 	EN	LIBRARY STATISTICS
-	FR	STATISTIQUES DE LA BIBLIOTHEQUE MUSCICALE
+	FR	STATISTIQUES DE LA BIBLIOTHEQUE MUSICALE
 	NL	MEDIABIBLIOTHEEK STATISTIEKEN
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
