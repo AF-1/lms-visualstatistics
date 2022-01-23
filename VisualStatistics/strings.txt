@@ -105,12 +105,12 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Artists with most played tracks (highest average playcount)
-	FR	Artistes avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
+	FR	Artistes avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Artiesten met de meeste gespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
 	EN	Artists - average rating vs. average playcount
-	FR	Artistes - note moyenne vs. nombre d’écoute moyen
+	FR	Artistes - note moyenne vs. nombre d’écoutes moyen
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS
@@ -145,7 +145,7 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Albums with most played tracks (highest average playcount)
-	FR	Albums avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
+	FR	Albums avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Albums met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS
@@ -180,7 +180,7 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Genres with most played tracks (highest average playcount)
-	FR	Genres avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
+	FR	Genres avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Genres met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
@@ -225,7 +225,7 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Years with most played tracks (highest average playcount)
-	FR	Années avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
+	FR	Années avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Jaren met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
@@ -235,7 +235,7 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Decades with most played tracks (highest average playcount)
-	FR	Décennies avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
+	FR	Décennies avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Decennia met de meeste afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
@@ -320,12 +320,12 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
 	EN	average playcount
-	FR	nombre d’écoute moyen
+	FR	nombre d’écoutes moyen
 	NL	gemiddeld aantal keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT_SHORT
 	EN	Avg. play count
-	FR	Nombre d’écoute moy.
+	FR	Nombre d’écoutes moy.
 	NL	Gem. aantal keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
@@ -335,7 +335,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST
 	EN	average rating/play count for artist
-	FR	note moyenne/nombre d’écoute de l’artiste
+	FR	note moyenne/nombre d’écoutes de l’artiste
 	NL	gemiddelde beoordeling/aantal keren afgespeeld voor artiest
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING
