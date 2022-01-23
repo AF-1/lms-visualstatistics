@@ -20,12 +20,12 @@ PLUGIN_VISUALSTATISTICS_SETTINGS
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
-	FR	Utiliser le mode plein écran de l\'OS
+	FR	Utiliser le mode plein écran de l’OS
 	NL	Gebruik OS volledig schermmodus
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC
-	EN	If checked <i>Visual Statistics</i> will try to display the charts in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It's just an unsupported experimental setting.
-	FR	Si activé <i>Statistiques Visuelles</i> tentera d\'afficher les graphiques dans le mode plein écran (de l\'OS), ils devraient remplir l\'écran entier. Fonctionne sur Firefox, Chrome et Edge mais pas sur Safari. Aucunes promesses ni garanties. C'est juste un réglage expérimental non supporté.
+	EN	If checked <i>Visual Statistics</i> will try to display the charts in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It’s just an unsupported experimental setting.
+	FR	Si activé <i>Statistiques Visuelles</i> tentera d’afficher les graphiques dans le mode plein écran (de l’OS), ils devraient remplir l’écran entier. Fonctionne sur Firefox, Chrome et Edge mais pas sur Safari. Aucunes promesses ni garanties. C’est juste un réglage expérimental non supporté.
 	NL	Indien aangevinkt zal de plug-in <i>Visuale Statistieken</i> de grafieken tonen in (OS) volledig schermmodus. Werkt met de webbrowsers Firefox, Chrome en Edge, maar niet met Safari. Deze instelling wordt niet ondersteund en is experimenteel.
 
 PLUGIN_VISUALSTATISTICS_LIST
@@ -80,7 +80,7 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS
 	EN	Album artists with most albums (no compilations)
-	FR	Artistes d\'album avec le plus d\'albums (pas de compilations)
+	FR	Artistes d’album avec le plus d’albums (pas de compilations)
 	NL	Albumartiesten met de meeste albums (geen compilaties)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS
@@ -105,12 +105,12 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Artists with most played tracks (highest average playcount)
-	FR	Artistes avec le plus de morceaux joués (nombre d\'écoute moyen le plus élevé)
+	FR	Artistes avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
 	NL	Artiesten met de meeste gespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
 	EN	Artists - average rating vs. average playcount
-	FR	Artistes - note moyenne vs. nombre d\'écoute moyen
+	FR	Artistes - note moyenne vs. nombre d’écoute moyen
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS
@@ -145,7 +145,7 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Albums with most played tracks (highest average playcount)
-	FR	Albums avec le plus de morceaux joués (nombre d\'écoute moyen le plus élevé)
+	FR	Albums avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
 	NL	Albums met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS
@@ -155,7 +155,7 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_ALBUMS
 	EN	Genres with most albums
-	FR	Genres avec le plus d\'albums
+	FR	Genres avec le plus d’albums
 	NL	Genres met de meeste albums
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS
@@ -180,7 +180,7 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Genres with most played tracks (highest average playcount)
-	FR	Genres avec le plus de morceaux joués (nombre d\'écoute moyen le plus élevé)
+	FR	Genres avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
 	NL	Genres met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
@@ -200,7 +200,7 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_ALBUMS
 	EN	Years with most albums
-	FR	Années avec le plus d\'albums
+	FR	Années avec le plus d’albums
 	NL	Jaren met de meeste albums
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS
@@ -225,7 +225,7 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Years with most played tracks (highest average playcount)
-	FR	Années avec le plus de morceaux joués (nombre d\'écoute moyen le plus élevé)
+	FR	Années avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
 	NL	Jaren met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
@@ -235,12 +235,12 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Decades with most played tracks (highest average playcount)
-	FR	Décennies avec le plus de morceaux joués (nombre d\'écoute moyen le plus élevé)
+	FR	Décennies avec le plus de morceaux joués (nombre d’écoute moyen le plus élevé)
 	NL	Decennia met de meeste afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
 	EN	Tracks by date added
-	FR	Morceaux par date d\'ajout
+	FR	Morceaux par date d’ajout
 	NL	Nummers per toegevoegde datum
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS
@@ -260,7 +260,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_SAMPLE_RATE
 	EN	Tracks by sample rate
-	FR	Morceaux par taux d\'échantillonage
+	FR	Morceaux par taux d’échantillonage
 	NL	Nummers per samplefrequentie
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER
@@ -270,7 +270,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
 	EN	Listening times
-	FR	Heures d\'écoute
+	FR	Heures d’écoute
 	NL	Luistertijden
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT
@@ -320,22 +320,22 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
 	EN	average playcount
-	FR	nombre d\'écoute moyen
+	FR	nombre d’écoute moyen
 	NL	gemiddeld aantal keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT_SHORT
 	EN	Avg. play count
-	FR	Nombre d\'écoute moy.
+	FR	Nombre d’écoute moy.
 	NL	Gem. aantal keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
 	EN	Avg. artist rating
-	FR	Note moy. de l\'artiste
+	FR	Note moy. de l’artiste
 	NL	Gem. artiest rating
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST
 	EN	average rating/play count for artist
-	FR	note moyenne/nombre d\'écoute de l\'artiste
+	FR	note moyenne/nombre d’écoute de l’artiste
 	NL	gemiddelde beoordeling/aantal keren afgespeeld voor artiest
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING
@@ -350,7 +350,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATING
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT
 	EN	number of albums
-	FR	nombre d\'albums
+	FR	nombre d’albums
 	NL	aantal albums
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT
@@ -380,7 +380,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME
 	EN	Listening Time
-	FR	Temps d\'écoute
+	FR	Temps d’écoute
 	NL	Luistertijd
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS
@@ -480,7 +480,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AARTISTS
 	EN	Album artists
-	FR	Artistes d\'album
+	FR	Artistes d’album
 	NL	Albumartiesten
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPOSERS
@@ -540,7 +540,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYED
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYCOUNTTOTAL
 	EN	Total play count (incl. repeated)
-	FR	Nombre total d\'écoutes (incl. répétitions)
+	FR	Nombre total d’écoutes (incl. répétitions)
 	NL	Totaal aantal keren afgespeeld (incl. herhaald)
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSAVGLENGTH
@@ -580,42 +580,42 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS
 	EN	Hover over bars for more information.
-	FR	Survolez les barres pour plus d\'informations.
+	FR	Survolez les barres pour plus d’informations.
 	NL	Ga met de cursor over de grafiek voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS
 	EN	Click on legend items to hide them, hover over segments for more information.
-	FR	Cliquez sur les éléments de la légende pour les cacher, survolez les segments pour plus d\'informations.
+	FR	Cliquez sur les éléments de la légende pour les cacher, survolez les segments pour plus d’informations.
 	NL	Klik op legenda items om ze te verbergen, ga met de cursor over de grafiek voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS
 	EN	Hover over data points for more information.
-	FR	Survolez les points de données pour plus d\'informations.
+	FR	Survolez les points de données pour plus d’informations.
 	NL	Ga met de cursor over de grafiek voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SCATTER_FILEFORMATS
 	EN	Click on file formats in legend to hide them, hover over points for more information.
-	FR	Cliquez sur le format de fichier dans la légende pour les cacher, survolez les points pour plus d\'informations.
+	FR	Cliquez sur le format de fichier dans la légende pour les cacher, survolez les points pour plus d’informations.
 	NL	Klik op bestandsformaten in de legenda om ze te verbergen, ga met de cursor over de grafiek voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_HORIZONTAL
 	EN	Switch to <span class="button-font-strong">horizontal</span> layout
-	FR	Basculer vers l\'affichage <span class="button-font-strong">horizontal</span>
+	FR	Basculer en <span class="button-font-strong">horizontal</span>
 	NL	Naar <span class="button-font-strong">horizontale</span> layout
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_VERTICAL
 	EN	Switch to <span class="button-font-strong">vertical</span> layout
-	FR	Basculer vers l\'affichage <span class="button-font-strong">vertical</span>
+	FR	Basculer en <span class="button-font-strong">vertical</span>
 	NL	Naar <span class="button-font-strong">verticale</span> layout
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_REVERSE
 	EN	<span class="button-font-strong">Reverse</span> order
-	FR	<span class="button-font-strong">Inverser</span> l\'ordre
+	FR	<span class="button-font-strong">Inverser</span> l’ordre
 	NL	<span class="button-font-strong">Omgekeerde</span> volgorde
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_ORDER_RESTORE_DEFAULT
 	EN	<span class="button-font-strong">Restore</span> default order
-	FR	<span class="button-font-strong">Restorer</span> l\'ordre par défaut
+	FR	<span class="button-font-strong">Restorer</span> l’ordre par défaut
 	NL	<span class="button-font-strong">Herstel</span> standaard volgorde
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_SHOW
