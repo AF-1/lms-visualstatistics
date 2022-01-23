@@ -5,7 +5,7 @@ PLUGIN_VISUALSTATISTICS
 
 PLUGIN_VISUALSTATISTICS_DESC
 	EN	Have a look at your library statistics with charts
-	FR	Explorez les statistiques de votre librairie avec des graphiques
+	FR	Explorez les statistiques de votre bibliothèque musicale avec des graphiques
 	NL	Bekijk jouw mediabibliotheek statistieken door middel van grafieken
 
 PLUGIN_STATISTICSLIGH_LOG_DESC
