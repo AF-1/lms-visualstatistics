@@ -37,7 +37,7 @@ PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME
 	EN	Charts color schemes
 	FR	Theme de couleur des graphiques
 	NL	Kleurthema voor grafieken
-	
+
 PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_LIGHT
 	EN	light
 	FR	clair
@@ -72,6 +72,8 @@ PLUGIN_VISUALSTATISTICS_SECTION_MISC
 	EN	MISC.
 	FR	AUTRES
 	NL	OVERIG
+
+
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS
 	EN	Artists with most tracks
@@ -113,6 +115,8 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
 	FR	Artistes - note moyenne vs. nombre d’écoutes moyen
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
 
+
+
 PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS
 	EN	Albums by year
 	FR	Albums par année
@@ -147,6 +151,8 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Albums with most played tracks (highest average playcount)
 	FR	Albums avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Albums met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
+
+
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS
 	EN	Genres with most tracks
@@ -187,6 +193,8 @@ PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
 	EN	Genres with top average bit rate
 	FR	Genres avec le plus haut débit moyen
 	NL	Genres met de hoogste gemiddelde bitsnelheid
+
+
 
 PLUGIN_VISUALSTATISTICS_YEARS_TRACKS
 	EN	Tracks by year
@@ -243,6 +251,8 @@ PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
 	FR	Morceaux par date d’ajout
 	NL	Nummers per toegevoegde datum
 
+
+
 PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS
 	EN	Audio file formats of local library tracks
 	FR	Format des fichiers audio de la bibliothèque musicale locale
@@ -297,7 +307,7 @@ PLUGIN_VISUALSTATISTICS_VL_TRACK
 	EN	Track
 	FR	Morceau
 	NL	Nummer
-	
+
 PLUGIN_VISUALSTATISTICS_VL_TRACKS
 	EN	Tracks
 	FR	Morceaux
@@ -366,7 +376,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT
 	EN	word count
 	FR	nombre de mots
-	NL	aantal woorden 
+	NL	aantal woorden
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_BITRATE
 	EN	Bit rate
@@ -382,6 +392,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME
 	EN	Listening Time
 	FR	Temps d’écoute
 	NL	Luistertijd
+
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS
 	EN	Total tracks
@@ -577,6 +588,8 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS
 	EN	tags
 	FR	tags
 	NL	tags
+
+
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS
 	EN	Hover over bars for more information.
