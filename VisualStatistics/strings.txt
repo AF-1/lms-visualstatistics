@@ -115,6 +115,24 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
 	FR	Artistes - note moyenne vs. nombre d’écoutes moyen
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
 
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_APC
+	EN	Artists with most played tracks (APC) (number of all tracks played at least once)
+	FR	Artistes avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
+	NL	Artiesten met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE_APC
+	EN	Artists with most played tracks (APC) (highest average playcount)
+	FR	Artistes avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
+	NL	Artiesten met de meeste gespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT_APC
+	EN	Artists - average rating vs. average playcount (APC)
+	FR	Artistes - note moyenne vs. nombre d’écoutes moyen (APC)
+	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld (APC)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_SKIPCOUNT_TRACKS_APC
+	EN	Artists - with top skip count (APC)
+
 
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS
@@ -151,6 +169,16 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
 	EN	Albums with most played tracks (highest average playcount)
 	FR	Albums avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Albums met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC
+	EN	Albums with most played tracks (APC) (number of all tracks played at least once)
+	FR	Albums avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
+	NL	Albums met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE_APC
+	EN	Albums with most played tracks (APC) (highest average playcount)
+	FR	Albums avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
+	NL	Albums met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
 
 
 
@@ -193,6 +221,16 @@ PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
 	EN	Genres with top average bit rate
 	FR	Genres avec le plus haut débit moyen
 	NL	Genres met de hoogste gemiddelde bitsnelheid
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_APC
+	EN	Genres with most played tracks (APC) (number of all tracks played at least once)
+	FR	Genres avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
+	NL	Genres met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE_APC
+	EN	Genres with most played tracks (APC) (highest average playcount)
+	FR	Genres avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
+	NL	Genres met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
 
 
 
@@ -250,6 +288,29 @@ PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
 	EN	Tracks by date added
 	FR	Morceaux par date d’ajout
 	NL	Nummers per toegevoegde datum
+
+PLUGIN_VISUALSTATISTICS_YEARS_DATE_LASTMODIFIED
+	EN	Tracks by date last modified
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_APC
+	EN	Years with most played tracks (APC) (number of all tracks played at least once)
+	FR	Années avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
+	NL	Jaren met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE_APC
+	EN	Years with most played tracks (APC) (highest average playcount)
+	FR	Années avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
+	NL	Jaren met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_APC
+	EN	Decades with most played tracks (APC) (number of all tracks played at least once)
+	FR	Décennies avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
+	NL	Decennia met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE_APC
+	EN	Decades with most played tracks (APC) (highest average playcount)
+	FR	Décennies avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
+	NL	Decennia met de meeste afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
 
 
 

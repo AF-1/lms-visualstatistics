@@ -75,6 +75,8 @@ sub handleWeb {
 	$params->{virtuallibraries} = $virtualLibraries;
 	$params->{ratedtrackcount} = $ratedTrackCount;
 	$params->{usefullscreen} = $prefs->get('usefullscreen') ? 1 : 0;
+	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
+	$params->{'apcenabled'} = 'yes' if $apc_enabled;
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);
 }
 
@@ -277,6 +279,93 @@ sub getDataArtistsRatingPlaycount {
 	return executeSQLstatement($sqlstatement, 3);
 }
 
+sub getDataArtistsWithMostPlayedTracksAPC {
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
+			and alternativeplaycount.playCount > 0
+		group by tracks.primary_artist
+		order by nooftracks desc, contributors.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataArtistsWithMostPlayedTracksAverageAPC {
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount from tracks
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
+		group by tracks.primary_artist
+		order by avgplaycount desc, contributors.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataArtistsWithTopSkipCountAPC {
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
+			and alternativeplaycount.skipCount > 0
+		group by tracks.primary_artist
+		order by nooftracks desc, contributors.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataArtistsRatingPlaycountAPC {
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select t.* from (select avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from tracks
+		left join tracks_persistent on
+			tracks_persistent.urlmd5 = tracks.urlmd5
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
+		group by tracks.primary_artist) as t
+		where (t.avgplaycount >= 0.05 and t.avgrating >= 0.05);";
+	return executeSQLstatement($sqlstatement, 3);
+}
+
 # ---- albums ---- #
 
 sub getDataAlbumsByYear {
@@ -418,6 +507,51 @@ sub getDataAlbumsWithMostPlayedTracksAverage {
 			contributors.id = albums.contributor
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
+		where
+			albums.title is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by albums.title
+		order by avgplaycount desc, albums.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3);
+}
+
+sub getDataAlbumsWithMostPlayedTracksAPC {
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+		join tracks on
+			tracks.album = albums.id";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " join contributors on
+			contributors.id = albums.contributor
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			albums.title is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.playCount > 0
+		group by albums.title
+		order by nooftracks desc, albums.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3);
+}
+
+sub getDataAlbumsWithMostPlayedTracksAverageAPC {
+	my $sqlstatement = "select albums.title, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, contributors.name from albums
+		join tracks on
+			tracks.album = albums.id";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " join contributors on
+			contributors.id = albums.contributor
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
 		where
 			albums.title is not null
 			and (tracks.audio = 1 or tracks.extid is not null)
@@ -602,6 +736,52 @@ sub getDataGenresWithTopAverageBitrate {
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by genres.name
 		order by avgbitrate desc, genres.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataGenresWithMostPlayedTracksAPC {
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join genre_track on
+			genre_track.track = tracks.id
+		join genres on
+			genres.id = genre_track.genre
+		where
+			genres.name is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.playCount > 0
+		group by genres.name
+		order by nooftracks desc, genres.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataGenresWithMostPlayedTracksAverageAPC {
+	my $sqlstatement = "select genres.name, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join genre_track on
+			genre_track.track = tracks.id
+		join genres on
+			genres.id = genre_track.genre
+		where
+			genres.name is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.playCount > 0
+		group by genres.name
+		order by avgplaycount desc, genres.name asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
@@ -810,6 +990,100 @@ sub getDataTracksByDateAdded {
 			and tracks_persistent.added is not null
 		group by strftime('%d-%m-%Y',tracks_persistent.added, 'unixepoch', 'localtime')
 		order by strftime ('%Y',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%m',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%d',tracks_persistent.added, 'unixepoch', 'localtime') asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataTracksByDateLastModified {
+	my $sqlstatement = "select strftime('%d-%m-%Y',tracks.timestamp, 'unixepoch', 'localtime') as datelastmodified, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			tracks.timestamp > 0
+			and tracks.timestamp is not null
+		group by strftime('%d-%m-%Y',tracks.timestamp, 'unixepoch', 'localtime')
+		order by strftime ('%Y',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%m',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%d',tracks.timestamp, 'unixepoch', 'localtime') asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataYearsWithMostPlayedTracksAPC {
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.playCount > 0
+		group by tracks.year
+		order by nooftracks desc, tracks.year asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataYearsWithMostPlayedTracksAverageAPC {
+	my $sqlstatement = "select year, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.playCount > 0
+		group by tracks.year
+		order by avgplaycount desc, tracks.year asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataDecadesWithMostPlayedTracksAPC {
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.playCount > 0
+		group by cast(((tracks.year/10)*10) as int)||'s'
+		order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataDecadesWithMostPlayedTracksAverageAPC {
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.playCount > 0
+		group by cast(((tracks.year/10)*10) as int)||'s'
+		order by avgplaycount desc, cast(((tracks.year/10)*10) as int)||'s' asc
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
