@@ -48,6 +48,11 @@ PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_DARK
 	FR	sombre
 	NL	donker
 
+PLUGIN_VISUALSTATISTICS_SECTION_TRACKS
+	EN	TRACKS
+	FR	MORCEAUX
+	NL	NUMMERS
+
 PLUGIN_VISUALSTATISTICS_SECTION_ARTISTS
 	EN	ARTISTS
 	FR	ARTISTES
@@ -64,14 +69,79 @@ PLUGIN_VISUALSTATISTICS_SECTION_GENRES
 	NL	GENRES
 
 PLUGIN_VISUALSTATISTICS_SECTION_YEARS
-	EN	YEARS
-	FR	ANNÉES
-	NL	JAREN
+	EN	YEARS / DECADES
+	FR	ANNÉES / DÉCENNIES
+	NL	JAREN / DECENNIA
 
 PLUGIN_VISUALSTATISTICS_SECTION_MISC
 	EN	MISC.
 	FR	AUTRES
 	NL	OVERIG
+
+
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILE_FORMAT
+	EN	Tracks by audio file format
+	FR	Morceaux par format des fichiers audio
+	NL	Nummers per bestandsformat
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE
+	EN	Tracks by bit rate
+	FR	Morceaux par débit
+	NL	Nummers per bitsnelheid
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE_FILE_FORMATS
+	EN	Tracks by bit rate and audio file format
+	FR	Morceaux par débit et format du fichier audio
+	NL	Nummers per bitsnelheid en bestandsformaat
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_SAMPLE_RATE
+	EN	Tracks by sample rate
+	FR	Morceaux par taux d’échantillonage
+	NL	Nummers per samplefrequentie
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER
+	EN	Tracks by bit rate and audio file format (scatter chart)
+	FR	Morceaux par débit et format du fichier audio (graphe de dispersion)
+	NL	Nummers per bitsnelheid en bestandsformaat (scatter grafiek)
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE_FILE_FORMATS
+	EN	Tracks by file size and audio file format
+	FR	Morceaux par taille de fichier
+	NL	Nummers per bestandsgrootte
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE
+	EN	Tracks by file size
+	FR	Morceaux par taille de fichier et format du fichier audio
+	NL	Nummers per bestandsgrootte en bestandsformaat
+
+PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED
+	EN	Most played tracks
+	FR	Morceaux le plus joués
+	NL	Meest afgespeelde nummers
+
+PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED_APC
+	EN	Most played tracks (APC)
+	FR	Morceaux le plus joués (APC)
+	NL	Meest afgespeelde nummers (APC)
+
+PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC
+	EN	Most skipped tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_YEAR
+	EN	Tracks by year
+	FR	Morceaux par année
+	NL	Nummers per jaar
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_DATE_ADDED
+	EN	Tracks by date added
+	FR	Morceaux par date d’ajout
+	NL	Nummers per toegevoegde datum
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_DATE_LASTMODIFIED
+	EN	Tracks by date last modified
+	FR	Morceaux par date de dernière modification
+	NL	Nummers per laatst gewijzigde datum
 
 
 
@@ -106,12 +176,12 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
 	NL	Artiesten met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Artists with most played tracks (highest average playcount)
+	EN	Artists with most played tracks (highest average play count)
 	FR	Artistes avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Artiesten met de meeste gespeelde nummers (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
-	EN	Artists - average rating vs. average playcount
+	EN	Artists - average rating vs. average play count
 	FR	Artistes - note moyenne vs. nombre d’écoutes moyen
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
 
@@ -121,17 +191,20 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_APC
 	NL	Artiesten met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Artists with most played tracks (APC) (highest average playcount)
+	EN	Artists with most played tracks (APC) (highest average play count)
 	FR	Artistes avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
 	NL	Artiesten met de meeste gespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT_APC
-	EN	Artists - average rating vs. average playcount (APC)
+	EN	Artists - average rating vs. average play count (APC)
 	FR	Artistes - note moyenne vs. nombre d’écoutes moyen (APC)
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld (APC)
 
-PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_SKIPCOUNT_TRACKS_APC
-	EN	Artists - with top skip count (APC)
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_APC
+	EN	Artists - with most skipped tracks (APC) (number of all tracks skipped at least once)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_AVERAGE_APC
+	EN	Artists - with most skipped tracks (APC) (highest average skip count)
 
 
 
@@ -166,7 +239,7 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
 	NL	Albums met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Albums with most played tracks (highest average playcount)
+	EN	Albums with most played tracks (highest average play count)
 	FR	Albums avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Albums met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
@@ -176,9 +249,15 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC
 	NL	Albums met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Albums with most played tracks (APC) (highest average playcount)
+	EN	Albums with most played tracks (APC) (highest average play count)
 	FR	Albums avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
 	NL	Albums met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_APC
+	EN	Albums with most skipped tracks (APC) (number of all tracks skipped at least once)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_AVERAGE_APC
+	EN	Albums with most skipped tracks (APC) (highest average skip count)
 
 
 
@@ -213,7 +292,7 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
 	NL	Genres met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Genres with most played tracks (highest average playcount)
+	EN	Genres with most played tracks (highest average play count)
 	FR	Genres avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Genres met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
 
@@ -228,16 +307,17 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_APC
 	NL	Genres met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Genres with most played tracks (APC) (highest average playcount)
+	EN	Genres with most played tracks (APC) (highest average play count)
 	FR	Genres avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
 	NL	Genres met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
 
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_APC
+	EN	Genres with most skipped tracks (APC) (number of all tracks skipped at least once)
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_AVERAGE_APC
+	EN	Genres with most skipped tracks (APC) (highest average skip count)
 
 
-PLUGIN_VISUALSTATISTICS_YEARS_TRACKS
-	EN	Tracks by year
-	FR	Morceaux par année
-	NL	Nummers per jaar
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS
 	EN	Years with most tracks
@@ -270,9 +350,19 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
 	NL	Jaren met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Years with most played tracks (highest average playcount)
+	EN	Years with most played tracks (highest average play count)
 	FR	Années avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Jaren met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_RATED_TRACKS
+	EN	Decades with most rated tracks
+	FR	Décennies avec le plus de morceaux notés
+	NL	Decennia met de meeste nummers met een beoordeling
+
+PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_ALL
+	EN	Decades with top average rated tracks (incl. unrated tracks)
+	FR	Décennies avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
+	NL	Decennia met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 	EN	Decades with most played tracks (number of all tracks played at least once)
@@ -280,17 +370,9 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 	NL	Decennia met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Decades with most played tracks (highest average playcount)
+	EN	Decades with most played tracks (highest average play count)
 	FR	Décennies avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
 	NL	Decennia met de meeste afgespeelde nummers (meeste gemiddelde keren afgespeeld)
-
-PLUGIN_VISUALSTATISTICS_YEARS_DATE_ADDED
-	EN	Tracks by date added
-	FR	Morceaux par date d’ajout
-	NL	Nummers per toegevoegde datum
-
-PLUGIN_VISUALSTATISTICS_YEARS_DATE_LASTMODIFIED
-	EN	Tracks by date last modified
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_APC
 	EN	Years with most played tracks (APC) (number of all tracks played at least once)
@@ -298,9 +380,15 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_APC
 	NL	Jaren met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Years with most played tracks (APC) (highest average playcount)
+	EN	Years with most played tracks (APC) (highest average play count)
 	FR	Années avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
 	NL	Jaren met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC
+	EN	Years with most skipped tracks (APC) (number of all tracks skipped at least once)
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_AVERAGE_APC
+	EN	Years with most skipped tracks (APC) (highest average skip count)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_APC
 	EN	Decades with most played tracks (APC) (number of all tracks played at least once)
@@ -308,36 +396,17 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_APC
 	NL	Decennia met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Decades with most played tracks (APC) (highest average playcount)
+	EN	Decades with most played tracks (APC) (highest average play count)
 	FR	Décennies avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
 	NL	Decennia met de meeste afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
 
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_APC
+	EN	Decades with most skipped tracks (APC) (number of all tracks skipped at least once)
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_AVERAGE_APC
+	EN	Decades with most skipped tracks (APC) (highest average skip count)
 
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_FILE_FORMATS
-	EN	Audio file formats of local library tracks
-	FR	Format des fichiers audio de la bibliothèque musicale locale
-	NL	Bestandsformaten van nummers in de lokale mediabibliotheek
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE
-	EN	Tracks by bit rate
-	FR	Morceaux par débit
-	NL	Nummers per bitsnelheid
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS
-	EN	Tracks by bit rate and audio file format
-	FR	Morceaux par débit et format du fichier audio
-	NL	Nummers per bitsnelheid en bestandsformaat
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_SAMPLE_RATE
-	EN	Tracks by sample rate
-	FR	Morceaux par taux d’échantillonage
-	NL	Nummers per samplefrequentie
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER
-	EN	Tracks by bit rate and audio file format (scatter chart)
-	FR	Morceaux par débit et format du fichier audio (graphe de dispersion)
-	NL	Nummers per bitsnelheid en bestandsformaat (scatter grafiek)
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
 	EN	Listening times
@@ -358,6 +427,11 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
 	EN	Most frequently used words in song names
 	FR	Mots les plus utilisés dans les titres des chansons
 	NL	Meest gebruikte woorden in namen van nummers
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_LYRICS_MOSTFREQUENTWORDS
+	EN	Most frequently used words in track lyrics
+	FR	Mots les plus utilisés dans les paroles des chansons
+	NL	Meest gebruikte woorden in songteksten
 
 PLUGIN_VISUALSTATISTICS_VL_COMPLETELIB_NAME
 	EN	Complete Library (Default)
@@ -390,7 +464,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE
 	NL	gemiddelde bitsnelheid (kbps)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
-	EN	average playcount
+	EN	average play count
 	FR	nombre d’écoutes moyen
 	NL	gemiddeld aantal keren afgespeeld
 
@@ -398,6 +472,20 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT_SHORT
 	EN	Avg. play count
 	FR	Nombre d’écoutes moy.
 	NL	Gem. aantal keren afgespeeld
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT
+	EN	Play count
+	FR	Nombre d’écoutes
+	NL	Keren afgespeeld
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT
+	EN	average skip count
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPCOUNT
+	EN	Skip count
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT_SHORT
+	EN	Avg. skip count
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
 	EN	Avg. artist rating
@@ -448,6 +536,11 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE
 	EN	No bit rate
 	FR	Sans débit
 	NL	Geen bitsnelheid
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_FILESIZE
+	EN	File Size
+	FR	Taille de fichier
+	NL	Bestandsgrootte
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME
 	EN	Listening Time

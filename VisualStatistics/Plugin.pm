@@ -46,6 +46,7 @@ my $log = Slim::Utils::Log->addLogCategory({
 });
 my $serverPrefs = preferences('server');
 my $prefs = preferences('plugin.visualstatistics');
+my %ignoreCommonWords;
 
 sub initPlugin {
 	my $class = shift;
@@ -55,10 +56,16 @@ sub initPlugin {
 		require Plugins::VisualStatistics::Settings;
 		Plugins::VisualStatistics::Settings->new();
 	}
-
+	initPrefs();
 	Slim::Web::Pages->addPageFunction(LIST_URL, \&handleWeb);
 	Slim::Web::Pages->addPageFunction(JSON_URL, \&handleJSON);
 	Slim::Web::Pages->addPageLinks('plugins', {'PLUGIN_VISUALSTATISTICS' => LIST_URL});
+}
+
+sub initPrefs {
+	%ignoreCommonWords = map {
+		$_ => 1
+	} ("able", "about", "above", "acoustic", "act", "adagio", "after", "again", "against", "ago", "ain", "air", "akt", "album", "all", "allegretto", "allegro", "alone", "also", "alt", "alternate", "always", "among", "and", "andante", "another", "any", "are", "aria", "around", "atto", "autre", "away", "baby", "back", "bad", "beat", "because", "been", "before", "behind", "believe", "better", "big", "black", "blue", "bonus", "boy", "bring", "but", "bwv", "call", "can", "cause", "came", "chanson", "che", "chorus", "club", "come", "comes", "comme", "con", "concerto", "cosa", "could", "couldn", "dans", "das", "day", "days", "deezer", "dein", "del", "demo", "den", "der", "des", "did", "didn", "die", "does", "doesn", "don", "done", "down", "dub", "dur", "each", "edit", "ein", "either", "else", "end", "est", "even", "ever", "every", "everybody", "everything", "extended", "feat", "featuring", "feel", "find", "first", "flat", "for", "from", "fur", "get", "girl", "give", "going", "gone", "gonna", "good", "got", "gotta", "had", "hard", "has", "have", "hear", "heart", "her", "here", "hey", "him", "his", "hit", "hold", "home", "how", "ich", "iii", "inside", "instrumental", "interlude", "into", "intro", "isn", "ist", "just", "keep", "know", "las", "last", "leave", "left", "les", "let", "life", "like", "little", "live", "long", "look", "los", "love", "made", "major", "make", "man", "master", "may", "medley", "mein", "meu", "might", "mind", "mine", "minor", "miss", "mix", "moderato", "moi", "moll", "molto", "mon", "mono", "more", "most", "move", "much", "music", "must", "myself", "name", "nao", "near", "need", "never", "new", "nicht", "nobody", "non", "not", "nothing", "now", "off", "old", "once", "one", "only", "ooh", "orchestra", "original", "other", "ouh", "our", "ours", "out", "over", "own", "part", "pas", "people", "piano", "place", "play", "please", "plus", "por", "pour", "prelude", "presto", "put", "quartet", "que", "qui", "quite", "radio", "rather", "real", "really", "recitativo", "recorded", "remix", "right", "rock", "roll", "run", "said", "same", "sao", "say", "scene", "see", "seem", "session", "she", "should", "shouldn", "side", "single", "skit", "solo", "some", "something", "somos", "son", "sonata", "song", "sous", "spotify", "start", "stay", "stereo", "still", "stop", "street", "such", "suite", "symphony", "szene", "take", "talk", "teil", "tel", "tell", "tempo", "than", "that", "the", "their", "them", "then", "there", "these", "they", "thing", "things", "think", "this", "those", "though", "thought", "three", "through", "thus", "till", "time", "titel", "together", "told", "tonight", "too", "track", "trio", "true", "try", "turn", "two", "una", "und", "under", "une", "until", "use", "version", "very", "vivace", "vocal", "walk", "wanna", "want", "was", "way", "well", "went", "were", "what", "when", "where", "whether", "which", "while", "who", "whose", "why", "will", "with", "without", "woman", "won", "woo", "world", "would", "wrong", "yeah", "yes", "yet", "you", "your");
 }
 
 sub handleWeb {
@@ -105,7 +112,424 @@ sub handleJSON {
 
 my $rowLimit = 50;
 
-# ---- artists ------- #
+
+# ---- tracks ---- #
+
+sub getDataTracksByAudioFileFormat {
+	my $sqlstatement = "select tracks.content_type, count(distinct tracks.id) as nooftypes from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			tracks.audio = 1
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by tracks.content_type
+		order by nooftypes desc";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataTracksByBitrate {
+	my $sqlstatement = "select round(bitrate/16000)*16, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			tracks.audio = 1
+			and tracks.bitrate is not null
+			and tracks.bitrate > 0
+		group by (case
+			when round(tracks.bitrate/16000)*16 > 1400 then round(tracks.bitrate/160000)*160
+			when round(tracks.bitrate/16000)*16 < 10 then 16
+			else round(tracks.bitrate/16000)*16
+			end)
+		order by tracks.bitrate asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataTracksBySampleRate {
+	my $sqlstatement = "select tracks.samplerate||' Hz',count(distinct tracks.id) from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			tracks.audio = 1
+			and tracks.samplerate is not null
+		group by tracks.samplerate||' Hz'
+		order by tracks.samplerate asc;";
+
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataTracksByBitrateAudioFileFormat {
+	my $dbh = getCurrentDBH();
+	my @result = ();
+	my @fileFormatsWithBitrate = ();
+	my $xLabelTresholds = [[1, 192], [192, 256], [256, 320], [320, 500], [500, 700], [700, 1000], [1000, 1201], [1201, 999999999999]];
+	foreach my $xLabelTreshold (@{$xLabelTresholds}) {
+		my $minVal = @{$xLabelTreshold}[0];
+		my $maxVal = @{$xLabelTreshold}[1];
+		my $xLabelName = '';
+		if (@{$xLabelTreshold}[0] == 1) {
+			$xLabelName = '<'.@{$xLabelTreshold}[1];
+		} elsif (@{$xLabelTreshold}[1] == 999999999999) {
+			$xLabelName = '>'.(@{$xLabelTreshold}[0]-1);
+		} else {
+			$xLabelName = @{$xLabelTreshold}[0]."-".((@{$xLabelTreshold}[1])-1);
+		}
+		my $subData = '';
+		my $sqlbitrate = "select tracks.content_type, count(distinct tracks.id) as nooftracks from tracks";
+		my $selectedVL = $prefs->get('selectedvirtuallibrary');
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlbitrate .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		}
+		$sqlbitrate .= " where
+				tracks.audio = 1
+				and tracks.bitrate is not null
+				and round(tracks.bitrate/10000)*10 >= $minVal
+				and round(tracks.bitrate/10000)*10 < $maxVal
+				and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
+			group by tracks.content_type
+			order by tracks.content_type asc";
+		my $sth = $dbh->prepare($sqlbitrate);
+		#eval {
+			$sth->execute();
+			my $xAxisDataItem; # string values
+			my $yAxisDataItem; # numeric values
+			$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem);
+			while ($sth->fetch()) {
+				utf8::decode($xAxisDataItem);
+				$subData = $subData.', "'.$xAxisDataItem.'": '.$yAxisDataItem;
+				push(@fileFormatsWithBitrate, $xAxisDataItem) unless grep{$_ eq $xAxisDataItem} @fileFormatsWithBitrate;
+			}
+			$sth->finish();
+			$subData = '{"x": '.'"'.$xLabelName.'"'.$subData.'}';
+			push(@result, $subData);
+		#};
+	}
+
+	my $sqlfileformats = "select distinct tracks.content_type from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlfileformats .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlfileformats .= " where
+			tracks.audio = 1
+			and tracks.remote = 0
+			and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
+		group by tracks.content_type
+		order by tracks.content_type asc";
+	my @fileFormatsComplete = ();
+	my @fileFormatsNoBitrate = ();
+	my $fileFormatName;
+	my $sth = $dbh->prepare($sqlfileformats);
+	$sth->execute();
+	$sth->bind_columns(undef, \$fileFormatName);
+	while ($sth->fetch()) {
+		push (@fileFormatsComplete, $fileFormatName);
+		push (@fileFormatsNoBitrate, $fileFormatName) unless grep{$_ eq $fileFormatName} @fileFormatsWithBitrate;
+	}
+	$sth->finish();
+	my $subDataOthers = '';
+	if (scalar(@fileFormatsNoBitrate) > 0) {
+		foreach my $fileFormatNoBitrate (@fileFormatsNoBitrate) {
+			my $sqlfileformatsnobitrate = "select count(distinct tracks.id) from tracks";
+			my $selectedVL = $prefs->get('selectedvirtuallibrary');
+			if ($selectedVL && $selectedVL ne '') {
+				$sqlfileformatsnobitrate .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+			}
+			$sqlfileformatsnobitrate .= " where tracks.audio = 1 and tracks.content_type=\"$fileFormatNoBitrate\"";
+			my $sth = $dbh->prepare($sqlfileformatsnobitrate);
+			my $fileFormatCount = 0;
+			$sth->execute();
+			$sth->bind_columns(undef, \$fileFormatCount);
+			$sth->fetch();
+			$sth->finish();
+			$subDataOthers = $subDataOthers.', "'.$fileFormatNoBitrate.'": '.$fileFormatCount;
+		}
+		$subDataOthers = '{"x": "'.string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE").'"'.$subDataOthers.'}';
+		push(@result, $subDataOthers);
+	}
+
+	my @wrapper = (\@result, \@fileFormatsComplete);
+	$log->debug('wrapper = '.Dumper(\@wrapper));
+
+	return \@wrapper;
+}
+
+sub getDataTracksByBitrateAudioFileFormatScatter {
+	my $dbh = getCurrentDBH();
+	my @result = ();
+	my $sqlfileformats = "select distinct tracks.content_type from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlfileformats .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlfileformats .= " where
+			tracks.audio = 1
+			and tracks.bitrate is not null
+			and tracks.bitrate > 0
+			and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
+		group by tracks.content_type
+		order by tracks.content_type asc";
+	my @fileFormatsComplete = ();
+	my @bitRates = ();
+	my $fileFormatName;
+	my $sth = $dbh->prepare($sqlfileformats);
+	$sth->execute();
+	$sth->bind_columns(undef, \$fileFormatName);
+	while ($sth->fetch()) {
+		push (@fileFormatsComplete, $fileFormatName);
+	}
+	$sth->finish();
+	foreach my $thisFileFormat (@fileFormatsComplete) {
+		my $subData = '';
+		my $sqlbitrate = "select round(tracks.bitrate/16000)*16, count(distinct tracks.id) as nooftracks from tracks";
+		my $selectedVL = $prefs->get('selectedvirtuallibrary');
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlbitrate .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		}
+		$sqlbitrate .= " where
+			tracks.audio = 1
+			and tracks.remote = 0
+			and tracks.content_type=\"$thisFileFormat\"
+			and tracks.bitrate is not null
+			and tracks.bitrate > 0
+		group by (case
+			when round(tracks.bitrate/16000)*16 > 1400 then round(tracks.bitrate/160000)*160
+			when round(tracks.bitrate/16000)*16 < 10 then 16
+			else round(tracks.bitrate/16000)*16
+			end)
+		order by tracks.bitrate asc;";
+		my $sth = $dbh->prepare($sqlbitrate);
+		#eval {
+			$sth->execute();
+			my $xAxisDataItem;
+			my $yAxisDataItem;
+			$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem);
+			while ($sth->fetch()) {
+				if ($subData eq '') {
+					$subData = '"'.$xAxisDataItem.'": '.$yAxisDataItem;
+				} else {
+					$subData = $subData.', "'.$xAxisDataItem.'": '.$yAxisDataItem;
+				}
+				push (@bitRates, $xAxisDataItem) unless grep{$_ eq $xAxisDataItem} @bitRates;
+			}
+			$sth->finish();
+			$subData = '{'.$subData.'}';
+			push(@result, $subData);
+		#};
+	}
+	my @sortedbitRates = sort { $a <=> $b } @bitRates;
+
+	my @wrapper = (\@result, \@sortedbitRates, \@fileFormatsComplete);
+	$log->debug('wrapper = '.Dumper(\@wrapper));
+
+	return \@wrapper;
+}
+
+sub getDataTracksByFileSize {
+	my $sqlstatement = "select cast(round(filesize/1048576) as int)||' MB', count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			tracks.audio = 1
+			and tracks.filesize is not null
+			and tracks.filesize > 0
+		group by (case
+			when round(filesize/1048576) < 1 then 1
+			when round(filesize/1048576) > 1000 then 1000
+			else round(filesize/1048576)
+			end)
+		order by tracks.filesize asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataTracksByFileSizeAudioFileFormat {
+	my $dbh = getCurrentDBH();
+	my @result = ();
+	my @fileFormats = ();
+
+	# get track count for file sizes <= 100 MB
+	foreach my $fileSize (1..100) {
+		my $xLabelName = $fileSize;
+		my $subData = '';
+		my $sqlfilesize = "select tracks.content_type, count(distinct tracks.id) as nooftracks from tracks";
+		my $selectedVL = $prefs->get('selectedvirtuallibrary');
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlfilesize .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		}
+		$sqlfilesize .= " where
+				tracks.audio = 1
+				and tracks.filesize is not null
+				and tracks.filesize > 0
+				and
+					case
+						when $fileSize == 1 then round(tracks.filesize/1048576) <= $fileSize
+						else round(tracks.filesize/1048576) == $fileSize
+					end
+			group by tracks.content_type
+			order by tracks.content_type asc";
+		my $sth = $dbh->prepare($sqlfilesize);
+		#eval {
+			$sth->execute();
+			my $xAxisDataItem; # string values
+			my $yAxisDataItem; # numeric values
+			$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem);
+			while ($sth->fetch()) {
+				utf8::decode($xAxisDataItem);
+				$subData = $subData.', "'.$xAxisDataItem.'": '.$yAxisDataItem;
+				push(@fileFormats, $xAxisDataItem) unless grep{$_ eq $xAxisDataItem} @fileFormats;
+			}
+			$sth->finish();
+			$subData = '{"x": '.'"'.$xLabelName.'"'.$subData.'}';
+			push(@result, $subData);
+		#};
+	}
+
+	# aggregate for files > 100 MB
+		my $xLabelName = ' > 100';
+		my $subData = '';
+		my $sqlfilesize = "select tracks.content_type, count(distinct tracks.id) as nooftracks from tracks";
+		my $selectedVL = $prefs->get('selectedvirtuallibrary');
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlfilesize .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		}
+		$sqlfilesize .= " where
+				tracks.audio = 1
+				and tracks.filesize is not null
+				and tracks.filesize > 0
+				and round(tracks.filesize/1048576) > 100
+			group by tracks.content_type
+			order by tracks.content_type asc";
+		my $sth = $dbh->prepare($sqlfilesize);
+		#eval {
+			$sth->execute();
+			my $xAxisDataItem; # string values
+			my $yAxisDataItem; # numeric values
+			$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem);
+			while ($sth->fetch()) {
+				utf8::decode($xAxisDataItem);
+				$subData = $subData.', "'.$xAxisDataItem.'": '.$yAxisDataItem;
+				push(@fileFormats, $xAxisDataItem) unless grep{$_ eq $xAxisDataItem} @fileFormats;
+			}
+			$sth->finish();
+			$subData = '{"x": '.'"'.$xLabelName.'"'.$subData.'}';
+			push(@result, $subData);
+		#};
+	my @wrapper = (\@result, \@fileFormats);
+	$log->debug('wrapper = '.Dumper(\@wrapper));
+
+	return \@wrapper;
+}
+
+sub getDataTracksMostPlayed {
+	my $sqlstatement = "select tracks.title, ifnull(tracks_persistent.playCount, 0), contributors.name from tracks
+		join contributors on
+			contributors.id = tracks.primary_artist
+		left join tracks_persistent on
+			tracks_persistent.urlmd5 = tracks.urlmd5";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and tracks_persistent.playCount > 0
+		order by tracks_persistent.playCount desc, tracks.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3);
+}
+
+sub getDataTracksMostPlayedAPC {
+	my $sqlstatement = "select tracks.title, ifnull(alternativeplaycount.playCount, 0), contributors.name from tracks
+		join contributors on
+			contributors.id = tracks.primary_artist
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.playCount > 0
+		order by alternativeplaycount.playCount desc, tracks.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3);
+}
+
+sub getDataTracksMostSkippedAPC {
+	my $sqlstatement = "select tracks.title, ifnull(alternativeplaycount.skipCount, 0), contributors.name from tracks
+		join contributors on
+			contributors.id = tracks.primary_artist
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.skipCount > 0
+		order by alternativeplaycount.skipCount desc, tracks.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3);
+}
+
+sub getDataTracksByYear {
+	my $sqlstatement = "select case when tracks.year > 0 then tracks.year else 'Unknown' end, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by tracks.year
+		order by tracks.year asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataTracksByDateAdded {
+	my $sqlstatement = "select strftime('%d-%m-%Y',tracks_persistent.added, 'unixepoch', 'localtime') as dateadded, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join tracks_persistent on
+			tracks_persistent.urlmd5 = tracks.urlmd5
+		where
+			tracks_persistent.added > 0
+			and tracks_persistent.added is not null
+		group by strftime('%d-%m-%Y',tracks_persistent.added, 'unixepoch', 'localtime')
+		order by strftime ('%Y',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%m',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%d',tracks_persistent.added, 'unixepoch', 'localtime') asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataTracksByDateLastModified {
+	my $sqlstatement = "select case when ifnull(tracks.timestamp, 0) < 315532800 then 'Unkown' else strftime('%d-%m-%Y',tracks.timestamp, 'unixepoch', 'localtime') end, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			tracks.timestamp > 0
+			and tracks.timestamp is not null
+		group by strftime('%d-%m-%Y',tracks.timestamp, 'unixepoch', 'localtime')
+		order by strftime ('%Y',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%m',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%d',tracks.timestamp, 'unixepoch', 'localtime') asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
+# ---- artists ---- #
 
 sub getDataArtistWithMostTracks {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
@@ -322,7 +746,7 @@ sub getDataArtistsWithMostPlayedTracksAverageAPC {
 	return executeSQLstatement($sqlstatement);
 }
 
-sub getDataArtistsWithTopSkipCountAPC {
+sub getDataArtistsWithMostSkippedTracksAPC {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
 		left join alternativeplaycount on
@@ -340,6 +764,27 @@ sub getDataArtistsWithTopSkipCountAPC {
 			and alternativeplaycount.skipCount > 0
 		group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataArtistsWithMostSkippedTracksAverageAPC {
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount from tracks
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'
+		group by tracks.primary_artist
+		order by avgskipcount desc, contributors.name asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
@@ -562,6 +1007,51 @@ sub getDataAlbumsWithMostPlayedTracksAverageAPC {
 	return executeSQLstatement($sqlstatement, 3);
 }
 
+sub getDataAlbumsWithMostSkippedTracksAPC {
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+		join tracks on
+			tracks.album = albums.id";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " join contributors on
+			contributors.id = albums.contributor
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			albums.title is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.skipCount > 0
+		group by albums.title
+		order by nooftracks desc, albums.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3);
+}
+
+sub getDataAlbumsWithMostSkippedTracksAverageAPC {
+	my $sqlstatement = "select albums.title, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, contributors.name from albums
+		join tracks on
+			tracks.album = albums.id";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " join contributors on
+			contributors.id = albums.contributor
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			albums.title is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by albums.title
+		order by avgskipcount desc, albums.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3);
+}
+
 # ---- genres ---- #
 
 sub getDataGenresWithMostTracks {
@@ -713,7 +1203,6 @@ sub getDataGenresWithMostPlayedTracksAverage {
 			genres.name is not null
 			and (tracks.audio = 1 or tracks.extid is not null)
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
-			and tracks_persistent.playCount > 0
 		group by genres.name
 		order by avgplaycount desc, genres.name asc
 		limit $rowLimit;";
@@ -779,29 +1268,58 @@ sub getDataGenresWithMostPlayedTracksAverageAPC {
 			genres.name is not null
 			and (tracks.audio = 1 or tracks.extid is not null)
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
-			and alternativeplaycount.playCount > 0
 		group by genres.name
 		order by avgplaycount desc, genres.name asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
-# ---- years ---- #
-
-sub getDataTracksByYear {
-	my $sqlstatement = "select case when tracks.year > 0 then tracks.year else 'Unknown' end, count(distinct tracks.id) as nooftracks from tracks";
+sub getDataGenresWithMostSkippedTracksAPC {
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " where
-			tracks.year is not null
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join genre_track on
+			genre_track.track = tracks.id
+		join genres on
+			genres.id = genre_track.genre
+		where
+			genres.name is not null
 			and (tracks.audio = 1 or tracks.extid is not null)
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
-		group by tracks.year
-		order by tracks.year asc;";
+			and alternativeplaycount.skipCount > 0
+		group by genres.name
+		order by nooftracks desc, genres.name asc
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
+
+sub getDataGenresWithMostSkippedTracksAverageAPC {
+	my $sqlstatement = "select genres.name, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join genre_track on
+			genre_track.track = tracks.id
+		join genres on
+			genres.id = genre_track.genre
+		where
+			genres.name is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by genres.name
+		order by avgskipcount desc, genres.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+# ---- years ---- #
 
 sub getDataYearsWithMostTracks {
 	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks";
@@ -930,9 +1448,47 @@ sub getDataYearsWithMostPlayedTracksAverage {
 			and tracks.year is not null
 			and (tracks.audio = 1 or tracks.extid is not null)
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
-			and tracks_persistent.playCount > 0
 		group by tracks.year
 		order by avgplaycount desc, tracks.year asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataDecadesWithMostRatedTracks {
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join tracks_persistent on
+			tracks_persistent.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and tracks_persistent.rating > 0
+		group by cast(((tracks.year/10)*10) as int)||'s'
+		order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataDecadesWithTopRatedTracksAll {
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join tracks_persistent on
+			tracks_persistent.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by cast(((tracks.year/10)*10) as int)||'s'
+		order by avgrating desc, cast(((tracks.year/10)*10) as int)||'s' asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
@@ -970,40 +1526,9 @@ sub getDataDecadesWithMostPlayedTracksAverage {
 			and tracks.year is not null
 			and (tracks.audio = 1 or tracks.extid is not null)
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
-			and tracks_persistent.playCount > 0
 		group by cast(((tracks.year/10)*10) as int)||'s'
 		order by avgplaycount desc, cast(((tracks.year/10)*10) as int)||'s' asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
-}
-
-sub getDataTracksByDateAdded {
-	my $sqlstatement = "select strftime('%d-%m-%Y',tracks_persistent.added, 'unixepoch', 'localtime') as dateadded, count(distinct tracks.id) as nooftracks from tracks";
-	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-	}
-	$sqlstatement .= " left join tracks_persistent on
-			tracks_persistent.urlmd5 = tracks.urlmd5
-		where
-			tracks_persistent.added > 0
-			and tracks_persistent.added is not null
-		group by strftime('%d-%m-%Y',tracks_persistent.added, 'unixepoch', 'localtime')
-		order by strftime ('%Y',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%m',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%d',tracks_persistent.added, 'unixepoch', 'localtime') asc;";
-	return executeSQLstatement($sqlstatement);
-}
-
-sub getDataTracksByDateLastModified {
-	my $sqlstatement = "select strftime('%d-%m-%Y',tracks.timestamp, 'unixepoch', 'localtime') as datelastmodified, count(distinct tracks.id) as nooftracks from tracks";
-	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-	}
-	$sqlstatement .= " where
-			tracks.timestamp > 0
-			and tracks.timestamp is not null
-		group by strftime('%d-%m-%Y',tracks.timestamp, 'unixepoch', 'localtime')
-		order by strftime ('%Y',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%m',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%d',tracks.timestamp, 'unixepoch', 'localtime') asc;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -1040,9 +1565,47 @@ sub getDataYearsWithMostPlayedTracksAverageAPC {
 			and tracks.year is not null
 			and (tracks.audio = 1 or tracks.extid is not null)
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
-			and alternativeplaycount.playCount > 0
 		group by tracks.year
 		order by avgplaycount desc, tracks.year asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataYearsWithMostSkippedTracksAPC {
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and alternativeplaycount.skipCount > 0
+		group by tracks.year
+		order by nooftracks desc, tracks.year asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataYearsWithMostSkippedTracksAverageAPC {
+	my $sqlstatement = "select year, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by tracks.year
+		order by avgskipcount desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
@@ -1087,222 +1650,46 @@ sub getDataDecadesWithMostPlayedTracksAverageAPC {
 	return executeSQLstatement($sqlstatement);
 }
 
-# ---- misc. ---- #
-
-sub getDataAudioFileFormats {
-	my $sqlstatement = "select tracks.content_type, count(distinct tracks.id) as nooftypes from tracks";
+sub getDataDecadesWithMostSkippedTracksAPC {
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', count(distinct tracks.id) as nooftracks from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " where
-			tracks.audio = 1
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
-		group by tracks.content_type
-		order by nooftypes desc";
+			and alternativeplaycount.skipCount > 0
+		group by cast(((tracks.year/10)*10) as int)||'s'
+		order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
-sub getDataTracksByBitrate {
-	my $sqlstatement = "select round(bitrate/16000)*16, count(distinct tracks.id) as nooftracks from tracks";
+sub getDataDecadesWithMostSkippedTracksAverageAPC {
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " where
-			tracks.audio = 1
-			and tracks.bitrate is not null
-			and tracks.bitrate > 0
-		group by (case
-			when round(tracks.bitrate/16000)*16 > 1400 then round(tracks.bitrate/160000)*160
-			when round(tracks.bitrate/16000)*16 < 10 then 16
-			else round(tracks.bitrate/16000)*16
-			end)
-		order by tracks.bitrate asc;";
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			tracks.year > 0
+			and tracks.year is not null
+			and (tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by cast(((tracks.year/10)*10) as int)||'s'
+		order by avgskipcount desc, cast(((tracks.year/10)*10) as int)||'s' asc
+		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
-sub getDataTracksBySampleRate {
-	my $sqlstatement = "select tracks.samplerate||' Hz',count(distinct tracks.id) from tracks";
-	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-	}
-	$sqlstatement .= " where
-			tracks.audio = 1
-			and tracks.samplerate is not null
-		group by tracks.samplerate||' Hz'
-		order by tracks.samplerate asc;";
-
-	return executeSQLstatement($sqlstatement);
-}
-
-sub getDataTracksByBitrateAudioFileFormat {
-	my $dbh = getCurrentDBH();
-	my @result = ();
-	my @fileFormatsWithBitrate = ();
-	my $xLabelTresholds = [[1, 192], [192, 256], [256, 320], [320, 500], [500, 700], [700, 1000], [1000, 1201], [1201, 999999999999]];
-	foreach my $xLabelTreshold (@{$xLabelTresholds}) {
-		my $minVal = @{$xLabelTreshold}[0];
-		my $maxVal = @{$xLabelTreshold}[1];
-		my $xLabelName = '';
-		if (@{$xLabelTreshold}[0] == 1) {
-			$xLabelName = '<'.@{$xLabelTreshold}[1];
-		} elsif (@{$xLabelTreshold}[1] == 999999999999) {
-			$xLabelName = '>'.(@{$xLabelTreshold}[0]-1);
-		} else {
-			$xLabelName = @{$xLabelTreshold}[0]."-".((@{$xLabelTreshold}[1])-1);
-		}
-		my $subData = '';
-		my $sqlbitrate = "select tracks.content_type, count(distinct tracks.id) as nooftracks from tracks";
-		my $selectedVL = $prefs->get('selectedvirtuallibrary');
-		if ($selectedVL && $selectedVL ne '') {
-			$sqlbitrate .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-		}
-		$sqlbitrate .= " where
-				tracks.audio = 1
-				and tracks.bitrate is not null
-				and round(tracks.bitrate/10000)*10 >= $minVal
-				and round(tracks.bitrate/10000)*10 < $maxVal
-				and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
-			group by tracks.content_type
-			order by tracks.content_type asc";
-		my $sth = $dbh->prepare($sqlbitrate);
-		#eval {
-			$sth->execute();
-			my $xAxisDataItem; # string values
-			my $yAxisDataItem; # numeric values
-			$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem);
-			while ($sth->fetch()) {
-				utf8::decode($xAxisDataItem);
-				$subData = $subData.', "'.$xAxisDataItem.'": '.$yAxisDataItem;
-				push(@fileFormatsWithBitrate, $xAxisDataItem) unless grep{$_ eq $xAxisDataItem} @fileFormatsWithBitrate;
-			}
-			$sth->finish();
-			$subData = '{"x": '.'"'.$xLabelName.'"'.$subData.'}';
-			push(@result, $subData);
-		#};
-	}
-
-	my $sqlfileformats = "select distinct tracks.content_type from tracks";
-	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlfileformats .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-	}
-	$sqlfileformats .= " where
-			tracks.audio = 1
-			and tracks.remote = 0
-			and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
-		group by tracks.content_type
-		order by tracks.content_type asc";
-	my @fileFormatsComplete = ();
-	my @fileFormatsNoBitrate = ();
-	my $fileFormatName;
-	my $sth = $dbh->prepare($sqlfileformats);
-	$sth->execute();
-	$sth->bind_columns(undef, \$fileFormatName);
-	while ($sth->fetch()) {
-		push (@fileFormatsComplete, $fileFormatName);
-		push (@fileFormatsNoBitrate, $fileFormatName) unless grep{$_ eq $fileFormatName} @fileFormatsWithBitrate;
-	}
-	$sth->finish();
-	my $subDataOthers = '';
-	if (scalar(@fileFormatsNoBitrate) > 0) {
-		foreach my $fileFormatNoBitrate (@fileFormatsNoBitrate) {
-			my $sqlfileformatsnobitrate = "select count(distinct tracks.id) from tracks";
-			my $selectedVL = $prefs->get('selectedvirtuallibrary');
-			if ($selectedVL && $selectedVL ne '') {
-				$sqlfileformatsnobitrate .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-			}
-			$sqlfileformatsnobitrate .= " where tracks.audio = 1 and tracks.content_type=\"$fileFormatNoBitrate\"";
-			my $sth = $dbh->prepare($sqlfileformatsnobitrate);
-			my $fileFormatCount = 0;
-			$sth->execute();
-			$sth->bind_columns(undef, \$fileFormatCount);
-			$sth->fetch();
-			$sth->finish();
-			$subDataOthers = $subDataOthers.', "'.$fileFormatNoBitrate.'": '.$fileFormatCount;
-		}
-		$subDataOthers = '{"x": "'.string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE").'"'.$subDataOthers.'}';
-		push(@result, $subDataOthers);
-	}
-
-	my @wrapper = (\@result, \@fileFormatsComplete);
-	$log->debug('wrapper = '.Dumper(\@wrapper));
-
-	return \@wrapper;
-}
-
-sub getDataTracksByBitrateAudioFileFormatScatter {
-	my $dbh = getCurrentDBH();
-	my @result = ();
-	my $sqlfileformats = "select distinct tracks.content_type from tracks";
-	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlfileformats .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-	}
-	$sqlfileformats .= " where
-			tracks.audio = 1
-			and tracks.bitrate is not null
-			and tracks.bitrate > 0
-			and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir')
-		group by tracks.content_type
-		order by tracks.content_type asc";
-	my @fileFormatsComplete = ();
-	my @bitRates = ();
-	my $fileFormatName;
-	my $sth = $dbh->prepare($sqlfileformats);
-	$sth->execute();
-	$sth->bind_columns(undef, \$fileFormatName);
-	while ($sth->fetch()) {
-		push (@fileFormatsComplete, $fileFormatName);
-	}
-	$sth->finish();
-	foreach my $thisFileFormat (@fileFormatsComplete) {
-		my $subData = '';
-		my $sqlbitrate = "select round(tracks.bitrate/16000)*16, count(distinct tracks.id) as nooftracks from tracks";
-		my $selectedVL = $prefs->get('selectedvirtuallibrary');
-		if ($selectedVL && $selectedVL ne '') {
-			$sqlbitrate .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-		}
-		$sqlbitrate .= " where
-			tracks.audio = 1
-			and tracks.remote = 0
-			and tracks.content_type=\"$thisFileFormat\"
-			and tracks.bitrate is not null
-			and tracks.bitrate > 0
-		group by (case
-			when round(tracks.bitrate/16000)*16 > 1400 then round(tracks.bitrate/160000)*160
-			when round(tracks.bitrate/16000)*16 < 10 then 16
-			else round(tracks.bitrate/16000)*16
-			end)
-		order by tracks.bitrate asc;";
-		my $sth = $dbh->prepare($sqlbitrate);
-		#eval {
-			$sth->execute();
-			my $xAxisDataItem;
-			my $yAxisDataItem;
-			$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem);
-			while ($sth->fetch()) {
-				if ($subData eq '') {
-					$subData = '"'.$xAxisDataItem.'": '.$yAxisDataItem;
-				} else {
-					$subData = $subData.', "'.$xAxisDataItem.'": '.$yAxisDataItem;
-				}
-				push (@bitRates, $xAxisDataItem) unless grep{$_ eq $xAxisDataItem} @bitRates;
-			}
-			$sth->finish();
-			$subData = '{'.$subData.'}';
-			push(@result, $subData);
-		#};
-	}
-	my @sortedbitRates = sort { $a <=> $b } @bitRates;
-
-	my @wrapper = (\@result, \@sortedbitRates, \@fileFormatsComplete);
-	$log->debug('wrapper = '.Dumper(\@wrapper));
-
-	return \@wrapper;
-}
+# ---- misc. ---- #
 
 sub getDataListeningTimes {
 	my $sqlstatement = "select strftime('%H:%M',tracks_persistent.lastPlayed, 'unixepoch', 'localtime') as timelastplayed, count(distinct tracks.id) as nooftracks from tracks";
@@ -1455,10 +1842,6 @@ sub getDataLibStatsText {
 }
 
 sub getDataTrackTitleMostFrequentWords {
-	my %ignoreCommonWords = map {
-		$_ => 1
-	} ("able", "about", "above", "acoustic", "act", "adagio", "after", "again", "against", "ago", "ain", "air", "akt", "album", "all", "allegretto", "allegro", "also", "alt", "alternate", "always", "among", "and", "andante", "another", "any", "are", "aria", "around", "atto", "autre", "away", "back", "bad", "beat", "been", "before", "behind", "big", "black", "blue", "bonus", "but", "bwv", "can", "chanson", "che", "club", "come", "comme", "con", "concerto", "cosa", "could", "dans", "das", "day", "days", "deezer", "dein", "del", "demo", "den", "der", "des", "did", "die", "don", "done", "down", "dub", "dur", "each", "edit", "ein", "either", "else", "end", "est", "even", "ever", "every", "everything", "extended", "feat", "featuring", "first", "flat", "for", "from", "fur", "get", "girl", "going", "gone", "gonna", "good", "got", "gotta", "had", "has", "have", "heart", "her", "here", "hey", "him", "his", "home", "how", "ich", "iii", "instrumental", "interlude", "intro", "ist", "just", "keep", "know", "las", "last", "les", "let", "life", "like", "little", "live", "long", "los", "major", "make", "man", "master", "may", "medley", "mein", "meu", "mind", "mine", "minor", "miss", "mix", "moderato", "moi", "moll", "molto", "mon", "mono", "more", "most", "much", "music", "must", "nao", "near", "need", "never", "new", "nicht", "nobody", "non", "not", "nothing", "now", "off", "old", "once", "one", "only", "orchestra", "original", "ouh", "our", "ours", "out", "over", "own", "part", "pas", "piano", "please", "plus", "por", "pour", "prelude", "presto", "quartet", "que", "qui", "quite", "radio", "rather", "recitativo", "recorded", "remix", "right", "rock", "roll", "sao", "say", "scene", "see", "seem", "session", "she", "side", "single", "skit", "solo", "some", "something", "somos", "son", "sonata", "song", "sous", "spotify", "stereo", "still", "street", "such", "suite", "symphony", "szene", "take", "teil", "tel", "tempo", "than", "that", "the", "their", "them", "then", "there", "these", "they", "thing", "think", "this", "those", "though", "thought", "three", "through", "thus", "time", "titel", "together", "too", "track", "trio", "try", "two", "una", "und", "under", "une", "until", "use", "version", "very", "vivace", "vocal", "wanna", "want", "was", "way", "well", "went", "were", "what", "when", "where", "whether", "which", "while", "who", "whose", "why", "will", "with", "without", "woo", "world", "yet", "you", "your");
-
 	my $dbh = getCurrentDBH();
 	my $sqlstatement = "select tracks.titlesearch from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1487,6 +1870,44 @@ sub getDataTrackTitleMostFrequentWords {
 		}
 	}
 
+	my @keys = ();
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or "\F$a" cmp "\F$b"} keys %frequentwords) {
+		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
+		last if scalar @keys >= 50;
+	};
+
+	$log->debug(Dumper(\@keys));
+	return \@keys;
+}
+
+sub getDataTrackLyricsMostFrequentWords {
+	my $dbh = getCurrentDBH();
+	my $sqlstatement = "select tracks.lyrics from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " where
+			length(tracks.lyrics) > 15
+			and tracks.audio = 1
+		group by tracks.titlesearch";
+	my $lyrics;
+	my %frequentwords;
+	my $sth = $dbh->prepare($sqlstatement);
+	$sth->execute();
+	$sth->bind_columns(undef, \$lyrics);
+	while ($sth->fetch()) {
+		next unless $lyrics;
+		my @words = split /\W+/, $lyrics; #skip non-word characters
+		foreach my $word(@words){
+			chomp $word;
+			$word = lc $word;
+			$word =~ s/^\s+|\s+$//g; #remove beginning/trailing whitespace
+			if ((length $word < 3) || $ignoreCommonWords{$word}) {next;}
+			$frequentwords{$word} ||= 0;
+			$frequentwords{$word}++;
+		}
+	}
 	my @keys = ();
 	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or "\F$a" cmp "\F$b"} keys %frequentwords) {
 		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
