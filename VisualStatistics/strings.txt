@@ -127,6 +127,7 @@ PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED_APC
 
 PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC
 	EN	Most skipped tracks (APC)
+	FR	Morceaux les plus sautés (APC)
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_YEAR
 	EN	Tracks by year
@@ -202,9 +203,11 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT_APC
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_APC
 	EN	Artists - with most skipped tracks (APC) (number of all tracks skipped at least once)
+	FR	Artistes - avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_AVERAGE_APC
 	EN	Artists - with most skipped tracks (APC) (highest average skip count)
+	FR	Artistes - avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
 
 
 
@@ -255,9 +258,11 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE_APC
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_APC
 	EN	Albums with most skipped tracks (APC) (number of all tracks skipped at least once)
+	FR	Albums avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_AVERAGE_APC
 	EN	Albums with most skipped tracks (APC) (highest average skip count)
+	FR	Albums avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
 
 
 
@@ -313,9 +318,11 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE_APC
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_APC
 	EN	Genres with most skipped tracks (APC) (number of all tracks skipped at least once)
+	FR	Genres avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_AVERAGE_APC
 	EN	Genres with most skipped tracks (APC) (highest average skip count)
+	FR	Genres avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
 
 
 
@@ -386,9 +393,11 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE_APC
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC
 	EN	Years with most skipped tracks (APC) (number of all tracks skipped at least once)
+	FR	Années avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_AVERAGE_APC
 	EN	Years with most skipped tracks (APC) (highest average skip count)
+	FR	Albums avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_APC
 	EN	Decades with most played tracks (APC) (number of all tracks played at least once)
@@ -402,9 +411,11 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE_APC
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_APC
 	EN	Decades with most skipped tracks (APC) (number of all tracks skipped at least once)
+	FR	Décennies avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_AVERAGE_APC
 	EN	Decades with most skipped tracks (APC) (highest average skip count)
+	FR	Décennies avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
 
 
 
@@ -480,12 +491,15 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT
 	EN	average skip count
+	FR	nombre de sauts moyen
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPCOUNT
 	EN	Skip count
+	FR	Nombre de sauts
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT_SHORT
 	EN	Avg. skip count
+	FR	Nb. sauts moyen
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
 	EN	Avg. artist rating
