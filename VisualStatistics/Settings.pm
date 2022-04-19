@@ -48,12 +48,18 @@ sub page {
 }
 
 sub prefs {
-	return ($prefs, qw(usefullscreen));
+	return ($prefs, qw(usefullscreen displayapcdupes minartisttracks minalbumtracks));
 }
 
 sub handler {
 	my ($class, $client, $paramRef) = @_;
 	return $class->SUPER::handler($client, $paramRef);
+}
+
+sub beforeRender {
+	my ($class, $paramRef) = @_;
+	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
+	$paramRef->{'apcenabled'} = 'yes' if $apc_enabled;
 }
 
 1;

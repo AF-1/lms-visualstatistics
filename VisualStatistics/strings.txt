@@ -18,6 +18,34 @@ PLUGIN_VISUALSTATISTICS_SETTINGS
 	FR	Réglages
 	NL	Instellingen
 
+PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES
+	EN	Enable/disable APC (duplicate) playlists
+	FR	Activation/désactivation<br>Liste de lecture APC (dupliquées)
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_DESC
+	EN	Charts based on values provided by the <i>Alternative Play Count</i> plugin have the same purpose as their duplicates based on LMS database values. They just use different values.<br>Choose which version(s) you want to enable.
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_LMSONLY
+	EN	only charts based on LMS values
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_APCONLY
+	EN	only charts based on APC values
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_BOTH
+	EN	charts based on LMS and APC values
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS
+	EN	Minimum artist tracks
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS_DESC
+	EN	Some artist charts (percentage, average) would show very skewed and uninformative results if artists with very few songs were not excluded.<br>Example: Artists with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of artist tracks played</i> would consist only of such artists in the worst case.<br>The <b>minimum artist tracks</b> setting allows you to exclude artists with very few tracks to get more meaningful results. 
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS
+	EN	Minimum album tracks
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS_DESC
+	EN	Some album charts (percentage, average) would show very skewed and uninformative results if albums with very few songs were not excluded.<br>Example: Albums with just <b>one</b> track  whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of album tracks played</i> would consist only of such albums in the worst case.<br>The <b>minimum album tracks</b> setting allows you to exclude albums with very few tracks to get more meaningful results. 
+
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
 	FR	Utiliser le mode plein écran de l’OS
@@ -69,9 +97,14 @@ PLUGIN_VISUALSTATISTICS_SECTION_GENRES
 	NL	GENRES
 
 PLUGIN_VISUALSTATISTICS_SECTION_YEARS
-	EN	YEARS / DECADES
-	FR	ANNÉES / DÉCENNIES
-	NL	JAREN / DECENNIA
+	EN	YEARS
+	FR	ANNÉES
+	NL	JAREN
+
+PLUGIN_VISUALSTATISTICS_SECTION_DECADES
+	EN	DECADES
+	FR	DÉCENNIES
+	NL	DECENNIA
 
 PLUGIN_VISUALSTATISTICS_SECTION_MISC
 	EN	MISC.
@@ -161,40 +194,44 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS
 	FR	Artistes avec le plus de morceaux notés
 	NL	Artiesten met de meeste nummers met een beoordeling
 
-PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_ALL
-	EN	Artists with top average rated tracks (incl. unrated tracks)
-	FR	Artistes avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
-	NL	Artiesten met de nummers met de hoogste gemiddelde waardering (incl. nummers zonder beoordeling)
+PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_RATED
+	EN	Artists with the highest percentage of rated tracks
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED
-	EN	Artists with top average rated tracks (rated tracks only)
-	FR	Artistes avec la meilleure note moyenne de morceaux (seulement les morceaux notés)
-	NL	Artiesten met de nummers met de hoogste gemiddelde waardering (excl. nummers zonder beoordeling)
+	EN	Artists with top average track rating
+	FR	Artistes avec la meilleure note moyenne de morceaux
+	NL	Artiesten met de nummers met de hoogste gemiddelde waardering
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
 	EN	Artists with most played tracks (number of all tracks played at least once)
 	FR	Artistes avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Artiesten met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Artists with most played tracks (highest average play count)
-	FR	Artistes avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
-	NL	Artiesten met de meeste gespeelde nummers (meeste gemiddelde keren afgespeeld)
-
-PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
-	EN	Artists - average rating vs. average play count
-	FR	Artistes - note moyenne vs. nombre d’écoutes moyen
-	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
-
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_APC
 	EN	Artists with most played tracks (APC) (number of all tracks played at least once)
 	FR	Artistes avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
 	NL	Artiesten met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Artists with most played tracks (APC) (highest average play count)
-	FR	Artistes avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
-	NL	Artiesten met de meeste gespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
+PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED
+	EN	Artists with the highest percentage of played tracks
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
+	EN	Artists with the highest percentage of played tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
+	EN	Artists with top average play count
+	FR	Artistes avec le nombre d’écoutes moyen le plus élevé
+	NL	Artiesten met de meeste gemiddelde keren afgespeeld
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
+	EN	Artists with top average play count (APC)
+	FR	Artistes avec le nombre d’écoutes moyen le plus élevé (APC)
+	NL	Artiesten met de meeste gemiddelde keren afgespeeld (APC)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
+	EN	Artists - average rating vs. average play count
+	FR	Artistes - note moyenne vs. nombre d’écoutes moyen
+	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT_APC
 	EN	Artists - average rating vs. average play count (APC)
@@ -202,12 +239,15 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT_APC
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld (APC)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_APC
-	EN	Artists - with most skipped tracks (APC) (number of all tracks skipped at least once)
-	FR	Artistes - avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
+	EN	Artists with most skipped tracks (APC) (number of all tracks skipped at least once)
+	FR	Artistes avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
-PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_AVERAGE_APC
-	EN	Artists - with most skipped tracks (APC) (highest average skip count)
-	FR	Artistes - avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
+PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
+	EN	Artists with the highest percentage of skipped tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
+	EN	Artists with top average skip count (APC)
+	FR	Artistes avec le nombre de sauts moyen le plus élevé (APC)
 
 
 
@@ -226,43 +266,50 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS
 	FR	Albums avec le plus de morceaux notés
 	NL	Albums met de meeste nummers met een beoordeling
 
-PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_ALL
-	EN	Albums with top average rated tracks (incl. unrated tracks)
-	FR	Albums avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
-	NL	Albums met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
+PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_RATED
+	EN	Albums with the highest percentage of rated tracks
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED
-	EN	Albums with top average rated tracks (rated tracks only)
-	FR	Albums avec la meilleure note moyenne de morceaux (seulement les morceaux notés)
-	NL	Albums met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
+	EN	Albums with top average track rating
+	FR	Albums avec la meilleure note moyenne de morceaux
+	NL	Albums met de beste gemiddelde beoordeling
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
 	EN	Albums with most played tracks (number of all tracks played at least once)
 	FR	Albums avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Albums met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Albums with most played tracks (highest average play count)
-	FR	Albums avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
-	NL	Albums met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
-
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC
 	EN	Albums with most played tracks (APC) (number of all tracks played at least once)
 	FR	Albums avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
 	NL	Albums met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Albums with most played tracks (APC) (highest average play count)
-	FR	Albums avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
-	NL	Albums met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
+PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED
+	EN	Albums with the highest percentage of played tracks
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
+	EN	Albums with the highest percentage of played tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
+	EN	Albums with top average play count
+	FR	Albums avec le nombre d’écoutes moyen le plus élevé
+	NL	Albums met de meeste gemiddelde keren afgespeeld
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
+	EN	Albums with top average play count (APC)
+	FR	Albums avec le nombre d’écoutes moyen le plus élevé (APC)
+	NL	Albums met de meeste gemiddelde keren afgespeeld (APC)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_APC
 	EN	Albums with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Albums avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
-PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_AVERAGE_APC
-	EN	Albums with most skipped tracks (APC) (highest average skip count)
-	FR	Albums avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
+PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
+	EN	Albums with the highest percentage of skipped tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
+	EN	Albums with top average skip count (APC)
+	FR	Albums avec le nombre de sauts moyen le plus élevé (APC)
 
 
 
@@ -281,48 +328,55 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS
 	FR	Genre avec le plus de morceaux notés
 	NL	Genres met de meeste nummers met een beoordeling
 
-PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_ALL
-	EN	Genres with top average rated tracks (incl. unrated tracks)
-	FR	Genres avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
-	NL	Genres met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
+PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_RATED
+	EN	Genres with the highest percentage of rated tracks
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED
-	EN	Genres with top average rated tracks (rated tracks only)
-	FR	Genres avec la meilleure note moyenne de morceaux (seulement les morceaux notés)
-	NL	Genres met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
+	EN	Genres with top average track rating
+	FR	Genres avec la meilleure note moyenne de morceaux
+	NL	Genres met de beste gemiddelde beoordeling
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
 	EN	Genres with most played tracks (number of all tracks played at least once)
 	FR	Genres avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Genres met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Genres with most played tracks (highest average play count)
-	FR	Genres avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
-	NL	Genres met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
-
-PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
-	EN	Genres with top average bit rate
-	FR	Genres avec le plus haut débit moyen
-	NL	Genres met de hoogste gemiddelde bitsnelheid
-
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_APC
 	EN	Genres with most played tracks (APC) (number of all tracks played at least once)
 	FR	Genres avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
 	NL	Genres met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Genres with most played tracks (APC) (highest average play count)
-	FR	Genres avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
-	NL	Genres met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
+PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_PLAYED
+	EN	Genres with the highest percentage of played tracks
+
+PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
+	EN	Genres with the highest percentage of played tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
+	EN	Genres with top average play count
+	FR	Genres avec le nombre d’écoutes moyen le plus élevé
+	NL	Genres met de meeste gemiddelde keren afgespeeld
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
+	EN	Genres with top average play count (APC)
+	FR	Genres avec le nombre d’écoutes moyen le plus élevé (APC)
+	NL	Genres met de meeste gemiddelde keren afgespeeld (APC)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_APC
 	EN	Genres with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Genres avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
-PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_AVERAGE_APC
-	EN	Genres with most skipped tracks (APC) (highest average skip count)
-	FR	Genres avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
+PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
+	EN	Genres with the highest percentage of skipped tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_GENRES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
+	EN	Genres with top average skip count (APC)
+	FR	Genres avec le nombre de sauts moyen le plus élevé (APC)
+
+PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
+	EN	Genres with top average bit rate
+	FR	Genres avec le plus haut débit moyen
+	NL	Genres met de hoogste gemiddelde bitsnelheid
 
 
 
@@ -341,81 +395,112 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS
 	FR	Années avec le plus de morceaux notés
 	NL	Jaren met de meeste nummers met een beoordeling
 
-PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_ALL
-	EN	Years with top average rated tracks (incl. unrated tracks)
-	FR	Années avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
-	NL	Jaren met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
+PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_RATED
+	EN	Years with the highest percentage of rated tracks
 
 PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED
-	EN	Years with top average rated tracks (rated tracks only)
-	FR	Années avec la meilleure note moyenne de morceaux (seulement les morceaux notés)
-	NL	Jaren met de beste gemiddelde beoordeling (excl. nummers zonder beoordeling)
+	EN	Years with top average track rating
+	FR	Années avec la meilleure note moyenne de morceaux
+	NL	Jaren met de beste gemiddelde beoordeling
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
 	EN	Years with most played tracks (number of all tracks played at least once)
 	FR	Années avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Jaren met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Years with most played tracks (highest average play count)
-	FR	Années avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
-	NL	Jaren met de meest afgespeelde nummers (meeste gemiddelde keren afgespeeld)
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_APC
+	EN	Years with most played tracks (APC) (number of all tracks played at least once)
+	FR	Années avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
+	NL	Jaren met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_PLAYED
+	EN	Years with the highest percentage of played tracks
+
+PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
+	EN	Years with the highest percentage of played tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
+	EN	Years with top average play count
+	FR	Années avec le nombre d’écoutes moyen le plus élevé
+	NL	Jaren met de meeste gemiddelde keren afgespeeld
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
+	EN	Years with top average play count (APC)
+	FR	Années avec le nombre d’écoutes moyen le plus élevé (APC)
+	NL	Jaren met de meeste gemiddelde keren afgespeeld (APC)
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC
+	EN	Years with most skipped tracks (APC) (number of all tracks skipped at least once)
+	FR	Années avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
+
+PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
+	EN	Years with the highest percentage of skipped tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_YEARS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
+	EN	Years with top average skip count (APC)
+	FR	Années avec le nombre de sauts moyen le plus élevé (APC)
+
+
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_TRACKS
+	EN	Decades with most tracks
+	FR	Décennies avec le plus de morceaux
+	NL	Decennia met de meeste nummers
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_ALBUMS
+	EN	Decades with most albums
+	FR	Décennies avec le plus d’albums
+	NL	Decennia met de meeste albums
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_RATED_TRACKS
 	EN	Decades with most rated tracks
 	FR	Décennies avec le plus de morceaux notés
 	NL	Decennia met de meeste nummers met een beoordeling
 
-PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_ALL
-	EN	Decades with top average rated tracks (incl. unrated tracks)
-	FR	Décennies avec la meilleure note moyenne de morceaux (incl. les morceaux non notés)
-	NL	Decennia met de beste gemiddelde beoordeling (incl. nummers zonder beoordeling)
+PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_RATED
+	EN	Decades with the highest percentage of rated tracks
+
+PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_RATED
+	EN	Decades with top average track rating
+	FR	Décennies avec la meilleure note moyenne de morceaux
+	NL	Decennia met de beste gemiddelde beoordeling
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 	EN	Decades with most played tracks (number of all tracks played at least once)
 	FR	Décennies avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
 	NL	Decennia met de meeste afgespeelde nummers (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE
-	EN	Decades with most played tracks (highest average play count)
-	FR	Décennies avec le plus de morceaux joués (nombre d’écoutes moyen le plus élevé)
-	NL	Decennia met de meeste afgespeelde nummers (meeste gemiddelde keren afgespeeld)
-
-PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_APC
-	EN	Years with most played tracks (APC) (number of all tracks played at least once)
-	FR	Années avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
-	NL	Jaren met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
-
-PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Years with most played tracks (APC) (highest average play count)
-	FR	Années avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
-	NL	Jaren met de meest afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
-
-PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC
-	EN	Years with most skipped tracks (APC) (number of all tracks skipped at least once)
-	FR	Années avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
-
-PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_AVERAGE_APC
-	EN	Years with most skipped tracks (APC) (highest average skip count)
-	FR	Albums avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
-
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_APC
 	EN	Decades with most played tracks (APC) (number of all tracks played at least once)
 	FR	Décennies avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
 	NL	Decennia met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
-PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_AVERAGE_APC
-	EN	Decades with most played tracks (APC) (highest average play count)
-	FR	Décennies avec le plus de morceaux joués (APC) (nombre d’écoutes moyen le plus élevé)
-	NL	Decennia met de meeste afgespeelde nummers (APC) (meeste gemiddelde keren afgespeeld)
+PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_PLAYED
+	EN	Decades with the highest percentage of played tracks
+
+PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
+	EN	Decades with the highest percentage of played tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
+	EN	Decades with top average play count
+	FR	Décennies avec le nombre d’écoutes moyen le plus élevé
+	NL	Decennia met de meeste gemiddelde keren afgespeeld
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
+	EN	Decades with top average play count (APC)
+	FR	Décennies avec le nombre d’écoutes moyen le plus élevé (APC)
+	NL	Decennia met de meeste gemiddelde keren afgespeeld (APC)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_APC
 	EN	Decades with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Décennies avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
 
-PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_AVERAGE_APC
-	EN	Decades with most skipped tracks (APC) (highest average skip count)
-	FR	Décennies avec le plus de morceaux sautés (APC) (nombre de sauts moyen le plus élevé)
+PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
+	EN	Decades with the highest percentage of skipped tracks (APC)
+
+PLUGIN_VISUALSTATISTICS_DECADES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
+	EN	Decades with top average skip count (APC)
+	FR	Décennies avec le nombre de sauts moyen le plus élevé (APC)
 
 
 
@@ -435,7 +520,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
 	NL	MEDIABIBLIOTHEEK STATISTIEKEN
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
-	EN	Most frequently used words in song names
+	EN	Most frequently used words in track titles
 	FR	Mots les plus utilisés dans les titres des chansons
 	NL	Meest gebruikte woorden in namen van nummers
 
@@ -445,101 +530,87 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_LYRICS_MOSTFREQUENTWORDS
 	NL	Meest gebruikte woorden in songteksten
 
 PLUGIN_VISUALSTATISTICS_VL_COMPLETELIB_NAME
-	EN	Complete Library (Default)
-	FR	bibliothèque musicale complète (par défaut)
-	NL	Gehele mediabibliotheek (standaard)
+	EN	Complete Library
+	FR	bibliothèque musicale complète
+	NL	Gehele mediabibliotheek
 
-PLUGIN_VISUALSTATISTICS_VL_TRACK
-	EN	Track
-	FR	Morceau
-	NL	Nummer
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT
+	EN	Number of played tracks
+	FR	Nombre de morceaux joués
 
-PLUGIN_VISUALSTATISTICS_VL_TRACKS
-	EN	Tracks
-	FR	Morceaux
-	NL	Nummers
-
-PLUGIN_VISUALSTATISTICS_VL_STAR
-	EN	star
-	FR	étoile
-	NL	ster
-
-PLUGIN_VISUALSTATISTICS_VL_STARS
-	EN	stars
-	FR	étoiles
-	NL	sterren
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT
+	EN	Number of skipped tracks
+	FR	Nombre de morceaux sautés
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE
-	EN	average bit rate (kbps)
-	FR	débit moyen (kbps)
-	NL	gemiddelde bitsnelheid (kbps)
-
-PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
-	EN	average play count
-	FR	nombre d’écoutes moyen
-	NL	gemiddeld aantal keren afgespeeld
-
-PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT_SHORT
-	EN	Avg. play count
-	FR	Nombre d’écoutes moy.
-	NL	Gem. aantal keren afgespeeld
+	EN	Average bit rate
+	FR	Débit moyen
+	NL	Gemiddelde bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT
 	EN	Play count
 	FR	Nombre d’écoutes
 	NL	Keren afgespeeld
 
-PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT
-	EN	average skip count
-	FR	nombre de sauts moyen
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED
+	EN	Percentage of played tracks
+	FR	Pourcentage de morceaux joués
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
+	EN	Average play count
+	FR	Nombre d’écoutes moyen
+	NL	Gemiddeld aantal keren afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPCOUNT
 	EN	Skip count
 	FR	Nombre de sauts
 
-PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT_SHORT
-	EN	Avg. skip count
-	FR	Nb. sauts moyen
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED
+	EN	Percentage of skipped tracks
+	FR	Pourcentage de morceaux sautés
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT
+	EN	Average skip count
+	FR	Nombre de sauts moyen
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED
+	EN	Percentage of rated tracks
+	FR	Pourcentage de morceaux notés
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
-	EN	Avg. artist rating
-	FR	Note moy. de l’artiste
-	NL	Gem. artiest rating
+	EN	Average artist rating
+	FR	Note moyen de l’artiste
+	NL	Gemiddelde artiest rating
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST
-	EN	average rating/play count for artist
-	FR	note moyenne/nombre d’écoutes de l’artiste
-	NL	gemiddelde beoordeling/aantal keren afgespeeld voor artiest
+	EN	Average rating/play count for artist
+	FR	Note moyenne/nombre d’écoutes de l’artiste
+	NL	Gemiddelde beoordeling/aantal keren afgespeeld voor artiest
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING
-	EN	average track rating (stars)
-	FR	note moyenne des morceaux (étoiles)
-	NL	gemiddelde beoordeling (sterren) van nummers
-
-PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATING
-	EN	Average rating (stars)
-	FR	Note moyenne (étoiles)
-	NL	Gemiddelde rating (sterren)
+	EN	Average track rating
+	FR	Note moyenne des morceaux
+	NL	Gemiddelde beoordeling van nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT
-	EN	number of albums
-	FR	nombre d’albums
-	NL	aantal albums
+	EN	Number of albums
+	FR	Nombre d’albums
+	NL	Aantal albums
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT
-	EN	number of rated tracks
-	FR	nombre de morceaux notés
-	NL	aantal nummers met een beoordeling
+	EN	Number of rated tracks
+	FR	Nombre de morceaux notés
+	NL	Aantal nummers met een beoordeling
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT
-	EN	number of tracks
-	FR	nombre de morceaux
-	NL	aantal nummers
+	EN	Number of tracks
+	FR	Nombre de morceaux
+	NL	Aantal nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT
-	EN	word count
-	FR	nombre de mots
-	NL	aantal woorden
+	EN	Word count
+	FR	Nombre de mots
+	NL	Aantal woorden
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_BITRATE
 	EN	Bit rate
@@ -552,7 +623,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE
 	NL	Geen bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_FILESIZE
-	EN	File Size
+	EN	File size
 	FR	Taille de fichier
 	NL	Bestandsgrootte
 
@@ -561,6 +632,89 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME
 	FR	Temps d’écoute
 	NL	Luistertijd
 
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE_LASTADDED
+	EN	Date added
+	FR	Date d’ajout
+	NL	Toegevoegde datum
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE_LASTMODIFIED
+	EN	Date last modified
+	FR	Dernière modification
+	NL	Laatst gewijzigde datum
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKTITLE
+	EN	Title
+	FR	Titre
+	NL	Titel
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME
+	EN	Artist
+	FR	Artiste
+	NL	Artiest
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMNAME
+	EN	Album
+	FR	Album
+	NL	Album
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME
+	EN	Genre
+	FR	Genre
+	NL	Genre
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR
+	EN	Year
+	FR	Année
+	NL	Jaar
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE
+	EN	Decade
+	FR	Décennie
+	NL	Decennium
+
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_HOUR
+	EN	 h
+	FR	 h
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_KBPS
+	EN	 kbps
+	FR	 kbps
+	NL	 kbps
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_MB
+	EN	 MB
+	FR	 MB
+	NL	 MB
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE
+	EN	 %
+	FR	 %
+	NL	 %
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR
+	EN	 star
+	FR	 étoile
+	NL	 ster
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS
+	EN	 stars
+	FR	 étoiles
+	NL	 sterren
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACK
+	EN	track
+	FR	morceau
+	NL	nummer
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS
+	EN	tracks
+	FR	morceaux
+	NL	nummers
+
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_INFOMOUSEOVERTITLE
+	EN	Show detailed statistical information (text) about this library
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS
 	EN	Total tracks
@@ -703,17 +857,17 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES
 	NL	Genres
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_LOSSLESS
-	EN	Lossless songs
+	EN	Lossless tracks
 	FR	Morceaux sans pertes
 	NL	Lossless nummers
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_RATEDTRACKS
-	EN	Rated songs
+	EN	Rated tracks
 	FR	Morceaux notés
 	NL	Beoordeelde nummers
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYED
-	EN	Songs played at least once
+	EN	Tracks played at least once
 	FR	Morceaux joués au moins une fois
 	NL	Aantal nummers dat minstens één keer is afgespeeld
 
