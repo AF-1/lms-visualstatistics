@@ -38,13 +38,13 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS
 	EN	Minimum artist tracks
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS_DESC
-	EN	Some artist charts (percentage, average) would show very skewed and uninformative results if artists with very few songs were not excluded.<br>Example: Artists with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of artist tracks played</i> would consist only of such artists in the worst case.<br>The <b>minimum artist tracks</b> setting allows you to exclude artists with very few tracks to get more meaningful results. 
+	EN	Some artist charts (percentage, average) would show very skewed and uninformative results if artists with very few songs were not excluded.<br>Example: Artists with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of artist tracks played</i> would consist only of such artists in the worst case.<br>The <b>minimum artist tracks</b> setting allows you to exclude artists with very few tracks to get more meaningful results.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS
 	EN	Minimum album tracks
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS_DESC
-	EN	Some album charts (percentage, average) would show very skewed and uninformative results if albums with very few songs were not excluded.<br>Example: Albums with just <b>one</b> track  whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of album tracks played</i> would consist only of such albums in the worst case.<br>The <b>minimum album tracks</b> setting allows you to exclude albums with very few tracks to get more meaningful results. 
+	EN	Some album charts (percentage, average) would show very skewed and uninformative results if albums with very few songs were not excluded.<br>Example: Albums with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of album tracks played</i> would consist only of such albums in the worst case.<br>The <b>minimum album tracks</b> setting allows you to exclude albums with very few tracks to get more meaningful results.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
@@ -111,6 +111,17 @@ PLUGIN_VISUALSTATISTICS_SECTION_MISC
 	FR	AUTRES
 	NL	OVERIG
 
+PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLGENRES
+	EN	 All genres
+	FR	 Tous les genres
+
+PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLDECADES
+	EN	All decades
+	FR	Toutes les décennies
+
+PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_UPDATE
+	EN	Refresh chart
+	FR	Actualiser le graphique
 
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILE_FORMAT

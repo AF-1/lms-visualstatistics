@@ -9,9 +9,11 @@
 [% PROCESS pageheader.html %]
 <style>
 [% IF systemSkin == "material" %]
+.updatebutton {font-size: 12px !important;}
 .info-circle {stroke: rgb(240, 240, 240);}
 .info-i {fill: rgb(240, 240, 240);}
 [% ELSE %]
+.updatebutton {height: 18px;font-size: 11px !important;padding: 0px 2px;}
 .info-circle {stroke: rgb(0, 0, 0);}
 .info-i {fill: rgb(0, 0, 0);}
 [% END %]
@@ -47,7 +49,7 @@
 		</select>
 		<span class="libinfo" title="[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_INFOMOUSEOVERTITLE" | string %]" onclick="displayLibStatsText()">
 			<svg width="100%" height="100%" id="circularloader" class="circular-loader info-circle" viewBox="0 0 32 32" >
-				<circle id="infocircle" cx="16" cy="16" r="15" fill="none"  stroke-width="2" />
+				<circle id="infocircle" cx="16" cy="16" r="15" fill="none" stroke-width="2" />
 			</svg>
 			<svg id="infoi" class="info-i" width="100%" height="16px" viewBox="0 -1 32 32">
 				<path d="M17.962,24.725L19.768,24.821L19.768,27.352L12.234,27.352L12.234,24.946L13.279,24.852C13.847,24.789 14.195,24.598 14.195,23.838L14.195,15.037C14.195,14.338 14.007,14.117 13.404,14.117L12.298,14.055L12.298,11.429L17.964,11.429L17.962,24.725ZM15.747,4.648C17.141,4.648 18.152,5.695 18.152,7.022C18.152,8.353 17.138,9.335 15.714,9.335C14.26,9.335 13.31,8.353 13.31,7.022C13.31,5.695 14.26,4.648 15.747,4.648Z" style="fill-rule:nonzero;"/>
@@ -893,7 +895,6 @@
 	<div class="overlay-content"><a href="javascript:void(0)" class="closebtn" onclick="closeNav()">x</a>
 		<div class="chart-container">
 			<canvas id="chartCanvas"></canvas>
-			<br>
 			<div id="button_container">
 				<div class="chartbuttons" id="container_togglebtn_layout">
 					<span>
@@ -910,6 +911,26 @@
 						<button class="button-font hidedatalabels" id="togglebtn_datalabels">[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_SHOW" | string %]</button>
 					</span>
 				</div>
+				<br>
+			</div>
+			<div id="filter_container">
+				<span id="genrefilter">
+					<select class="filterselelm" name="genreselect" id="genreselect">
+						[% FOREACH genre = librarygenres %]
+							<option value="[% genre.id %]" [% IF genre.id == genreselect %]selected='selected' [% END %]>[% genre.name %]</option>
+						[% END %]
+					</select>
+				</span>
+				<span id="decadefilter">
+					<select class="filterselelm" name="decadeselect" id="decadeselect">
+						[% FOREACH decade = librarydecades %]
+							<option value="[% decade.val %]" [% IF decade.val == decadeselect %]selected='selected' [% END %]>[% decade.name %]</option>
+						[% END %]
+					</select>
+				</span>
+				<span class="updatechart" id="updatechart">
+					<button id="updatechartbutton" class="updatebutton" onclick="filterChartUpdate();">[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_UPDATE" | string %]</button>
+				</span>
 			</div>
 		</div>
 		<div id="chartjs-tooltip"><table id="tableDoughnut"></table></div>
@@ -1084,28 +1105,37 @@
 		toggle.checked = !toggle.checked;
 	[% END %]
 
-	document.getElementById('vlselect').addEventListener('change', function() {
-	[% IF systemSkin == "material" %]
+	function setLMSpref(prefname, prefval) {
 		const url = "[% squeezebox_server_jsondatareq %]";
 		const vsBody = JSON.stringify({
 			id: 1,
 			method: 'slim.request',
-			params: ['', ['pref', 'plugin.visualstatistics:selectedvirtuallibrary', this.value]]
+			params: ['', ['pref', 'plugin.visualstatistics:' + prefname, prefval]]
 		});
 		var vspref = new XMLHttpRequest();
 		vspref.open("POST", url);
 		vspref.setRequestHeader("Content-type", "application/json");
 		vspref.onreadystatechange = function () {
-		//console.log(vspref.responseText);
+			//console.log(vspref.responseText);
+			if (prefname == 'selectedvirtuallibrary') {
+				if (vspref.responseText && vspref.responseText != '') {
+					window.location.href = "[% IF systemSkin == 'material' %][% vlreload_material_url %][% ELSE %][% vlreload_url %][% END %]";
+				}
+			}
 		};
 		vspref.send(vsBody);
-	[% ELSE %]
-		ajaxRequest('/jsonrpc.js', {
-			id: 1,
-			method: "slim.request",
-			params: ["", ["pref","plugin.visualstatistics:selectedvirtuallibrary", this.value]]
-		});
-	[% END %]
+	}
+
+	document.getElementById('vlselect').addEventListener('change', function() {
+		setLMSpref('selectedvirtuallibrary', this.value);
+	});
+
+	document.getElementById('genreselect').addEventListener('change', function() {
+		setLMSpref('genrefilterid', this.value);
+	});
+
+	document.getElementById('decadeselect').addEventListener('change', function() {
+		setLMSpref('decadefilterval', this.value);
 	});
 </script>
 [% PROCESS pagefooter.html %]
