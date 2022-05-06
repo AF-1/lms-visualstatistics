@@ -123,6 +123,12 @@ PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_UPDATE
 	EN	Refresh chart
 	FR	Actualiser le graphique
 
+PLUGIN_VISUALSTATISTICS_OTHERS
+	EN	Others
+	FR	Autres
+	NL	Anderen
+
+
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILE_FORMAT
 	EN	Tracks by audio file format
@@ -158,6 +164,11 @@ PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE
 	EN	Tracks by file size
 	FR	Morceaux par taille de fichier et format du fichier audio
 	NL	Nummers per bestandsgrootte en bestandsformaat
+
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_GENRE
+	EN	Tracks by genre
+	FR	Morceaux par genre
+	NL	Nummers per genre
 
 PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED
 	EN	Most played tracks
@@ -224,10 +235,10 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_APC
 	NL	Artiesten met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED
-	EN	Artists with the highest percentage of played tracks
+	EN	Artists with the highest percentage of played tracks (not incl. artists with 100% played tracks)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
-	EN	Artists with the highest percentage of played tracks (APC)
+	EN	Artists with the highest percentage of played tracks (APC) (not incl. artists with 100% played tracks)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
 	EN	Artists with top average play count
@@ -296,10 +307,10 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC
 	NL	Albums met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED
-	EN	Albums with the highest percentage of played tracks
+	EN	Albums with the highest percentage of played tracks (not completely played)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
-	EN	Albums with the highest percentage of played tracks (APC)
+	EN	Albums with the highest percentage of played tracks (APC) (not completely played)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
 	EN	Albums with top average play count
@@ -520,16 +531,6 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
 	FR	Heures d’écoute
 	NL	Luistertijden
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT
-	EN	More library statistics (text)
-	FR	Plus de statistiques de la bibliothèque musicale (texte)
-	NL	Meer mediabibliotheek statistieken (tekst)
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
-	EN	LIBRARY STATISTICS
-	FR	STATISTIQUES DE LA BIBLIOTHEQUE MUSICALE
-	NL	MEDIABIBLIOTHEEK STATISTIEKEN
-
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
 	EN	Most frequently used words in track titles
 	FR	Mots les plus utilisés dans les titres des chansons
@@ -539,6 +540,8 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_LYRICS_MOSTFREQUENTWORDS
 	EN	Most frequently used words in track lyrics
 	FR	Mots les plus utilisés dans les paroles des chansons
 	NL	Meest gebruikte woorden in songteksten
+
+
 
 PLUGIN_VISUALSTATISTICS_VL_COMPLETELIB_NAME
 	EN	Complete Library
@@ -724,8 +727,14 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS
 	NL	nummers
 
 
+
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_INFOMOUSEOVERTITLE
 	EN	Show detailed statistical information (text) about this library
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
+	EN	LIBRARY STATISTICS
+	FR	STATISTIQUES DE LA BIBLIOTHEQUE MUSICALE
+	NL	MEDIABIBLIOTHEEK STATISTIEKEN
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS
 	EN	Total tracks

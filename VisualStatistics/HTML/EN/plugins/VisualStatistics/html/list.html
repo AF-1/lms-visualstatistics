@@ -120,8 +120,15 @@
 					</div>
 				</div>
 		</div>
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataTracksByGenre">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTracksByGenre')">
+						[% 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_GENRE' | string %]
+					</div>
+				</div>
+		</div>
 [% IF displayapcdupes < 2 %]
-
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataTracksMostPlayed">
 				<div class="flexitem">
@@ -954,6 +961,7 @@
 	getDataTracksByBitrateAudioFileFormatScatter:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER" | string %]',
 	getDataTracksByFileSize:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE" | string %]',
 	getDataTracksByFileSizeAudioFileFormat:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE_FILE_FORMATS" | string %]',
+	getDataTracksByGenre:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_BY_GENRE" | string %]',
 	getDataTracksMostPlayed:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED" | string %]',
 	getDataTracksMostPlayedAPC:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED_APC" | string %]',
 	getDataTracksMostSkippedAPC:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC" | string %]',
@@ -1104,26 +1112,106 @@
 		var toggle = document.getElementById('toggleswitch_colorscheme');
 		toggle.checked = !toggle.checked;
 	[% END %]
+	const dataurl = "/plugins/VisualStatistics/getdata.html";
+
+	function updateGenreFilterList() {
+		var params = {
+			list: 'genrelist'
+		}
+		async function fetchData() {
+			let response = await fetch(dataurl, {
+				method: "post",
+				headers: { "Content-Type": "application/json", "Origin": window.location.hostname },
+				body: JSON.stringify(params),
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			return await response.json();
+		}
+
+		fetchData().then((jsonData) => {
+			//console.log("genre options = " + jsonData.results.length);//console.log("genreArr = " + JSON.stringify(jsonData.results));
+			const genreSel = document.querySelector('#genreselect');
+			genreSel.options.length = 0;
+
+			for (var i = 0; i < jsonData.results.length; i++) {
+				let genreID = jsonData.results[i].id;
+				if ((genreID === null) || (genreID === undefined)) {
+					genreID = '';
+				}
+				const option = new Option(jsonData.results[i].name, genreID);
+				genreSel.add(option, undefined);
+			}
+		}).then(function() {
+			document.getElementById('genreselect').value = '';
+		});
+	}
+	function updateDecadeFilterList() {
+		var params = {
+			list: 'decadelist'
+		}
+		async function fetchData() {
+			let response = await fetch(dataurl, {
+				method: "post",
+				headers: { "Content-Type": "application/json", "Origin": window.location.hostname },
+				body: JSON.stringify(params),
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			return await response.json();
+		}
+
+		fetchData().then((jsonData) => {
+			//console.log("decade options = " + jsonData.results.length);//console.log("decadeArr = " + JSON.stringify(jsonData.results));
+			const decadeSel = document.querySelector('#decadeselect');
+			decadeSel.options.length = 0;
+
+			for (var i = 0; i < jsonData.results.length; i++) {
+				let decadeVal = jsonData.results[i].val;
+				if ((decadeVal === null) || (decadeVal === undefined)) {
+					decadeVal = '';
+				}
+				const option = new Option(jsonData.results[i].name, decadeVal);
+				decadeSel.add(option, undefined);
+			}
+		}).then(function() {
+			document.getElementById('decadeselect').value = '';
+		});
+	}
 
 	function setLMSpref(prefname, prefval) {
-		const url = "[% squeezebox_server_jsondatareq %]";
+		const serverjsonurl = "[% squeezebox_server_jsondatareq %]";
 		const vsBody = JSON.stringify({
 			id: 1,
 			method: 'slim.request',
 			params: ['', ['pref', 'plugin.visualstatistics:' + prefname, prefval]]
 		});
-		var vspref = new XMLHttpRequest();
-		vspref.open("POST", url);
-		vspref.setRequestHeader("Content-type", "application/json");
-		vspref.onreadystatechange = function () {
-			//console.log(vspref.responseText);
+
+		async function sendPrefChange() {
+			var vspref = new XMLHttpRequest();
+			vspref.open("POST", serverjsonurl);
+			vspref.setRequestHeader("Content-type", "application/json");
+			vspref.onreadystatechange = function () {
+				//console.log(vspref.responseText);
+			};
+			let response = await vspref.send(vsBody);
+		}
+
+		sendPrefChange().then(() => {
 			if (prefname == 'selectedvirtuallibrary') {
-				if (vspref.responseText && vspref.responseText != '') {
-					window.location.href = "[% IF systemSkin == 'material' %][% vlreload_material_url %][% ELSE %][% vlreload_url %][% END %]";
-				}
+				updateGenreFilterList();
+				updateDecadeFilterList();
 			}
-		};
-		vspref.send(vsBody);
+			if (prefname == 'genrefilterid') {
+				updateDecadeFilterList();
+			}
+		}).catch(function(error) {
+			console.log(error);
+		});
 	}
 
 	document.getElementById('vlselect').addEventListener('change', function() {
@@ -1131,10 +1219,12 @@
 	});
 
 	document.getElementById('genreselect').addEventListener('change', function() {
+		//console.log('selected genrefilterid: ', this.value);
 		setLMSpref('genrefilterid', this.value);
 	});
 
 	document.getElementById('decadeselect').addEventListener('change', function() {
+		//console.log('selected decadefilterval: ', this.value);
 		setLMSpref('decadefilterval', this.value);
 	});
 </script>

@@ -66,8 +66,8 @@ sub initPlugin {
 sub initPrefs {
 	$prefs->init({
 		displayapcdupes => 1,
-		minartisttracks => 4,
-		minalbumtracks => 4,
+		minartisttracks => 3,
+		minalbumtracks => 3,
 	});
 	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
 	if (!$apc_enabled && $prefs->get('displayapcdupes') == 2) {
@@ -118,8 +118,10 @@ sub handleJSON {
 	my $paramContents = decode_json($params->{content});
 	$log->debug('paramContents = '.Dumper($paramContents));
 	my $querytype = $paramContents->{'type'};
+	my $list = $paramContents->{'list'};
 
 	my $started = time();
+
 	if ($querytype) {
 		$response = {
 			error => 0,
@@ -128,8 +130,26 @@ sub handleJSON {
 		};
 	}
 
+	if ($list) {
+		$response = {
+			error => 0,
+			msg => $list,
+		};
+		if ($list eq 'decadelist') {
+			$response = {
+				results => getDecades(),
+			};
+		}
+
+		if ($list eq 'genrelist') {
+			$response = {
+				results => getGenres(),
+			};
+		}
+	}
+
 	$log->debug('JSON response = '.Dumper($response));
-	$log->info('exec time for query "'.$querytype.'" = '.(time()-$started).' seconds.');
+	$log->info('exec time for query "'.$querytype.'" = '.(time()-$started).' seconds.') if $querytype;
 	my $content = $params->{callback} ? $params->{callback}.'('.JSON::XS->new->ascii->encode($response).')' : JSON::XS->new->ascii->encode($response);
 	$httpResponse->header('Content-Length' => length($content));
 
@@ -805,6 +825,49 @@ sub getDataTracksByFileSizeAudioFileFormat {
 	return \@wrapper;
 }
 
+sub getDataTracksByGenre {
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$sqlstatement .= " join genre_track on
+			genre_track.track = tracks.id
+		join genres on
+			genres.id = genre_track.genre
+		where
+			genres.name is not null
+			and (tracks.audio = 1 or tracks.extid is not null)";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by genres.name
+		order by nooftracks desc, genres.name asc
+		limit ($rowLimit-1);";
+	my $sqlResult = executeSQLstatement($sqlstatement);
+
+	my $sum = 0;
+	foreach my $hash ( @{$sqlResult} ) {
+		$sum += $hash->{'yAxis'};
+	}
+
+	my $trackCountSQL = "select count(distinct tracks.id) from tracks";
+	if ($selectedVL && $selectedVL ne '') {
+		$trackCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$trackCountSQL .= " where tracks.audio = 1";
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$trackCountSQL .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$trackCountSQL .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	my $trackCount = quickSQLcount($trackCountSQL);
+	my $othersCount = $trackCount - $sum;
+	push @{$sqlResult}, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_OTHERS'), 'yAxis' => $othersCount} unless ($othersCount == 0);
+	return $sqlResult;
+}
+
 sub getDataTracksMostPlayed {
 	my $sqlstatement = "select tracks.title, ifnull(tracks_persistent.playCount, 0), contributors.name from tracks
 		join contributors on
@@ -1173,7 +1236,7 @@ sub getDataArtistsHighestPercentagePlayedTracks {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
 	$sqlstatement .= " group by tracks.primary_artist
-			having count(distinct tracks.id) >= $minArtistTracks
+			having count(distinct tracks.id) >= $minArtistTracks and playedpercentage < 100
 		order by playedpercentage desc, contributors.name asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
@@ -1204,7 +1267,7 @@ sub getDataArtistsHighestPercentagePlayedTracksAPC {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
 	$sqlstatement .= " group by tracks.primary_artist
-			having count(distinct tracks.id) >= $minArtistTracks
+			having count(distinct tracks.id) >= $minArtistTracks and playedpercentage < 100
 		order by playedpercentage desc, contributors.name asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
@@ -1653,7 +1716,7 @@ sub getDataAlbumsHighestPercentagePlayedTracks {
 	}
 	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by albums.title
-			having count(distinct tracks.id) >= $minAlbumTracks
+			having count(distinct tracks.id) >= $minAlbumTracks and playedpercentage < 100
 		order by playedpercentage desc, albums.title asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
@@ -1685,7 +1748,7 @@ sub getDataAlbumsHighestPercentagePlayedTracksAPC {
 	}
 	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by albums.title
-			having count(distinct tracks.id) >= $minAlbumTracks
+			having count(distinct tracks.id) >= $minAlbumTracks and playedpercentage < 100
 		order by playedpercentage desc, albums.title asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
@@ -3100,6 +3163,10 @@ sub getDecades {
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sql_decades .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if ($genreFilter) {
+		$sql_decades .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
 	$sql_decades .= " where tracks.audio = 1 group by decade order by decade desc";
 
