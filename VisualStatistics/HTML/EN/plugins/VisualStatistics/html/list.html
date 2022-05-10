@@ -1104,7 +1104,6 @@
 	buttonLabelsHide:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LABELS_HIDE" | string %]',
 	};
 </script>
-
 <script type="text/javascript" src="js/showchart.min.js"></script>
 <script type="text/javascript">
 	[% IF systemSkin == "material" %]
@@ -1112,76 +1111,6 @@
 		var toggle = document.getElementById('toggleswitch_colorscheme');
 		toggle.checked = !toggle.checked;
 	[% END %]
-	const dataurl = "/plugins/VisualStatistics/getdata.html";
-
-	function updateGenreFilterList() {
-		var params = {
-			list: 'genrelist'
-		}
-		async function fetchData() {
-			let response = await fetch(dataurl, {
-				method: "post",
-				headers: { "Content-Type": "application/json", "Origin": window.location.hostname },
-				body: JSON.stringify(params),
-			});
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-			return await response.json();
-		}
-
-		fetchData().then((jsonData) => {
-			//console.log("genre options = " + jsonData.results.length);//console.log("genreArr = " + JSON.stringify(jsonData.results));
-			const genreSel = document.querySelector('#genreselect');
-			genreSel.options.length = 0;
-
-			for (var i = 0; i < jsonData.results.length; i++) {
-				let genreID = jsonData.results[i].id;
-				if ((genreID === null) || (genreID === undefined)) {
-					genreID = '';
-				}
-				const option = new Option(jsonData.results[i].name, genreID);
-				genreSel.add(option, undefined);
-			}
-		}).then(function() {
-			document.getElementById('genreselect').value = '';
-		});
-	}
-	function updateDecadeFilterList() {
-		var params = {
-			list: 'decadelist'
-		}
-		async function fetchData() {
-			let response = await fetch(dataurl, {
-				method: "post",
-				headers: { "Content-Type": "application/json", "Origin": window.location.hostname },
-				body: JSON.stringify(params),
-			});
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-			return await response.json();
-		}
-
-		fetchData().then((jsonData) => {
-			//console.log("decade options = " + jsonData.results.length);//console.log("decadeArr = " + JSON.stringify(jsonData.results));
-			const decadeSel = document.querySelector('#decadeselect');
-			decadeSel.options.length = 0;
-
-			for (var i = 0; i < jsonData.results.length; i++) {
-				let decadeVal = jsonData.results[i].val;
-				if ((decadeVal === null) || (decadeVal === undefined)) {
-					decadeVal = '';
-				}
-				const option = new Option(jsonData.results[i].name, decadeVal);
-				decadeSel.add(option, undefined);
-			}
-		}).then(function() {
-			document.getElementById('decadeselect').value = '';
-		});
-	}
 
 	function setLMSpref(prefname, prefval) {
 		const serverjsonurl = "[% squeezebox_server_jsondatareq %]";
