@@ -1205,6 +1205,94 @@ sub getDataArtistsWithMostPlayedTracksAPC {
 	return executeSQLstatement($sqlstatement);
 }
 
+sub getDataArtistsWithTracksCompletelyPartlyNonePlayed {
+	my @result = ();
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+
+	my $sqlstatement_shared = "select count (distinct playedtracks.artistname) from (select distinct contributors.name as artistname, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks
+		left join tracks_persistent on
+			tracks_persistent.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement_shared .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement_shared .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement_shared .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement_shared .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+
+	my $sql_completelyplayed = $sqlstatement_shared . " group by tracks.primary_artist
+			having playedpercentage == 100) as playedtracks";
+	my $sql_partiallyplayed = $sqlstatement_shared . " group by tracks.primary_artist
+			having playedpercentage > 0 and playedpercentage < 100) as playedtracks";
+	my $sql_notplayed = $sqlstatement_shared . " group by tracks.primary_artist
+			having playedpercentage == 0) as playedtracks";
+
+	my $artistcount_completelyplayed = quickSQLcount($sql_completelyplayed);
+	my $artistcount_partiallyplayed = quickSQLcount($sql_partiallyplayed);
+	my $artistcount_notplayed = quickSQLcount($sql_notplayed);
+
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_COMPLETELY'), 'yAxis' => $artistcount_completelyplayed}) unless ($artistcount_completelyplayed == 0);
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_PARTIALLY'), 'yAxis' => $artistcount_partiallyplayed}) unless ($artistcount_partiallyplayed == 0);
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_NOTPLAYED'), 'yAxis' => $artistcount_notplayed}) unless ($artistcount_notplayed == 0);
+
+	return \@result;
+}
+
+sub getDataArtistsWithTracksCompletelyPartlyNonePlayedAPC {
+	my @result = ();
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+
+	my $sqlstatement_shared = "select count (distinct playedtracks.artistname) from (select distinct contributors.name as artistname, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement_shared .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement_shared .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement_shared .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement_shared .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+
+	my $sql_completelyplayed = $sqlstatement_shared . " group by tracks.primary_artist
+			having playedpercentage == 100) as playedtracks";
+	my $sql_partiallyplayed = $sqlstatement_shared . " group by tracks.primary_artist
+			having playedpercentage > 0 and playedpercentage < 100) as playedtracks";
+	my $sql_notplayed = $sqlstatement_shared . " group by tracks.primary_artist
+			having playedpercentage == 0) as playedtracks";
+
+	my $artistcount_completelyplayed = quickSQLcount($sql_completelyplayed);
+	my $artistcount_partiallyplayed = quickSQLcount($sql_partiallyplayed);
+	my $artistcount_notplayed = quickSQLcount($sql_notplayed);
+
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_COMPLETELY'), 'yAxis' => $artistcount_completelyplayed}) unless ($artistcount_completelyplayed == 0);
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_PARTIALLY'), 'yAxis' => $artistcount_partiallyplayed}) unless ($artistcount_partiallyplayed == 0);
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_NOTPLAYED'), 'yAxis' => $artistcount_notplayed}) unless ($artistcount_notplayed == 0);
+
+	return \@result;
+}
+
 sub getDataArtistsHighestPercentagePlayedTracks {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $minArtistTracks = $prefs->get('minartisttracks');
@@ -1682,6 +1770,96 @@ sub getDataAlbumsWithMostPlayedTracksAPC {
 		order by nooftracks desc, albums.title asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3);
+}
+
+sub getDataAlbumsWithTracksCompletelyPartlyNonePlayed {
+	my @result = ();
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+
+	my $sqlstatement_shared = "select count (distinct playedtracks.albumtitle) from (select distinct albums.title as albumtitle, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from albums
+		join tracks on
+			tracks.album = albums.id
+		left join tracks_persistent on
+			tracks_persistent.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement_shared .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement_shared .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement_shared .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement_shared .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
+	}
+
+	my $sql_completelyplayed = $sqlstatement_shared . " group by albums.title
+			having playedpercentage == 100) as playedtracks";
+	my $sql_partiallyplayed = $sqlstatement_shared . " group by albums.title
+			having playedpercentage > 0 and playedpercentage < 100) as playedtracks";
+	my $sql_notplayed = $sqlstatement_shared . " group by albums.title
+			having playedpercentage == 0) as playedtracks";
+
+	my $albumcount_completelyplayed = quickSQLcount($sql_completelyplayed);
+	my $albumcount_partiallyplayed = quickSQLcount($sql_partiallyplayed);
+	my $albumcount_notplayed = quickSQLcount($sql_notplayed);
+
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_COMPLETELY'), 'yAxis' => $albumcount_completelyplayed}) unless ($albumcount_completelyplayed == 0);
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_PARTIALLY'), 'yAxis' => $albumcount_partiallyplayed}) unless ($albumcount_partiallyplayed == 0);
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_NOTPLAYED'), 'yAxis' => $albumcount_notplayed}) unless ($albumcount_notplayed == 0);
+
+	return \@result;
+}
+
+sub getDataAlbumsWithTracksCompletelyPartlyNonePlayedAPC {
+	my @result = ();
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+
+	my $sqlstatement_shared = "select count (distinct playedtracks.albumtitle) from (select distinct albums.title as albumtitle, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from albums
+		join tracks on
+			tracks.album = albums.id
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement_shared .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement_shared .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement_shared .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement_shared .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
+	}
+
+	my $sql_completelyplayed = $sqlstatement_shared . " group by albums.title
+			having playedpercentage == 100) as playedtracks";
+	my $sql_partiallyplayed = $sqlstatement_shared . " group by albums.title
+			having playedpercentage > 0 and playedpercentage < 100) as playedtracks";
+	my $sql_notplayed = $sqlstatement_shared . " group by albums.title
+			having playedpercentage == 0) as playedtracks";
+
+	my $albumcount_completelyplayed = quickSQLcount($sql_completelyplayed);
+	my $albumcount_partiallyplayed = quickSQLcount($sql_partiallyplayed);
+	my $albumcount_notplayed = quickSQLcount($sql_notplayed);
+
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_COMPLETELY'), 'yAxis' => $albumcount_completelyplayed}) unless ($albumcount_completelyplayed == 0);
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_PARTIALLY'), 'yAxis' => $albumcount_partiallyplayed}) unless ($albumcount_partiallyplayed == 0);
+	push (@result, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_NOTPLAYED'), 'yAxis' => $albumcount_notplayed}) unless ($albumcount_notplayed == 0);
+
+	return \@result;
 }
 
 sub getDataAlbumsHighestPercentagePlayedTracks {

@@ -249,6 +249,26 @@
 [% END %]
 [% IF displayapcdupes < 2 %]
 		<div class="filler"></div>
+		<div class="wrapper" id="getDataArtistsWithTracksCompletelyPartlyNonePlayed">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithTracksCompletelyPartlyNonePlayed')">
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataArtistsWithTracksCompletelyPartlyNonePlayedAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithTracksCompletelyPartlyNonePlayedAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF displayapcdupes < 2 %]
+		<div class="filler"></div>
 		<div class="wrapper" id="getDataArtistsHighestPercentagePlayedTracks">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsHighestPercentagePlayedTracks')">
@@ -396,6 +416,26 @@
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithMostPlayedTracksAPC')">
 						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF displayapcdupes < 2 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataAlbumsWithTracksCompletelyPartlyNonePlayed">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithTracksCompletelyPartlyNonePlayed')">
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataAlbumsWithTracksCompletelyPartlyNonePlayedAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithTracksCompletelyPartlyNonePlayedAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC' | string %]
 					</div>
 				</div>
 		</div>
@@ -976,6 +1016,8 @@
 	getDataArtistsWithTopRatedTracksRated:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED" | string %]',
 	getDataArtistsWithMostPlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS" | string %]',
 	getDataArtistsWithMostPlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_APC" | string %]',
+	getDataArtistsWithTracksCompletelyPartlyNonePlayed: '[% "PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE" | string %]',
+	getDataArtistsWithTracksCompletelyPartlyNonePlayedAPC: '[% "PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC" | string %]',
 	getDataArtistsHighestPercentagePlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED" | string %]',
 	getDataArtistsHighestPercentagePlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC" | string %]',
 	getDataArtistsWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT" | string %]',
@@ -993,6 +1035,8 @@
 	getDataAlbumsWithTopRatedTracksRated:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED" | string %]',
 	getDataAlbumsWithMostPlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS" | string %]',
 	getDataAlbumsWithMostPlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC" | string %]',
+	getDataAlbumsWithTracksCompletelyPartlyNonePlayed: '[% "PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE" | string %]',
+	getDataAlbumsWithTracksCompletelyPartlyNonePlayedAPC: '[% "PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC" | string %]',
 	getDataAlbumsHighestPercentagePlayedTracks:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED" | string %]',
 	getDataAlbumsHighestPercentagePlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC" | string %]',
 	getDataAlbumsWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT" | string %]',
@@ -1057,6 +1101,7 @@
 	VLchartlabelAverageTrackRating:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING" | string %]',
 	VLchartlabelAverageRatingPlayCountForArtist:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST" | string %]',
 	VLchartlabelTrackCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT" | string %]',
+	VLchartlabelArtistCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTCOUNT" | string %]',
 	VLchartlabelAlbumCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT" | string %]',
 	VLchartlabelRatedTrackCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT" | string %]',
 	VLchartlabelPercentageRated:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED" | string %]',

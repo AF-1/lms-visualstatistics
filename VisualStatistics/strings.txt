@@ -240,6 +240,12 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED
 PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
 	EN	Artists with the highest percentage of played tracks (APC) (not incl. artists with 100% played tracks)
 
+PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE
+	EN	Artists with fully played, partially played tracks and without played tracks
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC
+	EN	Artists with fully played, partially played tracks and without played tracks (APC)
+
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
 	EN	Artists with top average play count
 	FR	Artistes avec le nombre d’écoutes moyen le plus élevé
@@ -305,6 +311,12 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC
 	EN	Albums with most played tracks (APC) (number of all tracks played at least once)
 	FR	Albums avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
 	NL	Albums met de meeste afgespeelde nummers (APC) (aantal van alle nummers dat minstens één keer is afgespeeld)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE
+	EN	Albums with fully played, partially played tracks and without played tracks
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC
+	EN	Albums with fully played, partially played tracks and without played tracks (APC)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED
 	EN	Albums with the highest percentage of played tracks (not completely played)
@@ -566,6 +578,24 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT
 	FR	Nombre d’écoutes
 	NL	Keren afgespeeld
 
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_COMPLETELY
+	EN	Artists completely played
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_PARTIALLY
+	EN	Artists partially played
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_NOTPLAYED
+	EN	Artists not played at all
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_COMPLETELY
+	EN	Albums completely played
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_PARTIALLY
+	EN	Albums partially played
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_NOTPLAYED
+	EN	Albums not played at all
+
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED
 	EN	Percentage of played tracks
 	FR	Pourcentage de morceaux joués
@@ -610,6 +640,11 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT
 	EN	Number of albums
 	FR	Nombre d’albums
 	NL	Aantal albums
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTCOUNT
+	EN	Number of artists
+	FR	Nombre d’artistes
+	NL	Aantal artiesten
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT
 	EN	Number of rated tracks
