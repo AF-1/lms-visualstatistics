@@ -95,7 +95,6 @@ sub handleWeb {
 
 	$params->{'virtuallibraries'} = getVirtualLibraries();
 	$params->{'librarygenres'} = getGenres();
-	$params->{'librarydecades'} = getDecades();
 
 	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
 	$params->{'apcenabled'} = 'yes' if $apc_enabled;

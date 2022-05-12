@@ -970,9 +970,6 @@
 				</span>
 				<span id="decadefilter">
 					<select class="filterselelm" name="decadeselect" id="decadeselect">
-						[% FOREACH decade = librarydecades %]
-							<option value="[% decade.val %]" [% IF decade.val == decadeselect %]selected='selected' [% END %]>[% decade.name %]</option>
-						[% END %]
 					</select>
 				</span>
 				<span class="updatechart" id="updatechart">
@@ -1200,6 +1197,10 @@
 	document.getElementById('decadeselect').addEventListener('change', function() {
 		//console.log('selected decadefilterval: ', this.value);
 		setLMSpref('decadefilterval', this.value);
+	});
+
+	window.addEventListener("load",() => {
+		updateDecadeFilterList();
 	});
 </script>
 [% PROCESS pagefooter.html %]
