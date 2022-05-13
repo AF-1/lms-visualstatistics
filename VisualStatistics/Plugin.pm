@@ -106,7 +106,7 @@ sub handleWeb {
 
 sub handleJSON {
 	my ($client, $params, $callback, $httpClient, $httpResponse, $request) = @_;
-	my $response = {error => 'Invalid or no query type'};
+	my $response = {error => 'Invalid or missing query type'};
 	my $querytype = $params->{content};
 	$log->debug('query type = '.Dumper($querytype));
 
