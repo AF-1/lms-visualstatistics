@@ -20,7 +20,6 @@
 
 package Plugins::VisualStatistics::Plugin;
 
-use v5.18;
 use strict;
 use warnings;
 use utf8;
@@ -35,7 +34,6 @@ use JSON::XS;
 use URI::Escape;
 use Time::HiRes qw(time);
 use Data::Dumper;
-use feature 'fc';
 
 use Plugins::VisualStatistics::Settings;
 use constant LIST_URL => 'plugins/VisualStatistics/html/list.html';
@@ -3173,7 +3171,7 @@ sub getDataTrackTitleMostFrequentWords {
 	}
 
 	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or fc($a) cmp fc($b)} keys %frequentwords) {
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b} keys %frequentwords) {
 		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
 		last if scalar @keys >= 50;
 	};
@@ -3219,7 +3217,7 @@ sub getDataTrackLyricsMostFrequentWords {
 		}
 	}
 	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or fc($a) cmp fc($b)} keys %frequentwords) {
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b} keys %frequentwords) {
 		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
 		last if scalar @keys >= 50;
 	};
@@ -3316,7 +3314,7 @@ sub getGenres {
 		'name' => string("PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLGENRES"),
 		'id' => undef,
 	};
-	@genres = sort { fc($a->{'name'}) cmp fc($b->{'name'}) } @genres;
+	@genres = sort { lc($a->{'name'}) cmp lc($b->{'name'}) } @genres;
 	$log->debug('genres list = '.Dumper(\@genres));
 	return \@genres;
 }
