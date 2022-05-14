@@ -106,44 +106,35 @@ sub handleWeb {
 
 sub handleJSON {
 	my ($client, $params, $callback, $httpClient, $httpResponse, $request) = @_;
-	my $response = {error => 'invalid arguments'};
-
-	my $paramContents = decode_json($params->{content});
-	$log->debug('paramContents = '.Dumper($paramContents));
-	my $querytype = $paramContents->{'type'};
-	my $list = $paramContents->{'list'};
+	my $response = {error => 'Invalid or missing query type'};
+	my $querytype = $params->{content};
+	$log->debug('query type = '.Dumper($querytype));
 
 	my $started = time();
 
 	if ($querytype) {
 		$response = {
 			error => 0,
-			msg => $querytype,
-			results => eval("$querytype()"),
+			msg => $querytype
 		};
-	}
-
-	if ($list) {
-		$response = {
-			error => 0,
-			msg => $list,
-		};
-		if ($list eq 'decadelist') {
+		if ($querytype eq 'decadelist') {
 			$response = {
 				results => getDecades(),
 			};
-		}
-
-		if ($list eq 'genrelist') {
+		} elsif ($querytype eq 'genrelist') {
 			$response = {
 				results => getGenres(),
+			};
+		} else {
+			$response = {
+				results => eval("$querytype()")
 			};
 		}
 	}
 
 	$log->debug('JSON response = '.Dumper($response));
 	$log->info('exec time for query "'.$querytype.'" = '.(time()-$started).' seconds.') if $querytype;
-	my $content = $params->{callback} ? $params->{callback}.'('.JSON::XS->new->ascii->encode($response).')' : JSON::XS->new->ascii->encode($response);
+	my $content = $params->{callback} ? $params->{callback}.'('.encode_json($response).')' : encode_json($response);
 	$httpResponse->header('Content-Length' => length($content));
 
 	return \$content;
@@ -3173,14 +3164,14 @@ sub getDataTrackTitleMostFrequentWords {
 			chomp $word;
 			$word = lc $word;
 			$word =~ s/^\s+|\s+$//g; #remove beginning/trailing whitespace
-			if ((length $word < 3) || $ignoreCommonWords{$word}) {next;}
+			next if (length $word < 3 || $ignoreCommonWords{$word});
 			$frequentwords{$word} ||= 0;
 			$frequentwords{$word}++;
 		}
 	}
 
 	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or "\F$a" cmp "\F$b"} keys %frequentwords) {
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b} keys %frequentwords) {
 		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
 		last if scalar @keys >= 50;
 	};
@@ -3220,13 +3211,13 @@ sub getDataTrackLyricsMostFrequentWords {
 			chomp $word;
 			$word = lc $word;
 			$word =~ s/^\s+|\s+$//g; #remove beginning/trailing whitespace
-			if ((length $word < 3) || $ignoreCommonWords{$word}) {next;}
+			next if (length $word < 3 || $ignoreCommonWords{$word});
 			$frequentwords{$word} ||= 0;
 			$frequentwords{$word}++;
 		}
 	}
 	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or "\F$a" cmp "\F$b"} keys %frequentwords) {
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b} keys %frequentwords) {
 		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
 		last if scalar @keys >= 50;
 	};

@@ -249,7 +249,7 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
 	EN	Artists with the highest percentage of played tracks (APC) (not incl. artists with 100% played tracks)
-	FR	Artistes avec le plus haut pourcentage de morceaux joués (APC) ((sans inclure les artistes avec 100% de morceaux joués)
+	FR	Artistes avec le plus haut pourcentage de morceaux joués (APC) (sans inclure les artistes avec 100% de morceaux joués)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE
 	EN	Artists with fully played, partially played tracks and without played tracks
