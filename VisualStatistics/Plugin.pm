@@ -20,6 +20,7 @@
 
 package Plugins::VisualStatistics::Plugin;
 
+use v5.18;
 use strict;
 use warnings;
 use utf8;
