@@ -34,6 +34,7 @@ use JSON::XS;
 use URI::Escape;
 use Time::HiRes qw(time);
 use Data::Dumper;
+use feature 'fc';
 
 use Plugins::VisualStatistics::Settings;
 use constant LIST_URL => 'plugins/VisualStatistics/html/list.html';
@@ -3164,14 +3165,14 @@ sub getDataTrackTitleMostFrequentWords {
 			chomp $word;
 			$word = lc $word;
 			$word =~ s/^\s+|\s+$//g; #remove beginning/trailing whitespace
-			if ((length $word < 3) || $ignoreCommonWords{$word}) {next;}
+			next if (length $word < 3 || $ignoreCommonWords{$word});
 			$frequentwords{$word} ||= 0;
 			$frequentwords{$word}++;
 		}
 	}
 
 	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or "\F$a" cmp "\F$b"} keys %frequentwords) {
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or fc($a) cmp fc($b)} keys %frequentwords) {
 		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
 		last if scalar @keys >= 50;
 	};
@@ -3211,13 +3212,13 @@ sub getDataTrackLyricsMostFrequentWords {
 			chomp $word;
 			$word = lc $word;
 			$word =~ s/^\s+|\s+$//g; #remove beginning/trailing whitespace
-			if ((length $word < 3) || $ignoreCommonWords{$word}) {next;}
+			next if (length $word < 3 || $ignoreCommonWords{$word});
 			$frequentwords{$word} ||= 0;
 			$frequentwords{$word}++;
 		}
 	}
 	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or "\F$a" cmp "\F$b"} keys %frequentwords) {
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or fc($a) cmp fc($b)} keys %frequentwords) {
 		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
 		last if scalar @keys >= 50;
 	};
@@ -3314,7 +3315,7 @@ sub getGenres {
 		'name' => string("PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLGENRES"),
 		'id' => undef,
 	};
-	@genres = sort { lc($a->{'name'}) cmp lc($b->{'name'}) } @genres;
+	@genres = sort { fc($a->{'name'}) cmp fc($b->{'name'}) } @genres;
 	$log->debug('genres list = '.Dumper(\@genres));
 	return \@genres;
 }
