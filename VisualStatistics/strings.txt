@@ -24,7 +24,7 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_DESC
 	EN	Charts based on values provided by the <i>Alternative Play Count</i> plugin have the same purpose as their duplicates based on LMS database values. They just use different values.<br>Choose which version(s) you want to enable.
-	FR	Les graphiques basés sur les valeurs données par le plugin <i>Compte de Lectures Alternatif (APC)</i> ont le même objectif que leur copie basées sur les valeurs de la base de données LMS. Ils utilisent juste des valeurs différentes.<br>Choisissez quelle(s) version(s) vous souhaitez activer.
+	FR	Les graphiques basés sur les valeurs données par le plugin <i>Nombre de Lectures Alternatif (APC)</i> ont le même objectif que leur copie basées sur les valeurs de la base de données LMS. Ils utilisent juste des valeurs différentes.<br>Choisissez quelle(s) version(s) vous souhaitez activer.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_LMSONLY
 	EN	only charts based on LMS values
@@ -44,7 +44,7 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS_DESC
 	EN	Some artist charts (percentage, average) would show very skewed and uninformative results if artists with very few songs were not excluded.<br>Example: Artists with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of artist tracks played</i> would consist only of such artists in the worst case.<br>The <b>minimum artist tracks</b> setting allows you to exclude artists with very few tracks to get more meaningful results.
-	FR	Certains graphiques sur les artistes (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les artistes avec peu de morceaux ne sont pas exclus.<br>Exemple : Les artistes avec seulement <b>un</b> morceau dont le compte de lecture est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>artistes par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'artistes dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un artiste</b> permet d'exclure les artistes avec peu de morceaux pour avoir des résultats plus significatifs.
+	FR	Certains graphiques sur les artistes (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les artistes avec peu de morceaux ne sont pas exclus.<br>Exemple : Les artistes avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>artistes par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'artistes dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un artiste</b> permet d'exclure les artistes avec peu de morceaux pour avoir des résultats plus significatifs.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS
 	EN	Minimum album tracks
@@ -52,7 +52,7 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS_DESC
 	EN	Some album charts (percentage, average) would show very skewed and uninformative results if albums with very few songs were not excluded.<br>Example: Albums with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of album tracks played</i> would consist only of such albums in the worst case.<br>The <b>minimum album tracks</b> setting allows you to exclude albums with very few tracks to get more meaningful results.
-	FR	Certains graphiques sur les albums (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les albums avec peu de morceaux ne sont pas exclus.<br>Exemple : Les albums avec seulement <b>un</b> morceau dont le compte de lecture est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>albums par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'albums dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un album</b> permet d'exclure les albums avec peu de morceaux pour avoir des résultats plus significatifs.
+	FR	Certains graphiques sur les albums (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les albums avec peu de morceaux ne sont pas exclus.<br>Exemple : Les albums avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>albums par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'albums dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un album</b> permet d'exclure les albums avec peu de morceaux pour avoir des résultats plus significatifs.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
