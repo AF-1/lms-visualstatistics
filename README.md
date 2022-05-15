@@ -29,7 +29,7 @@ If you want to test a new patch that hasn't made it into a release version yet o
 
 
 ## Translation
-The [**strings.txt**](https://github.com/AF-1/lms-visualstatistics/blob/main/VisualStatistics/strings.txt) file contains all localizable strings. Once you're done **testing** the plugin with your translated strings (using the LMS *default* skin and *Material* skin) just create a pull request on GitHub. If that doesn't work for you, post the updated file as an attachment in the [forum](https://forums.slimdevices.com/showthread.php?114967-Announce-Visual-Statistics).<br>
+The [**strings.txt**](https://github.com/AF-1/lms-visualstatistics/blob/main/VisualStatistics/strings.txt) file contains all localizable strings. Once you're done **testing** the plugin with your translated strings (using the LMS *default* skin and *Material* skin) just create a pull request on GitHub.<br>
 * Please try not to use the [**single**](https://www.fileformat.info/info/unicode/char/27/index.htm) quote character (apostrophe) or the [**double**](https://www.fileformat.info/info/unicode/char/0022/index.htm) quote character (quotation mark) in your translated strings. They could cause problems. You can use the [*right single quotation mark*](https://www.fileformat.info/info/unicode/char/2019/index.htm) or the [*double quotation mark*](https://www.fileformat.info/info/unicode/char/201d/index.htm) instead. And if possible, avoid (special) characters that are used as [**metacharacters**](https://en.wikipedia.org/wiki/Metacharacter) in programming languages (Perl), regex or SQLite.
 * It's probably not a bad idea to keep the translated strings roughly as long as the original ones.<br>
 * Please leave *(multiple) blank lines* (used to visually delineate different parts) as they are.
