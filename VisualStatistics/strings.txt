@@ -27,7 +27,7 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_DESC
 	EN	Charts based on values provided by the <i>Alternative Play Count</i> plugin have the same purpose as their duplicates based on LMS database values. They just use different values.<br>Choose which version(s) you want to enable.
 	FR	Les graphiques basés sur les valeurs données par le plugin <i>Nombre de Lectures Alternatif (APC)</i> ont le même objectif que leur copie basées sur les valeurs de la base de données LMS. Ils utilisent juste des valeurs différentes.<br>Choisissez quelle(s) version(s) vous souhaitez activer.
 	NL	Grafieken gebaseerd op info van de plug-in <i>Alternating Number of Readings (APC)</i> hebben hetzelfde doel als de info uit de LMS database. Ze gebruiken alleen andere waarden.<br>Kies welke versie(s) je wilt activeren.
-	
+
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_LMSONLY
 	EN	only charts based on LMS values
 	FR	seulement les graphiques basés sur les valeurs de LMS
@@ -131,7 +131,7 @@ PLUGIN_VISUALSTATISTICS_SECTION_MISC
 PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLGENRES
 	EN	 All genres
 	FR	 Tous les genres
-	NL	 Alle genres 
+	NL	 Alle genres
 
 PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLDECADES
 	EN	All decades

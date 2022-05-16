@@ -9,6 +9,8 @@ Display statistics of your LMS music library using all kinds of charts. Hovering
 Go to *Home Menu* > *Extras* > *Visual Statistics*
 <br><br>
 While the charts scale down, please note that this plugin was designed for wide/big screens.
+<br><br>
+If you have the [**Alternative Play Count**](https://github.com/AF-1/lms-alternativeplaycount) plugin installed, you will see some additional charts that use the data from this plugin.
 <br><br><br>
 
 ## Requirements
