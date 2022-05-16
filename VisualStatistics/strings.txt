@@ -21,38 +21,47 @@ PLUGIN_VISUALSTATISTICS_SETTINGS
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES
 	EN	Enable/disable APC (duplicate) playlists
 	FR	Activation/désactivation<br>Liste de lecture APC (dupliquées)
+	NL	In/Uitschakelen APC (dubbele) afspeellijsten
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_DESC
 	EN	Charts based on values provided by the <i>Alternative Play Count</i> plugin have the same purpose as their duplicates based on LMS database values. They just use different values.<br>Choose which version(s) you want to enable.
 	FR	Les graphiques basés sur les valeurs données par le plugin <i>Nombre de Lectures Alternatif (APC)</i> ont le même objectif que leur copie basées sur les valeurs de la base de données LMS. Ils utilisent juste des valeurs différentes.<br>Choisissez quelle(s) version(s) vous souhaitez activer.
-
+	NL	Grafieken gebaseerd op info van de plug-in <i>Alternating Number of Readings (APC)</i> hebben hetzelfde doel als de info uit de LMS database. Ze gebruiken alleen andere waarden.<br>Kies welke versie(s) je wilt activeren.
+	
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_LMSONLY
 	EN	only charts based on LMS values
 	FR	seulement les graphiques basés sur les valeurs de LMS
+	NL	alleen grafieken gebaseerd op LMS info
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_APCONLY
 	EN	only charts based on APC values
 	FR	seulement les graphiques basés sur les valeurs d'APC
+	NL	alleen grafieken gebaseerd op APC info
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_BOTH
 	EN	charts based on LMS and APC values
 	FR	graphiques basés sur les valeurs de LMS et d'APC
+	NL	grafieken gebaseerd op LMS en APC info
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS
 	EN	Minimum artist tracks
 	FR	Nombre de morceaux minimum d'un artiste
+	NL	Minimum aantal nummers van een artiest
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS_DESC
 	EN	Some artist charts (percentage, average) would show very skewed and uninformative results if artists with very few songs were not excluded.<br>Example: Artists with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of artist tracks played</i> would consist only of such artists in the worst case.<br>The <b>minimum artist tracks</b> setting allows you to exclude artists with very few tracks to get more meaningful results.
 	FR	Certains graphiques sur les artistes (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les artistes avec peu de morceaux ne sont pas exclus.<br>Exemple : Les artistes avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>artistes par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'artistes dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un artiste</b> permet d'exclure les artistes avec peu de morceaux pour avoir des résultats plus significatifs.
+	NL	Sommige artiest grafieken (percentage, gemiddeld) zouden zeer scheve en weinig informatieve resultaten laten zien als artiesten met heel weinig nummers niet worden uitgesloten.<br>Voorbeeld: artiesten met slechts <b>één</b> nummer waarvan het aantal afgespeelde nummers minimaal 1 is, hebben 100% van hun nummers gespeeld. Dus een grafiek zoals <i>percentage van afgespeelde artiesten nummers</i> zou in het ergste geval alleen uit dergelijke artiesten bestaan.<br>Met de instelling <b>minimum aantal nummers van een artiest</b> kan je artiesten uitsluiten met weinig nummers om meer betekenisvolle resultaten te krijgen.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS
 	EN	Minimum album tracks
 	FR	Nombre de morceaux minimum d'un album
+	NL	Minimum aantal nummers in een album
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS_DESC
 	EN	Some album charts (percentage, average) would show very skewed and uninformative results if albums with very few songs were not excluded.<br>Example: Albums with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of album tracks played</i> would consist only of such albums in the worst case.<br>The <b>minimum album tracks</b> setting allows you to exclude albums with very few tracks to get more meaningful results.
 	FR	Certains graphiques sur les albums (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les albums avec peu de morceaux ne sont pas exclus.<br>Exemple : Les albums avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>albums par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'albums dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un album</b> permet d'exclure les albums avec peu de morceaux pour avoir des résultats plus significatifs.
+	NL	Sommige album grafieken (percentage, gemiddeld) zouden zeer scheve en weinig informatieve resultaten laten zien als albums met heel weinig nummers niet werden uitgesloten.<br>Voorbeeld: albums met slechts <b>één</b> nummer waarvan het aantal afgespeelde nummers minimaal 1 is, hebben 100% van hun nummers gespeeld. Dus een grafiek zoals <i>percentage van afgespeelde album nummers</i> zou in het ergste geval alleen uit dergelijke albums bestaan.<br>Met de instelling <b>minimum aantal nummers in een album</b> kan je albums uitsluiten met weinig nummers om meer betekenisvolle resultaten te krijgen.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
@@ -122,14 +131,17 @@ PLUGIN_VISUALSTATISTICS_SECTION_MISC
 PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLGENRES
 	EN	 All genres
 	FR	 Tous les genres
+	NL	 Alle genres 
 
 PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLDECADES
 	EN	All decades
 	FR	Toutes les décennies
+	NL	Alle decennia
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_UPDATE
 	EN	Refresh chart
 	FR	Actualiser le graphique
+	NL	Vernieuw grafiek
 
 PLUGIN_VISUALSTATISTICS_OTHERS
 	EN	Others
@@ -191,6 +203,7 @@ PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED_APC
 PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC
 	EN	Most skipped tracks (APC)
 	FR	Morceaux les plus sautés (APC)
+	NL	Meest overgeslagen nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_YEAR
 	EN	Tracks by year
@@ -227,6 +240,7 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS
 PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_RATED
 	EN	Artists with the highest percentage of rated tracks
 	FR	Artistes avec le plus haut pourcentage de morceaux notés
+	NL	Artiesten met het hoogste percentage beoordeelde nummers
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED
 	EN	Artists with top average track rating
@@ -246,14 +260,17 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_APC
 PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED
 	EN	Artists with the highest percentage of played tracks (not incl. artists with 100% played tracks)
 	FR	Artistes avec le plus haut pourcentage de morceaux joués (sans inclure les artistes avec 100% de morceaux joués)
+	NL	Artiesten met het hoogste percentage afgespeelde nummers (exclusief artiesten met 100% afgespeelde nummers)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
 	EN	Artists with the highest percentage of played tracks (APC) (not incl. artists with 100% played tracks)
 	FR	Artistes avec le plus haut pourcentage de morceaux joués (APC) (sans inclure les artistes avec 100% de morceaux joués)
+	NL	Artiesten met het hoogste percentage afgespeelde nummers (APC) (exclusief artiesten met 100% afgespeelde nummers)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE
 	EN	Artists with fully played, partially played tracks and without played tracks
 	FR	Artistes avec ses morceaux complètement joués, partiellement joués et sans morceaux joués
+	NL	Artiesten met volledig afgespeelde, gedeeltelijk afgespeelde en zonder afgespeelde nummers
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC
 	EN	Artists with fully played, partially played tracks and without played tracks (APC)
@@ -282,14 +299,17 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT_APC
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_APC
 	EN	Artists with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Artistes avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
+	NL	Artiesten met de meeste overgeslagen nummers (APC) (aantal van alle nummers die minstens één keer zijn overgeslagen)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
 	EN	Artists with the highest percentage of skipped tracks (APC)
 	FR	Artistes avec le plus haut pourcentage de morceaux sautés (APC)
+	NL	Artiesten met het hoogste percentage overgeslagen nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	EN	Artists with top average skip count (APC)
 	FR	Artistes avec le nombre de sauts moyen le plus élevé (APC)
+	NL	Artiesten met de hoogste gemiddelde overgeslagen nummers (APC)
 
 
 
@@ -311,6 +331,7 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS
 PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_RATED
 	EN	Albums with the highest percentage of rated tracks
 	FR	Albums avec le plus haut pourcentage de morceaux notés
+	NL	Albums met het hoogste percentage beoordeelde nummers
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED
 	EN	Albums with top average track rating
@@ -330,18 +351,22 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC
 PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE
 	EN	Albums with fully played, partially played tracks and without played tracks
 	FR	Albums avec ses morceaux complètement joués, partiellement joués et sans morceaux joués
+	NL	Albums met volledig afgespeelde, gedeeltelijk afgespeelde en zonder afgespeelde nummers
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC
 	EN	Albums with fully played, partially played tracks and without played tracks (APC)
 	FR	Albums avec ses morceaux complètement joués, partiellement joués et sans morceaux joués (APC)
+	NL	Albums met volledig afgespeelde, gedeeltelijk afgespeelde en zonder afgespeelde nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED
 	EN	Albums with the highest percentage of played tracks (not completely played)
 	FR	Albums avec le plus haut pourcentage de morceaux joués (non joués complètement)
+	NL	Albums met het hoogste percentage afgespeelde nummers (niet volledig afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
 	EN	Albums with the highest percentage of played tracks (APC) (not completely played)
 	FR	Albums avec le plus haut pourcentage de morceaux joués (APC) (non joués complètement)
+	NL	Albums met het hoogste percentage afgespeelde nummers (APC) (niet volledig afgespeeld)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
 	EN	Albums with top average play count
@@ -356,14 +381,17 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_APC
 	EN	Albums with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Albums avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
+	NL	Albums met de meeste overgeslagen nummers (APC) (aantal van alle nummers die minstens één keer zijn overgeslagen)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
 	EN	Albums with the highest percentage of skipped tracks (APC)
 	FR	Albums avec le plus haut pourcentage de morceaux sautés (APC)
+	NL	Albums met het hoogste percentage overgeslagen nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	EN	Albums with top average skip count (APC)
 	FR	Albums avec le nombre de sauts moyen le plus élevé (APC)
+	NL	Albums met het hoogste gemiddelde aantal overslagen nummers (APC)
 
 
 
@@ -385,6 +413,7 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS
 PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_RATED
 	EN	Genres with the highest percentage of rated tracks
 	FR	Genres avec le plus haut pourcentage de morceaux notés
+	NL	Genres met het hoogste percentage beoordeelde nummers
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED
 	EN	Genres with top average track rating
@@ -404,10 +433,12 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_APC
 PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_PLAYED
 	EN	Genres with the highest percentage of played tracks
 	FR	Genres avec le plus haut pourcentage de morceaux joués
+	NL	Genres met het hoogste percentage afgespeelde nummers
 
 PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
 	EN	Genres with the highest percentage of played tracks (APC)
 	FR	Genres avec le plus haut pourcentage de morceaux joués (APC)
+	NL	Genres met het hoogste percentage afgespeelde nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
 	EN	Genres with top average play count
@@ -422,14 +453,17 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_APC
 	EN	Genres with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Genres avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
+	NL	Genres met de meeste overgeslagen nummers (APC) (aantal van alle nummers dat minstens één keer is overgeslagen)
 
 PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
 	EN	Genres with the highest percentage of skipped tracks (APC)
 	FR	Genres avec le plus haut pourcentage de morceaux sautés (APC)
+	NL	Genres met het hoogste percentage overgeslagen nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_GENRES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	EN	Genres with top average skip count (APC)
 	FR	Genres avec le nombre de sauts moyen le plus élevé (APC)
+	NL	Genres met het hoogste gemiddelde aantal overslagen nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE
 	EN	Genres with top average bit rate
@@ -456,6 +490,7 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS
 PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_RATED
 	EN	Years with the highest percentage of rated tracks
 	FR	Années avec le plus haut pourcentage de morceaux notés
+	NL	Jaren met het hoogste percentage beoordeelde nummers
 
 PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED
 	EN	Years with top average track rating
@@ -475,32 +510,37 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_APC
 PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_PLAYED
 	EN	Years with the highest percentage of played tracks
 	FR	Années avec le plus haut pourcentage de morceaux joués
+	NL	Jaren met het hoogste percentage afgespeelde nummers
 
 PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
 	EN	Years with the highest percentage of played tracks (APC)
 	FR	Années avec le plus haut pourcentage de morceaux joués (APC)
+	NL	Jaren met het hoogste percentage afgespeelde nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
 	EN	Years with top average play count
 	FR	Années avec le nombre d’écoutes moyen le plus élevé
-	NL	Jaren met de meeste gemiddelde keren afgespeeld
+	NL	Jaren met de meeste gemiddelde keren afgespeelde nummers
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 	EN	Years with top average play count (APC)
 	FR	Années avec le nombre d’écoutes moyen le plus élevé (APC)
-	NL	Jaren met de meeste gemiddelde keren afgespeeld (APC)
+	NL	Jaren met de meeste gemiddelde keren afgespeelde nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC
 	EN	Years with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Années avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
+	NL	Jaren met de meeste overgeslagen nummers (APC) (aantal van alle nummers die minstens één keer zijn overgeslagen)
 
 PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
 	EN	Years with the highest percentage of skipped tracks (APC)
 	FR	Années avec le plus haut pourcentage de morceaux sautés (APC)
+	NL	Jaren met het hoogste percentage overgeslagen nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_YEARS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	EN	Years with top average skip count (APC)
 	FR	Années avec le nombre de sauts moyen le plus élevé (APC)
+	NL	Jaren met het hoogste gemiddelde aantal overgeslagen nummers (APC)
 
 
 
@@ -522,6 +562,7 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_RATED_TRACKS
 PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_RATED
 	EN	Decades with the highest percentage of rated tracks
 	FR	Décennies avec le plus haut pourcentage de morceaux notés
+	NL	Decennia met het hoogste percentage beoordeelde nummers
 
 PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_RATED
 	EN	Decades with top average track rating
@@ -541,10 +582,12 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_APC
 PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_PLAYED
 	EN	Decades with the highest percentage of played tracks
 	FR	Décennies avec le plus haut pourcentage de morceaux joués
+	NL	Decennia met het hoogste percentage afgespeelde nummers
 
 PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
 	EN	Decades with the highest percentage of played tracks (APC)
 	FR	Décennies avec le plus haut pourcentage de morceaux joués (APC)
+	NL	Decennia met het hoogste percentage afgespeelde nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
 	EN	Decades with top average play count
@@ -559,15 +602,17 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_APC
 	EN	Decades with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Décennies avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
+	NL	Decennia met de meeste overgeslagen nummers (APC) (aantal van alle nummers die minstens één keer zijn overgeslagen)
 
 PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
 	EN	Decades with the highest percentage of skipped tracks (APC)
 	FR	Décennies avec le plus haut pourcentage de morceaux sautés (APC)
+	NL	Decennia met het hoogste percentage overgeslagen nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_DECADES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	EN	Decades with top average skip count (APC)
 	FR	Décennies avec le nombre de sauts moyen le plus élevé (APC)
-
+	NL	Decennia met het hoogste gemiddelde aantal overgeslagen nummers (APC)
 
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
@@ -595,10 +640,12 @@ PLUGIN_VISUALSTATISTICS_VL_COMPLETELIB_NAME
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT
 	EN	Number of played tracks
 	FR	Nombre de morceaux joués
+	NL	Aantal afgespeelde nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT
 	EN	Number of skipped tracks
 	FR	Nombre de morceaux sautés
+	NL	Aantal overgeslagen nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE
 	EN	Average bit rate
@@ -613,30 +660,37 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_COMPLETELY
 	EN	Artists completely played
 	FR	Artistes joués complètement
+	NL	Artiesten volledig afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_PARTIALLY
 	EN	Artists partially played
 	FR	Artistes joués partiellement
+	NL	Albums gedeeltelijk afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_NOTPLAYED
 	EN	Artists not played at all
 	FR	Artistes pas joués du tout
+	NL	Artiesten helemaal niet afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_COMPLETELY
 	EN	Albums completely played
 	FR	Albums joués complètement
+	NL	Albums volledig afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_PARTIALLY
 	EN	Albums partially played
 	FR	Albums joués partiellement
+	NL	Albums gedeeltelijk afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_NOTPLAYED
 	EN	Albums not played at all
 	FR	Albums pas joués du tout
+	NL	Albums helemaal niet afgespeeld
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED
 	EN	Percentage of played tracks
 	FR	Pourcentage de morceaux joués
+	NL	Percentage afgespeelde nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
 	EN	Average play count
@@ -646,18 +700,22 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPCOUNT
 	EN	Skip count
 	FR	Nombre de sauts
+	NL	Aantal overgeslagen
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED
 	EN	Percentage of skipped tracks
 	FR	Pourcentage de morceaux sautés
+	NL	Percentage overgeslagen nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT
 	EN	Average skip count
 	FR	Nombre de sauts moyen
+	NL	Gemiddeld aantal overgeslagen
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED
 	EN	Percentage of rated tracks
 	FR	Pourcentage de morceaux notés
+	NL	Percentage beoordeelde nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
 	EN	Average artist rating
@@ -763,6 +821,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_HOUR
 	EN	 h
 	FR	 h
+	NL	 h
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_KBPS
 	EN	 kbps
@@ -804,6 +863,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_INFOMOUSEOVERTITLE
 	EN	Show detailed statistical information (text) about this library
 	FR	Afficher les statistiques détaillés (texte) à propos de cette bibliothèque
+	NL	Toon gedetailleerde statistische informatie (tekst) over deze bibliotheek
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
 	EN	LIBRARY STATISTICS
