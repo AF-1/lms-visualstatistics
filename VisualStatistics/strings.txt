@@ -165,13 +165,13 @@ PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE_FILE_FORMATS
 	EN	Tracks by file size and audio file format
-	FR	Morceaux par taille de fichier
-	NL	Nummers per bestandsgrootte
+	FR	Morceaux par taille de fichier et format du fichier audio
+	NL	Nummers per bestandsgrootte en bestandsformaat
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE
 	EN	Tracks by file size
-	FR	Morceaux par taille de fichier et format du fichier audio
-	NL	Nummers per bestandsgrootte en bestandsformaat
+	FR	Morceaux par taille de fichier
+	NL	Nummers per bestandsgrootte
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_GENRE
 	EN	Tracks by genre
