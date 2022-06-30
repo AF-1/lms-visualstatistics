@@ -3311,7 +3311,7 @@ sub getGenres {
 		push (@genres, {'name' => $genre->{'genre'}, 'id' => $genre->{'id'}});
 	}
 	push @genres, {
-		'name' => string("PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLGENRES"),
+		'name' => string("PLUGIN_VISUALSTATISTICS_CHARTFILTER_ALLGENRES"),
 		'id' => undef,
 	};
 	@genres = sort { lc($a->{'name'}) cmp lc($b->{'name'}) } @genres;
@@ -3323,7 +3323,7 @@ sub getDecades {
 	my $dbh = getCurrentDBH();
 	my @decades = ();
 	my $decadesQueryResult = {};
-	my $unknownString = string('PLUGIN_DYNAMICPLAYLISTS3_LANGSTRINGS_UNKNOWN');
+	my $unknownString = string('PLUGIN_VISUALSTATISTICS_CHARTFILTER_UNKNOWN');
 
 	my $sql_decades = "select cast(((ifnull(tracks.year,0)/10)*10) as int) as decade,case when tracks.year>0 then cast(((tracks.year/10)*10) as int)||'s' else '$unknownString' end as decadedisplayed from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -3355,7 +3355,7 @@ sub getDecades {
 		return 'error';
 	}
 	unshift @decades, {
-		'name' => string("PLUGIN_VISUALSTATISTICS_GENREFILTER_ALLDECADES"),
+		'name' => string("PLUGIN_VISUALSTATISTICS_CHARTFILTER_ALLDECADES"),
 		'val' => undef,
 	};
 	$log->debug('decade list = '.Dumper(\@decades));
