@@ -23,6 +23,11 @@
 [% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS_DESC" %]
 	<input type="text" class="stdedit sliderInput_0_30_1" name="pref_minalbumtracks" id="minalbumtracks" value="[% prefs.minalbumtracks %]" size="2">
 [% END %]
+<br>
+
+[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS_DESC" %]
+	<input type="checkbox" name="pref_clickablebars" id="clickablebars" [% IF prefs.clickablebars %] checked [% END %]">
+[% END %]
 <br><br>
 
 [% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC" %]

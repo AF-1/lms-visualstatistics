@@ -68,6 +68,7 @@ sub initPrefs {
 		displayapcdupes => 1,
 		minartisttracks => 3,
 		minalbumtracks => 3,
+		clickablebars => 1,
 	});
 	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
 	if (!$apc_enabled && $prefs->get('displayapcdupes') == 2) {
@@ -99,6 +100,7 @@ sub handleWeb {
 	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
 	$params->{'apcenabled'} = 'yes' if $apc_enabled;
 	$params->{'displayapcdupes'} = $prefs->get('displayapcdupes');
+	$params->{'clickablebars'} = $prefs->get('clickablebars') || 'noclick';
 	$params->{'usefullscreen'} = $prefs->get('usefullscreen') ? 1 : 0;
 
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);
@@ -853,7 +855,7 @@ sub getDataTracksByGenre {
 }
 
 sub getDataTracksMostPlayed {
-	my $sqlstatement = "select tracks.title, ifnull(tracks_persistent.playCount, 0), contributors.name from tracks
+	my $sqlstatement = "select tracks.title, ifnull(tracks_persistent.playCount, 0), tracks.id, contributors.name from tracks
 		join contributors on
 			contributors.id = tracks.primary_artist
 		left join tracks_persistent on
@@ -876,11 +878,11 @@ sub getDataTracksMostPlayed {
 	}
 	$sqlstatement .= " order by tracks_persistent.playCount desc, tracks.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataTracksMostPlayedAPC {
-	my $sqlstatement = "select tracks.title, ifnull(alternativeplaycount.playCount, 0), contributors.name from tracks
+	my $sqlstatement = "select tracks.title, ifnull(alternativeplaycount.playCount, 0), tracks.id, contributors.name from tracks
 		join contributors on
 			contributors.id = tracks.primary_artist
 		left join alternativeplaycount on
@@ -903,11 +905,11 @@ sub getDataTracksMostPlayedAPC {
 	}
 	$sqlstatement .= " order by alternativeplaycount.playCount desc, tracks.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataTracksMostSkippedAPC {
-	my $sqlstatement = "select tracks.title, ifnull(alternativeplaycount.skipCount, 0), contributors.name from tracks
+	my $sqlstatement = "select tracks.title, ifnull(alternativeplaycount.skipCount, 0), tracks.id, contributors.name from tracks
 		join contributors on
 			contributors.id = tracks.primary_artist
 		left join alternativeplaycount on
@@ -930,7 +932,7 @@ sub getDataTracksMostSkippedAPC {
 	}
 	$sqlstatement .= " order by alternativeplaycount.skipCount desc, tracks.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataTracksByYear {
@@ -985,7 +987,7 @@ sub getDataTracksByDateLastModified {
 
 sub getDataArtistWithMostTracks {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from contributors
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from contributors
 		join contributor_track on
 			contributor_track.contributor = contributors.id and contributor_track.role in (1,5,6)
 		join tracks on
@@ -1010,12 +1012,12 @@ sub getDataArtistWithMostTracks {
 		group by contributors.name
 		order by nooftracks desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistWithMostAlbums {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, count(distinct albums.id) as noofalbums from albums
+	my $sqlstatement = "select distinct contributors.name, count(distinct albums.id) as noofalbums, contributors.id from albums
 		join tracks on
 			tracks.album = albums.id
 		join contributors on
@@ -1040,12 +1042,12 @@ sub getDataArtistWithMostAlbums {
 	$sqlstatement .= " group by contributors.name
 		order by noofalbums desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistWithMostRatedTracks {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1070,13 +1072,13 @@ sub getDataArtistWithMostRatedTracks {
 	$sqlstatement .= " group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsHighestPercentageRatedTracks {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $minArtistTracks = $prefs->get('minartisttracks');
-	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage from tracks
+	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage, contributors.id from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1101,13 +1103,13 @@ sub getDataArtistsHighestPercentageRatedTracks {
 			having count(distinct tracks.id) >= $minArtistTracks
 		order by ratedpercentage desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsWithTopRatedTracksRated {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $minArtistTracks = $prefs->get('minartisttracks');
-	my $sqlstatement = "select distinct contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.id from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1132,12 +1134,12 @@ sub getDataArtistsWithTopRatedTracksRated {
 			having count(distinct tracks.id) >= $minArtistTracks
 		order by avgrating desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsWithMostPlayedTracks {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1162,12 +1164,12 @@ sub getDataArtistsWithMostPlayedTracks {
 	$sqlstatement .= " group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsWithMostPlayedTracksAPC {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from tracks
 		left join alternativeplaycount on
 			alternativeplaycount.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1192,7 +1194,7 @@ sub getDataArtistsWithMostPlayedTracksAPC {
 	$sqlstatement .= " group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsWithTracksCompletelyPartlyNonePlayed {
@@ -1286,7 +1288,7 @@ sub getDataArtistsWithTracksCompletelyPartlyNonePlayedAPC {
 sub getDataArtistsHighestPercentagePlayedTracks {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $minArtistTracks = $prefs->get('minartisttracks');
-	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks
+	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, contributors.id from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1311,13 +1313,13 @@ sub getDataArtistsHighestPercentagePlayedTracks {
 			having count(distinct tracks.id) >= $minArtistTracks and playedpercentage < 100
 		order by playedpercentage desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsHighestPercentagePlayedTracksAPC {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $minArtistTracks = $prefs->get('minartisttracks');
-	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks
+	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, contributors.id from tracks
 		left join alternativeplaycount on
 			alternativeplaycount.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1342,12 +1344,12 @@ sub getDataArtistsHighestPercentagePlayedTracksAPC {
 			having count(distinct tracks.id) >= $minArtistTracks and playedpercentage < 100
 		order by playedpercentage desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsWithMostPlayedTracksAverage {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, contributors.id from tracks
 		left join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1371,12 +1373,12 @@ sub getDataArtistsWithMostPlayedTracksAverage {
 	$sqlstatement .= " group by tracks.primary_artist
 		order by avgplaycount desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsWithMostPlayedTracksAverageAPC {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount from tracks
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, contributors.id from tracks
 		left join alternativeplaycount on
 			alternativeplaycount.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1400,12 +1402,12 @@ sub getDataArtistsWithMostPlayedTracksAverageAPC {
 	$sqlstatement .= " group by tracks.primary_artist
 		order by avgplaycount desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsWithMostSkippedTracksAPC {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks from tracks
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from tracks
 		left join alternativeplaycount on
 			alternativeplaycount.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1430,13 +1432,13 @@ sub getDataArtistsWithMostSkippedTracksAPC {
 	$sqlstatement .= " group by tracks.primary_artist
 		order by nooftracks desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsHighestPercentageSkippedTracksAPC {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $minArtistTracks = $prefs->get('minartisttracks');
-	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage from tracks
+	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage, contributors.id from tracks
 		left join alternativeplaycount on
 			alternativeplaycount.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1461,12 +1463,12 @@ sub getDataArtistsHighestPercentageSkippedTracksAPC {
 			having count(distinct tracks.id) >= $minArtistTracks
 		order by skippedpercentage desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsWithMostSkippedTracksAverageAPC {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount from tracks
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, contributors.id from tracks
 		left join alternativeplaycount on
 			alternativeplaycount.urlmd5 = tracks.urlmd5
 		join contributors on
@@ -1490,7 +1492,7 @@ sub getDataArtistsWithMostSkippedTracksAverageAPC {
 	$sqlstatement .= " group by tracks.primary_artist
 		order by avgskipcount desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistsRatingPlaycount {
@@ -1554,7 +1556,7 @@ sub getDataArtistsRatingPlaycountAPC {
 # ---- albums ---- #
 
 sub getDataAlbumsByYear {
-	my $sqlstatement = "select case when albums.year > 0 then albums.year else 'Unknown' end, count(distinct albums.id) as noofalbums from albums
+	my $sqlstatement = "select case when albums.year > 0 then albums.year else 'Unknown' end, count(distinct albums.id) as noofalbums, ifnull(albums.year, 0) from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1574,11 +1576,11 @@ sub getDataAlbumsByYear {
 	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by albums.year
 		order by albums.year asc";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataAlbumsWithMostTracks {
-	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1602,11 +1604,11 @@ sub getDataAlbumsWithMostTracks {
 		group by albums.title
 		order by nooftracks desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithMostRatedTracks {
-	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1633,12 +1635,12 @@ sub getDataAlbumsWithMostRatedTracks {
 	$sqlstatement .= " group by albums.title
 		order by nooftracks desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsHighestPercentageRatedTracks {
 	my $minAlbumTracks = $prefs->get('minalbumtracks');
-	my $sqlstatement = "select distinct albums.title, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage, contributors.name from albums
+	my $sqlstatement = "select distinct albums.title, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1665,12 +1667,12 @@ sub getDataAlbumsHighestPercentageRatedTracks {
 			having count(distinct tracks.id) >= $minAlbumTracks
 		order by ratedpercentage desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithTopRatedTracksRated {
 	my $minAlbumTracks = $prefs->get('minalbumtracks');
-	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1697,11 +1699,11 @@ sub getDataAlbumsWithTopRatedTracksRated {
 			having count(distinct tracks.id) >= $minAlbumTracks
 		order by avgrating desc, contributors.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithMostPlayedTracks {
-	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1728,11 +1730,11 @@ sub getDataAlbumsWithMostPlayedTracks {
 	$sqlstatement .= " group by albums.title
 		order by nooftracks desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithMostPlayedTracksAPC {
-	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1759,7 +1761,7 @@ sub getDataAlbumsWithMostPlayedTracksAPC {
 	$sqlstatement .= " group by albums.title
 		order by nooftracks desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithTracksCompletelyPartlyNonePlayed {
@@ -1854,7 +1856,7 @@ sub getDataAlbumsWithTracksCompletelyPartlyNonePlayedAPC {
 
 sub getDataAlbumsHighestPercentagePlayedTracks {
 	my $minAlbumTracks = $prefs->get('minalbumtracks');
-	my $sqlstatement = "select distinct albums.title, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, contributors.name from albums
+	my $sqlstatement = "select distinct albums.title, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1881,12 +1883,12 @@ sub getDataAlbumsHighestPercentagePlayedTracks {
 			having count(distinct tracks.id) >= $minAlbumTracks and playedpercentage < 100
 		order by playedpercentage desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsHighestPercentagePlayedTracksAPC {
 	my $minAlbumTracks = $prefs->get('minalbumtracks');
-	my $sqlstatement = "select distinct albums.title, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, contributors.name from albums
+	my $sqlstatement = "select distinct albums.title, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1913,11 +1915,11 @@ sub getDataAlbumsHighestPercentagePlayedTracksAPC {
 			having count(distinct tracks.id) >= $minAlbumTracks and playedpercentage < 100
 		order by playedpercentage desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1943,11 +1945,11 @@ sub getDataAlbumsWithMostPlayedTracksAverage {
 		group by albums.title
 		order by avgplaycount desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithMostPlayedTracksAverageAPC {
-	my $sqlstatement = "select albums.title, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1973,11 +1975,11 @@ sub getDataAlbumsWithMostPlayedTracksAverageAPC {
 		group by albums.title
 		order by avgplaycount desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithMostSkippedTracksAPC {
-	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, contributors.name from albums
+	my $sqlstatement = "select albums.title, count(distinct tracks.id) as nooftracks, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -2004,12 +2006,12 @@ sub getDataAlbumsWithMostSkippedTracksAPC {
 	$sqlstatement .= " group by albums.title
 		order by nooftracks desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsHighestPercentageSkippedTracksAPC {
 	my $minAlbumTracks = $prefs->get('minalbumtracks');
-	my $sqlstatement = "select distinct albums.title, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage, contributors.name from albums
+	my $sqlstatement = "select distinct albums.title, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -2036,11 +2038,11 @@ sub getDataAlbumsHighestPercentageSkippedTracksAPC {
 			having count(distinct tracks.id) >= $minAlbumTracks
 		order by skippedpercentage desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 sub getDataAlbumsWithMostSkippedTracksAverageAPC {
-	my $sqlstatement = "select albums.title, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, contributors.name from albums
+	my $sqlstatement = "select albums.title, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, albums.id, contributors.name from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -2066,13 +2068,13 @@ sub getDataAlbumsWithMostSkippedTracksAverageAPC {
 		group by albums.title
 		order by avgskipcount desc, albums.title asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement, 3);
+	return executeSQLstatement($sqlstatement, 4);
 }
 
 # ---- genres ---- #
 
 sub getDataGenresWithMostTracks {
-	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2092,11 +2094,11 @@ sub getDataGenresWithMostTracks {
 		group by genres.name
 		order by nooftracks desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithMostAlbums {
-	my $sqlstatement = "select genres.name, count(distinct albums.id) as noofalbums from albums
+	my $sqlstatement = "select genres.name, count(distinct albums.id) as noofalbums, genres.id from albums
 		join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -2118,11 +2120,11 @@ sub getDataGenresWithMostAlbums {
 		group by genres.name
 		order by noofalbums desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithMostRatedTracks {
-	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2145,11 +2147,11 @@ sub getDataGenresWithMostRatedTracks {
 	$sqlstatement .= " group by genres.name
 		order by nooftracks desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresHighestPercentageRatedTracks {
-	my $sqlstatement = "select genres.name, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage from tracks";
+	my $sqlstatement = "select genres.name, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2171,11 +2173,11 @@ sub getDataGenresHighestPercentageRatedTracks {
 		group by genres.name
 		order by ratedpercentage desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithTopRatedTracksRated {
-	my $sqlstatement = "select genres.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks";
+	my $sqlstatement = "select genres.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2197,11 +2199,11 @@ sub getDataGenresWithTopRatedTracksRated {
 		group by genres.name
 		order by avgrating desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithMostPlayedTracks {
-	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2224,11 +2226,11 @@ sub getDataGenresWithMostPlayedTracks {
 	$sqlstatement .= " group by genres.name
 		order by nooftracks desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithMostPlayedTracksAPC {
-	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2251,11 +2253,11 @@ sub getDataGenresWithMostPlayedTracksAPC {
 	$sqlstatement .= " group by genres.name
 		order by nooftracks desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresHighestPercentagePlayedTracks {
-	my $sqlstatement = "select genres.name, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks";
+	my $sqlstatement = "select genres.name, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2277,11 +2279,11 @@ sub getDataGenresHighestPercentagePlayedTracks {
 		group by genres.name
 		order by playedpercentage desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresHighestPercentagePlayedTracksAPC {
-	my $sqlstatement = "select genres.name, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks";
+	my $sqlstatement = "select genres.name, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2303,11 +2305,11 @@ sub getDataGenresHighestPercentagePlayedTracksAPC {
 		group by genres.name
 		order by playedpercentage desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithMostPlayedTracksAverage {
-	my $sqlstatement = "select genres.name, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks";
+	my $sqlstatement = "select genres.name, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2329,11 +2331,11 @@ sub getDataGenresWithMostPlayedTracksAverage {
 		group by genres.name
 		order by avgplaycount desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithMostPlayedTracksAverageAPC {
-	my $sqlstatement = "select genres.name, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount from tracks";
+	my $sqlstatement = "select genres.name, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2355,11 +2357,11 @@ sub getDataGenresWithMostPlayedTracksAverageAPC {
 		group by genres.name
 		order by avgplaycount desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithMostSkippedTracksAPC {
-	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2382,11 +2384,11 @@ sub getDataGenresWithMostSkippedTracksAPC {
 	$sqlstatement .= " group by genres.name
 		order by nooftracks desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresHighestPercentageSkippedTracksAPC {
-	my $sqlstatement = "select genres.name, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage from tracks";
+	my $sqlstatement = "select genres.name, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2408,11 +2410,11 @@ sub getDataGenresHighestPercentageSkippedTracksAPC {
 		group by genres.name
 		order by skippedpercentage desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithMostSkippedTracksAverageAPC {
-	my $sqlstatement = "select genres.name, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount from tracks";
+	my $sqlstatement = "select genres.name, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2434,11 +2436,11 @@ sub getDataGenresWithMostSkippedTracksAverageAPC {
 		group by genres.name
 		order by avgskipcount desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataGenresWithTopAverageBitrate {
-	my $sqlstatement = "select genres.name, avg(round(ifnull(tracks.bitrate,0)/16000)*16) as avgbitrate from tracks";
+	my $sqlstatement = "select genres.name, avg(round(ifnull(tracks.bitrate,0)/16000)*16) as avgbitrate, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2458,13 +2460,13 @@ sub getDataGenresWithTopAverageBitrate {
 		group by genres.name
 		order by avgbitrate desc, genres.name asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 # ---- years ---- #
 
 sub getDataYearsWithMostTracks {
-	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2481,11 +2483,11 @@ sub getDataYearsWithMostTracks {
 		group by tracks.year
 		order by nooftracks desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithMostAlbums {
-	my $sqlstatement = "select year, count(distinct tracks.album) as noofalbums from tracks";
+	my $sqlstatement = "select year, count(distinct tracks.album) as noofalbums, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2503,11 +2505,11 @@ sub getDataYearsWithMostAlbums {
 		group by year
 		order by noofalbums desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithMostRatedTracks {
-	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2527,11 +2529,11 @@ sub getDataYearsWithMostRatedTracks {
 		group by tracks.year
 		order by nooftracks desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsHighestPercentageRatedTracks {
-	my $sqlstatement = "select tracks.year, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage from tracks";
+	my $sqlstatement = "select tracks.year, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2550,11 +2552,11 @@ sub getDataYearsHighestPercentageRatedTracks {
 		group by tracks.year
 		order by ratedpercentage desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithTopRatedTracksRated {
-	my $sqlstatement = "select tracks.year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks";
+	my $sqlstatement = "select tracks.year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2573,11 +2575,11 @@ sub getDataYearsWithTopRatedTracksRated {
 		group by tracks.year
 		order by avgrating desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithMostPlayedTracks {
-	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2597,11 +2599,11 @@ sub getDataYearsWithMostPlayedTracks {
 		group by tracks.year
 		order by nooftracks desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsHighestPercentagePlayedTracks {
-	my $sqlstatement = "select tracks.year, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks";
+	my $sqlstatement = "select tracks.year, cast(count(distinct case when ifnull(tracks_persistent.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2620,11 +2622,11 @@ sub getDataYearsHighestPercentagePlayedTracks {
 		group by tracks.year
 		order by playedpercentage desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsHighestPercentagePlayedTracksAPC {
-	my $sqlstatement = "select tracks.year, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks";
+	my $sqlstatement = "select tracks.year, cast(count(distinct case when ifnull(alternativeplaycount.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2643,11 +2645,11 @@ sub getDataYearsHighestPercentagePlayedTracksAPC {
 		group by tracks.year
 		order by playedpercentage desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithMostPlayedTracksAPC {
-	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2667,11 +2669,11 @@ sub getDataYearsWithMostPlayedTracksAPC {
 		group by tracks.year
 		order by nooftracks desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select year, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount from tracks";
+	my $sqlstatement = "select year, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2690,11 +2692,11 @@ sub getDataYearsWithMostPlayedTracksAverage {
 		group by tracks.year
 		order by avgplaycount desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithMostPlayedTracksAverageAPC {
-	my $sqlstatement = "select year, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount from tracks";
+	my $sqlstatement = "select year, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2713,11 +2715,11 @@ sub getDataYearsWithMostPlayedTracksAverageAPC {
 		group by tracks.year
 		order by avgplaycount desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithMostSkippedTracksAPC {
-	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2737,11 +2739,11 @@ sub getDataYearsWithMostSkippedTracksAPC {
 		group by tracks.year
 		order by nooftracks desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsHighestPercentageSkippedTracksAPC {
-	my $sqlstatement = "select tracks.year, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage from tracks";
+	my $sqlstatement = "select tracks.year, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2760,11 +2762,11 @@ sub getDataYearsHighestPercentageSkippedTracksAPC {
 		group by tracks.year
 		order by skippedpercentage desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataYearsWithMostSkippedTracksAverageAPC {
-	my $sqlstatement = "select year, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount from tracks";
+	my $sqlstatement = "select year, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2783,7 +2785,7 @@ sub getDataYearsWithMostSkippedTracksAverageAPC {
 		group by tracks.year
 		order by avgskipcount desc, tracks.year asc
 		limit $rowLimit;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 # ---- decades ---- #
@@ -3233,7 +3235,8 @@ sub executeSQLstatement {
 	my @result = ();
 	my $dbh = getCurrentDBH();
 	my $sqlstatement = shift;
-	my $numberValuesToBind = shift || 2;
+	my $valuesToBind = shift || 2;
+	my $getIDs = shift;
 	#eval {
 		my $sth = $dbh->prepare($sqlstatement);
 		$sth->execute() or do {
@@ -3241,12 +3244,30 @@ sub executeSQLstatement {
 		};
 		my $xAxisDataItem; # string values
 		my $yAxisDataItem; # numeric values
-		if ($numberValuesToBind == 3) {
-			my $labelExtraDataItem; # extra data for chart labels
-			$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem, \$labelExtraDataItem);
-			while ($sth->fetch()) {
-				utf8::decode($xAxisDataItem); utf8::decode($labelExtraDataItem);
-				push (@result, {'xAxis' => $xAxisDataItem, 'yAxis' => $yAxisDataItem, 'labelExtra' => $labelExtraDataItem}) unless ($yAxisDataItem == 0);
+		my $xAxisDataItemID; # LMS object ids (artist, album, genre, track) for xAxis items
+		my $labelExtraDataItem; # extra data for chart labels
+		if ($valuesToBind > 2) {
+			if ($valuesToBind == 3) {
+				if ($getIDs) {
+					$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem, \$xAxisDataItemID);
+					while ($sth->fetch()) {
+						utf8::decode($xAxisDataItem);
+						push (@result, {'xAxis' => $xAxisDataItem, 'yAxis' => $yAxisDataItem, 'itemID' => $xAxisDataItemID}) unless ($yAxisDataItem == 0);
+					}
+				} else {
+					$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem, \$labelExtraDataItem);
+					while ($sth->fetch()) {
+						utf8::decode($xAxisDataItem); utf8::decode($labelExtraDataItem);
+						push (@result, {'xAxis' => $xAxisDataItem, 'yAxis' => $yAxisDataItem, 'labelExtra' => $labelExtraDataItem}) unless ($yAxisDataItem == 0);
+					}
+				}
+			}
+			if ($valuesToBind == 4) {
+				$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem, \$xAxisDataItemID, \$labelExtraDataItem);
+				while ($sth->fetch()) {
+					utf8::decode($xAxisDataItem); utf8::decode($labelExtraDataItem);
+					push (@result, {'xAxis' => $xAxisDataItem, 'yAxis' => $yAxisDataItem, 'itemID' => $xAxisDataItemID, 'labelExtra' => $labelExtraDataItem}) unless ($yAxisDataItem == 0);
+				}
 			}
 		} else {
 			$sth->bind_columns(undef, \$xAxisDataItem, \$yAxisDataItem);

@@ -48,7 +48,7 @@ sub page {
 }
 
 sub prefs {
-	return ($prefs, qw(usefullscreen displayapcdupes minartisttracks minalbumtracks));
+	return ($prefs, qw(usefullscreen displayapcdupes minartisttracks minalbumtracks clickablebars));
 }
 
 sub handler {

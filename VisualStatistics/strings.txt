@@ -63,15 +63,25 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS_DESC
 	FR	Certains graphiques sur les albums (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les albums avec peu de morceaux ne sont pas exclus.<br>Exemple : Les albums avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>albums par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'albums dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un album</b> permet d'exclure les albums avec peu de morceaux pour avoir des résultats plus significatifs.
 	NL	Sommige album grafieken (percentage, gemiddeld) zouden zeer scheve en weinig informatieve resultaten laten zien als albums met heel weinig nummers niet werden uitgesloten.<br>Voorbeeld: albums met slechts <b>één</b> nummer waarvan het aantal afgespeelde nummers minimaal 1 is, hebben 100% van hun nummers gespeeld. Dus een grafiek zoals <i>percentage van afgespeelde album nummers</i> zou in het ergste geval alleen uit dergelijke albums bestaan.<br>Met de instelling <b>minimum aantal nummers in een album</b> kan je albums uitsluiten met weinig nummers om meer betekenisvolle resultaten te krijgen.
 
+PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS
+	EN	Clickable bars
+	FR	Barres cliquables
+	NL	Klikbare balken
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS_DESC
+	EN	If checked, clicking on bars in some bar charts will display a rudimentary browse menu for the artist, album, genre, year or track you clicked on.
+	FR	Si cette case est cochée, un clic sur les barres de certains diagrammes à barres affichera un menu de navigation rudimentaire pour l'artiste, l'album, le genre, l'année ou la piste sur lesquels vous avez cliqué.
+	NL	Indien aangevinkt, zal het klikken op staven in sommige staafdiagrammen een rudimentair bladermenu tonen voor de artiest, het album, het genre, het jaar of het nummer waarop u geklikt hebt.
+
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
 	FR	Utiliser le mode plein écran de l’OS
 	NL	Gebruik OS volledig schermmodus
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC
-	EN	If checked <i>Visual Statistics</i> will try to display the charts in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It’s just an unsupported experimental setting.
-	FR	Si activé <i>Statistiques Visuelles</i> tentera d’afficher les graphiques dans le mode plein écran (de l’OS), ils devraient remplir l’écran entier. Fonctionne sur Firefox, Chrome et Edge mais pas sur Safari. Aucunes promesses ni garanties. C’est juste un réglage expérimental non supporté.
-	NL	Indien aangevinkt zal de plug-in <i>Visuale Statistieken</i> de grafieken tonen in (OS) volledig schermmodus. Werkt met de webbrowsers Firefox, Chrome en Edge, maar niet met Safari. Deze instelling wordt niet ondersteund en is experimenteel.
+	EN	If checked <i>Visual Statistics</i> will try to display the charts in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It’s just an <b>unsupported experimental</b> setting.
+	FR	Si activé <i>Statistiques Visuelles</i> tentera d’afficher les graphiques dans le mode plein écran (de l’OS), ils devraient remplir l’écran entier. Fonctionne sur Firefox, Chrome et Edge mais pas sur Safari. Aucunes promesses ni garanties. C’est juste un réglage <b>expérimental non supporté</b>.
+	NL	Indien aangevinkt zal de plug-in <i>Visuale Statistieken</i> de grafieken tonen in (OS) volledig schermmodus. Werkt met de webbrowsers Firefox, Chrome en Edge, maar niet met Safari. Deze instelling wordt <b>niet ondersteund en is experimenteel</b>.
 
 PLUGIN_VISUALSTATISTICS_LIST
 	EN	Visual Statistics
@@ -152,6 +162,17 @@ PLUGIN_VISUALSTATISTICS_OTHERS
 	EN	Others
 	FR	Autres
 	NL	Anderen
+
+PLUGIN_VISUALSTATISTICS_CLOSEOVERLAY
+	EN	Close chart overlay
+	FR	Fermer le graphique superposé
+	NL	Sluit de grafiek overlay
+
+PLUGIN_VISUALSTATISTICS_SAVEASIMAGE
+	EN	Save chart as image
+	FR	Enregistrer le graphique
+	NL	Grafiek als afbeelding opslaan
+
 
 
 
