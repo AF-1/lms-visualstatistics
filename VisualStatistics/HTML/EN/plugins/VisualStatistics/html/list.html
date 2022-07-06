@@ -1166,6 +1166,10 @@
 	};
 	const LMSwebroot = "[% webroot %]";
 	const clickableBars = "[% clickablebars %]";
+	var materialCaller = 0;
+	[% IF systemSkin == "material" %]
+	materialCaller = 1;
+	[% END %]
 </script>
 <script type="text/javascript" src="js/showchart.min.js"></script>
 <script type="text/javascript">
