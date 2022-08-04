@@ -4,7 +4,7 @@ Visual Statistics
 A plugin for [Logitech Media Server](https://github.com/Logitech/slimserver)<br>
 
 <br>
-Display statistics of your LMS music library using all kinds of charts. Hovering over segments, bars or data points will display more information. The **bars** in many *bar charts* are **clickable** and will take you directly to the **browse menu** of the *artist, album, genre or year*.<br>
+Display statistics of your LMS music library using all kinds of charts. Hovering over segments, bars or data points will display more information. The <b>bars</b> in many <i>bar charts</i> are <b>clickable</b> and will take you directly to the <b>browse menu</b> of the <i>artist, album, genre or year</i>.<br>
 
 Go to *Home Menu* > *Extras* > *Visual Statistics*
 <br><br>
