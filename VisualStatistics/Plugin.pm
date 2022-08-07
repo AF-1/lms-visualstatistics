@@ -464,29 +464,6 @@ sub getDataTracksByBitrate {
 	return executeSQLstatement($sqlstatement);
 }
 
-sub getDataTracksBySampleRate {
-	my $sqlstatement = "select tracks.samplerate||' Hz',count(distinct tracks.id) from tracks";
-	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-	}
-	my $genreFilter = $prefs->get('genrefilterid');
-	if (defined($genreFilter) && $genreFilter ne '') {
-		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
-	}
-	$sqlstatement .= " where
-			tracks.audio = 1
-			and tracks.samplerate is not null";
-	my $decadeFilterVal = $prefs->get('decadefilterval');
-	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
-		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
-	}
-	$sqlstatement .= " group by tracks.samplerate||' Hz'
-		order by tracks.samplerate asc;";
-
-	return executeSQLstatement($sqlstatement);
-}
-
 sub getDataTracksByBitrateAudioFileFormat {
 	my $dbh = getCurrentDBH();
 	my @result = ();
@@ -691,6 +668,29 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 	return \@wrapper;
 }
 
+sub getDataTracksBySampleRate {
+	my $sqlstatement = "select tracks.samplerate||' Hz',count(distinct tracks.id) from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where
+			tracks.audio = 1
+			and tracks.samplerate is not null";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by tracks.samplerate||' Hz'
+		order by tracks.samplerate asc;";
+
+	return executeSQLstatement($sqlstatement);
+}
+
 sub getDataTracksByFileSize {
 	my $sqlstatement = "select cast(round(filesize/1048576) as int), count(distinct tracks.id) as nooftracks from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -812,7 +812,7 @@ sub getDataTracksByFileSizeAudioFileFormat {
 }
 
 sub getDataTracksByGenre {
-	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -832,7 +832,7 @@ sub getDataTracksByGenre {
 		group by genres.name
 		order by nooftracks desc, genres.name asc
 		limit ($rowLimit-1);";
-	my $sqlResult = executeSQLstatement($sqlstatement);
+	my $sqlResult = executeSQLstatement($sqlstatement, 3, 1);
 
 	my $sum = 0;
 	foreach my $hash ( @{$sqlResult} ) {
@@ -936,7 +936,7 @@ sub getDataTracksMostSkippedAPC {
 }
 
 sub getDataTracksByYear {
-	my $sqlstatement = "select case when ifnull(tracks.year, 0) > 0 then tracks.year else 'Unknown' end, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select case when ifnull(tracks.year, 0) > 0 then tracks.year else 'Unknown' end, count(distinct tracks.id) as nooftracks, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -950,7 +950,7 @@ sub getDataTracksByYear {
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by tracks.year
 		order by tracks.year asc;";
-	return executeSQLstatement($sqlstatement);
+	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataTracksByDateAdded {
@@ -2487,7 +2487,7 @@ sub getDataYearsWithMostTracks {
 }
 
 sub getDataYearsWithMostAlbums {
-	my $sqlstatement = "select year, count(distinct tracks.album) as noofalbums, tracks.year from tracks";
+	my $sqlstatement = "select tracks.year, count(distinct tracks.album) as noofalbums, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2502,7 +2502,7 @@ sub getDataYearsWithMostAlbums {
 			and tracks.album is not null
 			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 			and (tracks.audio = 1 or tracks.extid is not null)
-		group by year
+		group by tracks.year
 		order by noofalbums desc, tracks.year asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
@@ -2673,7 +2673,7 @@ sub getDataYearsWithMostPlayedTracksAPC {
 }
 
 sub getDataYearsWithMostPlayedTracksAverage {
-	my $sqlstatement = "select year, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, tracks.year from tracks";
+	my $sqlstatement = "select tracks.year, avg(ifnull(tracks_persistent.playCount,0)) as avgplaycount, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2696,7 +2696,7 @@ sub getDataYearsWithMostPlayedTracksAverage {
 }
 
 sub getDataYearsWithMostPlayedTracksAverageAPC {
-	my $sqlstatement = "select year, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, tracks.year from tracks";
+	my $sqlstatement = "select tracks.year, avg(ifnull(alternativeplaycount.playCount,0)) as avgplaycount, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2766,7 +2766,7 @@ sub getDataYearsHighestPercentageSkippedTracksAPC {
 }
 
 sub getDataYearsWithMostSkippedTracksAverageAPC {
-	my $sqlstatement = "select year, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, tracks.year from tracks";
+	my $sqlstatement = "select tracks.year, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
