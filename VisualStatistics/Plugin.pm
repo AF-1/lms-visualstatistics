@@ -3135,6 +3135,26 @@ sub getDataListeningTimes {
 	return executeSQLstatement($sqlstatement);
 }
 
+sub getDataListeningTimesAPC {
+	my $sqlstatement = "select strftime('%H:%M',alternativeplaycount.lastPlayed, 'unixepoch', 'localtime') as timelastplayed, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			alternativeplaycount.lastPlayed > 0
+			and alternativeplaycount.lastPlayed is not null
+		group by strftime('%H:%M',alternativeplaycount.lastPlayed, 'unixepoch', 'localtime')
+		order by strftime ('%H',alternativeplaycount.lastPlayed, 'unixepoch', 'localtime') asc, strftime('%M',alternativeplaycount.lastPlayed, 'unixepoch', 'localtime') asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
 sub getDataTrackTitleMostFrequentWords {
 	my $dbh = getCurrentDBH();
 	my $sqlstatement = "select tracks.titlesearch from tracks";

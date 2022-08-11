@@ -910,6 +910,7 @@
 	<br><br>
 
 	<details><summary>[% 'PLUGIN_VISUALSTATISTICS_SECTION_MISC' | string %]</summary>
+[% IF displayapcdupes < 2 %]
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataListeningTimes">
 				<div class="flexitem">
@@ -918,6 +919,17 @@
 					</div>
 				</div>
 		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataListeningTimesAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataListeningTimesAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES_APC' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataTrackTitleMostFrequentWords">
 				<div class="flexitem">
@@ -1103,6 +1115,7 @@
 	getDataDecadesWithMostSkippedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_DECADES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT" | string %]',
 
 	getDataListeningTimes:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES" | string %]',
+	getDataListeningTimesAPC:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES_APC" | string %]',
 	getDataTrackTitleMostFrequentWords:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS" | string %]',
 	getDataTrackLyricsMostFrequentWords:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_LYRICS_MOSTFREQUENTWORDS" | string %]',
 

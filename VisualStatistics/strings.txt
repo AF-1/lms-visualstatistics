@@ -646,6 +646,11 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
 	FR	Heures d’écoute
 	NL	Luistertijden
 
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES_APC
+	EN	Listening times (APC)
+	FR	Heures d’écoute (APC)
+	NL	Luistertijden (APC)
+
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
 	EN	Most frequently used words in track titles
 	FR	Mots les plus utilisés dans les titres des chansons
