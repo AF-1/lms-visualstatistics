@@ -1,7 +1,7 @@
 <style>.githublink{padding-left:22px;}</style>
 [% page = "PLUGIN_VISUALSTATISTICS" %]
 [% PROCESS settings/header.html %]
-<span class="githublink"><a href="[% "PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK" | string %]" target="_blank" rel="noopener noreferrer"><b>[% "PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK_TEXT" | string %]</b></a></span>
+<span[% IF systemSkin != "material" %] class="githublink"[% END %]><a href="[% "PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK" | string %]" target="_blank" rel="noopener noreferrer"><b>[% "PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK_TEXT" | string %]</b></a></span>
 <br><br>
 [% IF apcenabled %]
 	[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_DESC" %]
