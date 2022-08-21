@@ -11,6 +11,8 @@ Go to *Home Menu* > *Extras* > *Visual Statistics*
 While the charts scale down, please note that this plugin was designed for wide/big screens.
 <br><br>
 If you have the [**Alternative Play Count**](https://github.com/AF-1/lms-alternativeplaycount) plugin installed, you will see some additional charts that use the data from this plugin.
+<br><br>
+[⬅️ **Back to the list of all plugins**](https://github.com/AF-1/)
 <br><br><br>
 
 ## Requirements
