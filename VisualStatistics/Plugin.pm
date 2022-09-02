@@ -41,7 +41,7 @@ use constant JSON_URL => 'plugins/VisualStatistics/getdata.html';
 
 my $log = Slim::Utils::Log->addLogCategory({
 	'category' => 'plugin.visualstatistics',
-	'defaultLevel' => 'WARN',
+	'defaultLevel' => 'ERROR',
 	'description' => 'PLUGIN_VISUALSTATISTICS',
 });
 my $serverPrefs = preferences('server');
