@@ -3320,12 +3320,12 @@ sub getVirtualLibraries {
 	$log->debug('ALL virtual libraries: '.Dumper($libraries));
 
 	while (my ($k, $v) = each %{$libraries}) {
-		my $count = Slim::Utils::Misc::delimitThousands(Slim::Music::VirtualLibraries->getTrackCount($k)) + 0;
+		my $count = Slim::Utils::Misc::delimitThousands(Slim::Music::VirtualLibraries->getTrackCount($k));
 		my $name = Slim::Music::VirtualLibraries->getNameForId($k);
 		$log->debug("VL: ".$name." (".$count.")");
 
 		push @items, {
-			'name' => Slim::Utils::Unicode::utf8decode($name, 'utf8')." (".$count.($count == 1 ? " ".string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACK").")" : " ".string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS").")"),
+			'name' => Slim::Utils::Unicode::utf8decode($name, 'utf8').sprintf("  ($count %s)", $count == 1 ? string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACK") : string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS")),
 			'sortName' => Slim::Utils::Unicode::utf8decode($name, 'utf8'),
 			'library_id' => $k,
 		};
