@@ -3325,7 +3325,7 @@ sub getVirtualLibraries {
 		$log->debug("VL: ".$name." (".$count.")");
 
 		push @items, {
-			'name' => Slim::Utils::Unicode::utf8decode($name, 'utf8').sprintf("  ($count %s)", $count == 1 ? string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACK") : string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS")),
+			'name' => Slim::Utils::Unicode::utf8decode($name, 'utf8').sprintf(" ($count %s)", $count == 1 ? string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACK") : string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS")),
 			'sortName' => Slim::Utils::Unicode::utf8decode($name, 'utf8'),
 			'library_id' => $k,
 		};
