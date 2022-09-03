@@ -3315,7 +3315,7 @@ sub quickSQLcount {
 }
 
 sub getVirtualLibraries {
-	my (@items, @hiddenVLs);
+	my @items;
 	my $libraries = Slim::Music::VirtualLibraries->getLibraries();
 	$log->debug('ALL virtual libraries: '.Dumper($libraries));
 
