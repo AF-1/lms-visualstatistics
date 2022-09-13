@@ -311,6 +311,7 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE
 PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC
 	EN	Artists with fully played, partially played tracks and without played tracks (APC)
 	FR	Artistes avec ses morceaux complètement joués, partiellement joués et sans morceaux joués (APC)
+	NL	Artiesten met volledig afgespeelde, gedeeltelijk afgespeelde en zonder afgespeelde nummers (APC)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
 	EN	Artists with top average play count
