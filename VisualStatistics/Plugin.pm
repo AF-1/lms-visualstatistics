@@ -850,7 +850,7 @@ sub getDataTracksByGenre {
 	$trackCountSQL .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCount = quickSQLcount($trackCountSQL);
 	my $othersCount = $trackCount - $sum;
-	push @{$sqlResult}, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_OTHERS'), 'yAxis' => $othersCount} unless ($othersCount == 0);
+	push @{$sqlResult}, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_OTHERS'), 'yAxis' => $othersCount} unless ($othersCount <= 0);
 	return $sqlResult;
 }
 
