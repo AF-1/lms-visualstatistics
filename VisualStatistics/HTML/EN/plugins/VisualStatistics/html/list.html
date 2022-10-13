@@ -156,6 +156,16 @@
 				</div>
 		</div>
 [% END %]
+[% IF ratedtrackcount != 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataTracksByRating">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataTracksByRating')">
+						[% 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_RATING' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataTracksByYear">
 				<div class="flexitem">
@@ -1028,6 +1038,7 @@
 	getDataTracksMostPlayed:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED" | string %]',
 	getDataTracksMostPlayedAPC:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED_APC" | string %]',
 	getDataTracksMostSkippedAPC:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC" | string %]',
+	getDataTracksByRating:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_BY_RATING" | string %]',
 	getDataTracksByYear:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_BY_YEAR" | string %]',
 	getDataTracksByDateAdded:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_BY_DATE_ADDED" | string %]',
 	getDataTracksByDateLastModified:'[% "PLUGIN_VISUALSTATISTICS_TRACKS_BY_DATE_LASTMODIFIED" | string %]',

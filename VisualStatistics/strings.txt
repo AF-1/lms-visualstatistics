@@ -241,6 +241,11 @@ PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC
 	FR	Morceaux les plus sautés (APC)
 	NL	Meest overgeslagen nummers (APC)
 
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_RATING
+	EN	Tracks by rating
+	FR	Morceaux par note
+	NL	Nummers per beoordeling
+
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_YEAR
 	EN	Tracks by year
 	FR	Morceaux par année

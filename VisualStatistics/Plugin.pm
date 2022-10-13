@@ -935,6 +935,36 @@ sub getDataTracksMostSkippedAPC {
 	return executeSQLstatement($sqlstatement, 4);
 }
 
+sub getDataTracksByRating {
+	my $starString = string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR');
+	my $starsString = string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS');
+	my $sqlstatement = "select case
+		when CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20 = 1 then (ifnull(tracks_persistent.rating, 0)/20)||'$starString'
+		when (CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20 = 0 or CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20 = 2 or CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20 = 3 or CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20 = 4 or CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20 = 5 ) then (ifnull(tracks_persistent.rating, 0)/20)||'$starsString'
+		else (CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20)||'$starsString'
+	end, count(distinct tracks.id) as nooftracks from tracks
+		left join tracks_persistent on
+			tracks_persistent.urlmd5 = tracks.urlmd5";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20
+		order by CAST(ifnull(tracks_persistent.rating, 0) as REAL)/20 desc;";
+	return executeSQLstatement($sqlstatement);
+}
+
 sub getDataTracksByYear {
 	my $sqlstatement = "select case when ifnull(tracks.year, 0) > 0 then tracks.year else 'Unknown' end, count(distinct tracks.id) as nooftracks, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
