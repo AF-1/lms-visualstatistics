@@ -3422,7 +3422,7 @@ sub getDecades {
 		$log->debug('decadesQueryResult = '.Dumper($decadesQueryResult));
 	};
 	if ($@) {
-		$log->warn("Database error: $DBI::errstr\n$@");
+		$log->error("Database error: $DBI::errstr\n$@");
 		return 'error';
 	}
 	unshift @decades, {
