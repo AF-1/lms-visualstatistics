@@ -935,6 +935,30 @@ sub getDataTracksMostSkippedAPC {
 	return executeSQLstatement($sqlstatement, 4);
 }
 
+sub getDataTracksByDPSV {
+	my $sqlstatement = "select ifnull(alternativeplaycount.dynPSval, 0), count(distinct tracks.id) as nooftracks from tracks
+		left join alternativeplaycount on
+				alternativeplaycount.urlmd5 = tracks.urlmd5";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where
+			tracks.audio = 1
+			and alternativeplaycount.dynPSval is not null";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by ifnull(alternativeplaycount.dynPSval, 0)
+		order by ifnull(alternativeplaycount.dynPSval, 0) asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
 sub getDataTracksByRating {
 	my $starString = string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR');
 	my $starsString = string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS');
@@ -1583,6 +1607,67 @@ sub getDataArtistsRatingPlaycountAPC {
 	return executeSQLstatement($sqlstatement, 3);
 }
 
+sub getDataArtistsHighestAvgDpsvAPC {
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.dynPSval,0)) as avgdpsv, contributors.id from tracks
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and alternativeplaycount.dynPSval is not null
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by tracks.primary_artist
+		order by avgdpsv desc, contributors.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3, 1);
+}
+
+sub getDataArtistsLowestAvgDpsvAPC {
+	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.dynPSval,0)) as avgdpsv, contributors.id from tracks
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		join contributors on
+			contributors.id = tracks.primary_artist";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where
+			(tracks.audio = 1 or tracks.extid is not null)
+			and alternativeplaycount.dynPSval is not null
+			and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+			and contributors.name is not '$VAstring'";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by tracks.primary_artist
+		order by avgdpsv asc, contributors.name asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 3, 1);
+
+}
+
 # ---- albums ---- #
 
 sub getDataAlbumsByYear {
@@ -2097,6 +2182,68 @@ sub getDataAlbumsWithMostSkippedTracksAverageAPC {
 	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
 		group by albums.title
 		order by avgskipcount desc, albums.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 4);
+}
+
+sub getDataAlbumsHighestAvgDpsvAPC {
+	my $sqlstatement = "select albums.title, avg(ifnull(alternativeplaycount.dynPSval,0)) as avgdpsv, albums.id, contributors.name from albums
+		join tracks on
+			tracks.album = albums.id";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " join contributors on
+			contributors.id = albums.contributor
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			albums.title is not null
+			and alternativeplaycount.dynPSval is not null
+			and (tracks.audio = 1 or tracks.extid is not null)";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by albums.title
+		order by avgdpsv desc, albums.title asc
+		limit $rowLimit;";
+	return executeSQLstatement($sqlstatement, 4);
+}
+
+sub getDataAlbumsLowestAvgDpsvAPC {
+	my $sqlstatement = "select albums.title, avg(ifnull(alternativeplaycount.dynPSval,0)) as avgdpsv, albums.id, contributors.name from albums
+		join tracks on
+			tracks.album = albums.id";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " join contributors on
+			contributors.id = albums.contributor
+		left join alternativeplaycount on
+			alternativeplaycount.urlmd5 = tracks.urlmd5
+		where
+			albums.title is not null
+			and alternativeplaycount.dynPSval is not null
+			and (tracks.audio = 1 or tracks.extid is not null)";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'
+		group by albums.title
+		order by avgdpsv asc, albums.title asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }

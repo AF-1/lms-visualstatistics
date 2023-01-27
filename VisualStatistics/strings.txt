@@ -241,6 +241,9 @@ PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC
 	FR	Morceaux les plus sautés (APC)
 	NL	Meest overgeslagen nummers (APC)
 
+PLUGIN_VISUALSTATISTICS_TRACKS_BY_DPSV_APC
+	EN	Tracks by dynamic played/skipped value (DPSV) (APC)
+
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_RATING
 	EN	Tracks by rating
 	FR	Morceaux par note
@@ -352,6 +355,18 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	EN	Artists with top average skip count (APC)
 	FR	Artistes avec le nombre de sauts moyen le plus élevé (APC)
 	NL	Artiesten met de hoogste gemiddelde overgeslagen nummers (APC)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_DPSV_HIGHESTAVG_APC
+	EN	Artists with highest avg. dynamic played/skipped value (APC)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_DPSV_LOWESTAVG_APC
+	EN	Artists with lowest avg. dynamic played/skipped value (APC)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_HIGHESTAVG_APC
+	EN	Albums with highest avg. dynamic played/skipped value (APC)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_LOWESTAVG_APC
+	EN	Albums with lowest avg. dynamic played/skipped value (APC)
 
 
 
@@ -758,6 +773,9 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT
 	EN	Average skip count
 	FR	Nombre de sauts moyen
 	NL	Gemiddeld aantal overgeslagen
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV
+	EN	Dynamic played/skipped value (DPSV)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED
 	EN	Percentage of rated tracks
