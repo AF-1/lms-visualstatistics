@@ -30,7 +30,7 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES
 	EN	Enable/disable APC (duplicate) playlists
-	FR	Activation/désactivation<br>Liste de lecture APC (dupliquées)
+	FR	Activation/désactivation<br> des listes de lecture APC (dupliquées)
 	NL	In/Uitschakelen APC (dubbele) afspeellijsten
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_DESC
@@ -80,7 +80,7 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS_DESC
 	EN	If checked, clicking on bars in some bar charts will display a rudimentary browse menu for the artist, album, genre, year or track you clicked on.
-	FR	Si cette case est cochée, un clic sur les barres de certains diagrammes à barres affichera un menu de navigation rudimentaire pour l'artiste, l'album, le genre, l'année ou la piste sur lesquels vous avez cliqué.
+	FR	Si cette case est cochée, un clic sur les barres de certains graphiques affichera un menu de navigation rudimentaire pour l'artiste, l'album, le genre, l'année ou le morceau sur lesquels vous avez cliqué.
 	NL	Indien aangevinkt, zal het klikken op staven in sommige staafdiagrammen een rudimentair bladermenu tonen voor de artiest, het album, het genre, het jaar of het nummer waarop u geklikt hebt.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
@@ -188,7 +188,7 @@ PLUGIN_VISUALSTATISTICS_SAVEASIMAGE
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILE_FORMAT
 	EN	Tracks by audio file format
-	FR	Morceaux par format des fichiers audio
+	FR	Morceaux par format du fichier audio
 	NL	Nummers per bestandsformat
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE
@@ -243,6 +243,7 @@ PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_DPSV_APC
 	EN	Tracks by dynamic played/skipped value (DPSV) (APC)
+	FR	Morceaux par valeur dynamique joués/sautés (DPSV) (APC)
 
 PLUGIN_VISUALSTATISTICS_TRACKS_BY_RATING
 	EN	Tracks by rating
@@ -358,15 +359,19 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_DPSV_HIGHESTAVG_APC
 	EN	Artists with highest avg. dynamic played/skipped value (APC)
+	FR	Artistes avec la plus grande valeur dynamique joués/sautés (DPSV) (APC)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_DPSV_LOWESTAVG_APC
 	EN	Artists with lowest avg. dynamic played/skipped value (APC)
+	FR	Artistes avec la plus petite valeur dynamique joués/sautés (DPSV) (APC)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_HIGHESTAVG_APC
 	EN	Albums with highest avg. dynamic played/skipped value (APC)
+	FR	Albums avec la plus grand valeur dynamique joués/sautés (DPSV) (APC)
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_LOWESTAVG_APC
 	EN	Albums with lowest avg. dynamic played/skipped value (APC)
+	FR	Albums avec la plus petite valeur dynamique joués/sautés (DPSV) (APC)
 
 
 
@@ -696,7 +701,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_LYRICS_MOSTFREQUENTWORDS
 
 PLUGIN_VISUALSTATISTICS_VL_COMPLETELIB_NAME
 	EN	Complete Library
-	FR	bibliothèque musicale complète
+	FR	Bibliothèque musicale complète
 	NL	Gehele mediabibliotheek
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT
@@ -776,6 +781,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV
 	EN	Dynamic played/skipped value (DPSV)
+	FR	Valeur dynamique joués/sautés (DPSV)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED
 	EN	Percentage of rated tracks
@@ -784,7 +790,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEARTISTRATING
 	EN	Average artist rating
-	FR	Note moyen de l’artiste
+	FR	Note moyenne de l’artiste
 	NL	Gemiddelde artiest rating
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST
@@ -927,7 +933,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_INFOMOUSEOVERTITLE
 	EN	Show detailed statistical information (text) about this library
-	FR	Afficher les statistiques détaillés (texte) à propos de cette bibliothèque
+	FR	Afficher les statistiques détaillées (texte) à propos de cette bibliothèque
 	NL	Toon gedetailleerde statistische informatie (tekst) over deze bibliotheek
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
