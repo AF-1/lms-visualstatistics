@@ -1,5 +1,5 @@
 ---
-name: >> Report issues <<
+name: Report issues
 about: Please only use THIS template to report issues
 title: "[ISSUE] "
 labels: ''
