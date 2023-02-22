@@ -23,6 +23,11 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/lms-alterna
 
 [^1]: If you want localized strings in your language, read <a href="https://github.com/AF-1/sobras/wiki/Adding-localization-to-LMS-plugins"><b>this</b></a>.
 
+## Screenshots
+<img src="screenshots/vs.gif" width="100%">
+<br><br><br>
+
+
 ## Installation
 
 You should be able to install *Visual Statistics* from *LMS* > *Settings* > *Plugins*.<br>
