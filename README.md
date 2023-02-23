@@ -21,7 +21,7 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/lms-alterna
 - LMS database = **SQLite**
 <br><br><br>
 
-[^1]: If you want localized strings in your language, read <a href="https://github.com/AF-1/sobras/wiki/Adding-localization-to-LMS-plugins"><b>this</b></a>.
+[^1]: If you want localized strings in your language, please read <a href="https://github.com/AF-1/sobras/wiki/Adding-localization-to-LMS-plugins"><b>this</b></a>.
 
 ## Screenshots
 <img src="screenshots/vs.gif" width="100%">
@@ -32,7 +32,7 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/lms-alterna
 
 You should be able to install *Visual Statistics* from *LMS* > *Settings* > *Plugins*.<br>
 
-If you want to test a new patch that hasn't made it into a release version yet or you need to install a previous version, you'll have to [install the plugin manually](https://github.com/AF-1/sobras/wiki/Manual-installation-of-LMS-plugins).
+If you want to test a new patch that hasn't made it into a release version yet, you'll have to [install the plugin manually](https://github.com/AF-1/sobras/wiki/Manual-installation-of-LMS-plugins).
 
 It usually takes a few hours for a *new* release to be listed on the LMS plugin page.
 <br><br><br><br>
