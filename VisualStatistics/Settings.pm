@@ -59,7 +59,7 @@ sub handler {
 sub beforeRender {
 	my ($class, $paramRef) = @_;
 	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
-	$paramRef->{'apcenabled'} = 'yes' if $apc_enabled;
+	$paramRef->{'apcenabled'} = 1 if $apc_enabled;
 }
 
 1;

@@ -98,10 +98,11 @@ sub handleWeb {
 	$params->{'librarygenres'} = getGenres();
 
 	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
-	$params->{'apcenabled'} = 'yes' if $apc_enabled;
+	$params->{'apcenabled'} = 1 if $apc_enabled;
 	$params->{'displayapcdupes'} = $prefs->get('displayapcdupes');
 	$params->{'clickablebars'} = $prefs->get('clickablebars') || 'noclick';
 	$params->{'usefullscreen'} = $prefs->get('usefullscreen') ? 1 : 0;
+	$params->{'txtrefreshbtn'} = $prefs->get('txtrefreshbtn');
 
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);
 }
