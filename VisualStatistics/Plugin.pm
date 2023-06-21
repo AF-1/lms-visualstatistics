@@ -31,11 +31,8 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Schema;
 use JSON::XS;
-use URI::Escape;
 use Time::HiRes qw(time);
-use Data::Dumper;
 
-use Plugins::VisualStatistics::Settings;
 use constant LIST_URL => 'plugins/VisualStatistics/html/list.html';
 use constant JSON_URL => 'plugins/VisualStatistics/getdata.html';
 
@@ -53,7 +50,7 @@ sub initPlugin {
 	my $class = shift;
 	$class->SUPER::initPlugin(@_);
 
-	if (!$::noweb) {
+	if (main::WEBUI) {
 		require Plugins::VisualStatistics::Settings;
 		Plugins::VisualStatistics::Settings->new();
 	}
@@ -111,7 +108,7 @@ sub handleJSON {
 	my ($client, $params, $callback, $httpClient, $httpResponse, $request) = @_;
 	my $response = {error => 'Invalid or missing query type'};
 	my $querytype = $params->{content};
-	$log->debug('query type = '.Dumper($querytype));
+	main::DEBUGLOG && $log->is_debug && $log->debug('query type = '.Data::Dump::dump($querytype));
 
 	my $started = time();
 
@@ -135,8 +132,8 @@ sub handleJSON {
 		}
 	}
 
-	$log->debug('JSON response = '.Dumper($response));
-	$log->info('exec time for query "'.$querytype.'" = '.(time()-$started).' seconds.') if $querytype;
+	main::DEBUGLOG && $log->is_debug && $log->debug('JSON response = '.Data::Dump::dump($response));
+	main::INFOLOG && $log->is_info && $log->info('exec time for query "'.$querytype.'" = '.(time()-$started).' seconds.') if $querytype;
 	my $content = $params->{callback} ? $params->{callback}.'('.encode_json($response).')' : encode_json($response);
 	$httpResponse->header('Content-Length' => length($content));
 
@@ -407,7 +404,7 @@ sub getDataLibStatsText {
 		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS").' '.$thismp3tagversion->{'xAxis'}.' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS").':', 'value' => $thismp3tagversion->{'yAxis'}});
 	}
 
-	$log->debug(Dumper(\@result));
+	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
 	return \@result;
 }
 
@@ -578,7 +575,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 	}
 
 	my @wrapper = (\@result, \@fileFormatsComplete);
-	$log->debug('wrapper = '.Dumper(\@wrapper));
+	main::DEBUGLOG && $log->is_debug && $log->debug('wrapper = '.Data::Dump::dump(\@wrapper));
 
 	return \@wrapper;
 }
@@ -664,7 +661,7 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 	my @sortedbitRates = sort { $a <=> $b } @bitRates;
 
 	my @wrapper = (\@result, \@sortedbitRates, \@fileFormatsComplete);
-	$log->debug('wrapper = '.Dumper(\@wrapper));
+	main::DEBUGLOG && $log->is_debug && $log->debug('wrapper = '.Data::Dump::dump(\@wrapper));
 
 	return \@wrapper;
 }
@@ -807,7 +804,7 @@ sub getDataTracksByFileSizeAudioFileFormat {
 			push(@result, $subData);
 		#};
 	my @wrapper = (\@result, \@fileFormats);
-	$log->debug('wrapper = '.Dumper(\@wrapper));
+	main::DEBUGLOG && $log->is_debug && $log->debug('wrapper = '.Data::Dump::dump(\@wrapper));
 
 	return \@wrapper;
 }
@@ -3376,7 +3373,7 @@ sub getDataTrackTitleMostFrequentWords {
 		last if scalar @keys >= 50;
 	};
 
-	$log->debug(Dumper(\@keys));
+	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@keys));
 	return \@keys;
 }
 
@@ -3422,7 +3419,7 @@ sub getDataTrackLyricsMostFrequentWords {
 		last if scalar @keys >= 50;
 	};
 
-	$log->debug(Dumper(\@keys));
+	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@keys));
 	return \@keys;
 }
 
@@ -3476,8 +3473,8 @@ sub executeSQLstatement {
 		}
 		$sth->finish();
 	#};
-	$log->debug('SQL result = '.Dumper(\@result));
-	$log->debug('Got '.scalar(@result).' items');
+	main::DEBUGLOG && $log->is_debug && $log->debug('SQL result = '.Data::Dump::dump(\@result));
+	main::DEBUGLOG && $log->is_debug && $log->debug('Got '.scalar(@result).' items');
 	return \@result;
 }
 
@@ -3495,13 +3492,13 @@ sub quickSQLcount {
 sub getVirtualLibraries {
 	my @items;
 	my $libraries = Slim::Music::VirtualLibraries->getLibraries();
-	$log->debug('ALL virtual libraries: '.Dumper($libraries));
+	main::DEBUGLOG && $log->is_debug && $log->debug('ALL virtual libraries: '.Data::Dump::dump($libraries));
 
 	while (my ($k, $v) = each %{$libraries}) {
 		my $count = Slim::Music::VirtualLibraries->getTrackCount($k);
 		my $name = Slim::Music::VirtualLibraries->getNameForId($k);
 		my $displayName = Slim::Utils::Unicode::utf8decode($name, 'utf8').' ('.Slim::Utils::Misc::delimitThousands($count).($count == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACK") : ' '.string("PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS")).')';
-		$log->debug("VL: ".$displayName);
+		main::DEBUGLOG && $log->is_debug && $log->debug("VL: ".$displayName);
 
 		push @items, {
 			'name' => $displayName,
@@ -3535,7 +3532,7 @@ sub getGenres {
 		'id' => undef,
 	};
 	@genres = sort { lc($a->{'name'}) cmp lc($b->{'name'}) } @genres;
-	$log->debug('genres list = '.Dumper(\@genres));
+	main::DEBUGLOG && $log->is_debug && $log->debug('genres list = '.Data::Dump::dump(\@genres));
 	return \@genres;
 }
 
@@ -3568,7 +3565,7 @@ sub getDecades {
 			push (@decades, {'name' => $decadeDisplayName, 'val' => $decade});
 		}
 		$sth->finish();
-		$log->debug('decadesQueryResult = '.Dumper($decadesQueryResult));
+		main::DEBUGLOG && $log->is_debug && $log->debug('decadesQueryResult = '.Data::Dump::dump($decadesQueryResult));
 	};
 	if ($@) {
 		$log->error("Database error: $DBI::errstr\n$@");
@@ -3578,7 +3575,7 @@ sub getDecades {
 		'name' => string("PLUGIN_VISUALSTATISTICS_CHARTFILTER_ALLDECADES"),
 		'val' => undef,
 	};
-	$log->debug('decade list = '.Dumper(\@decades));
+	main::DEBUGLOG && $log->is_debug && $log->debug('decade list = '.Data::Dump::dump(\@decades));
 	return \@decades;
 }
 
@@ -3597,7 +3594,5 @@ sub prettifyTime {
 	my $prettyTime = (($years > 0 ? $years.($years == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEAR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEARS").'  ') : '').($weeks > 0 ? $weeks.($weeks == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEK").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEKS").'  ') : '').($days > 0 ? $days.($days == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAY").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAYS").'  ') : '').($hours > 0 ? $hours.($hours == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOUR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOURS").'  ') : '').($minutes > 0 ? $minutes.($minutes == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMIN").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS").'  ') : '').($seconds > 0 ? $seconds.($seconds == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESEC") : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESECS")) : ''));
 	return $prettyTime;
 }
-
-*escape = \&URI::Escape::uri_escape_utf8;
 
 1;
