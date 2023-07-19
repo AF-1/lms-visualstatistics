@@ -467,17 +467,17 @@ sub getDataTracksByBitrateAudioFileFormat {
 	my @result = ();
 	my $genreFilter = $prefs->get('genrefilterid');
 	my @fileFormatsWithBitrate = ();
-	my $xLabelTresholds = [[1, 192], [192, 256], [256, 320], [320, 500], [500, 700], [700, 1000], [1000, 1201], [1201, 999999999999]];
-	foreach my $xLabelTreshold (@{$xLabelTresholds}) {
-		my $minVal = @{$xLabelTreshold}[0];
-		my $maxVal = @{$xLabelTreshold}[1];
+	my $xLabelThresholds = [[1, 192], [192, 256], [256, 320], [320, 500], [500, 700], [700, 1000], [1000, 1201], [1201, 999999999999]];
+	foreach my $xLabelThreshold (@{$xLabelThresholds}) {
+		my $minVal = @{$xLabelThreshold}[0];
+		my $maxVal = @{$xLabelThreshold}[1];
 		my $xLabelName = '';
-		if (@{$xLabelTreshold}[0] == 1) {
-			$xLabelName = '<'.@{$xLabelTreshold}[1];
-		} elsif (@{$xLabelTreshold}[1] == 999999999999) {
-			$xLabelName = '>'.(@{$xLabelTreshold}[0]-1);
+		if (@{$xLabelThreshold}[0] == 1) {
+			$xLabelName = '<'.@{$xLabelThreshold}[1];
+		} elsif (@{$xLabelThreshold}[1] == 999999999999) {
+			$xLabelName = '>'.(@{$xLabelThreshold}[0]-1);
 		} else {
-			$xLabelName = @{$xLabelTreshold}[0]."-".((@{$xLabelTreshold}[1])-1);
+			$xLabelName = @{$xLabelThreshold}[0]."-".((@{$xLabelThreshold}[1])-1);
 		}
 		my $subData = '';
 		my $sqlbitrate = "select tracks.content_type, count(distinct tracks.id) as nooftracks from tracks";
