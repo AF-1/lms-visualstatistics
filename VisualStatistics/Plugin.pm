@@ -463,7 +463,7 @@ sub getDataTracksByBitrate {
 }
 
 sub getDataTracksByBitrateAudioFileFormat {
-	my $dbh = getCurrentDBH();
+	my $dbh = Slim::Schema->dbh;
 	my @result = ();
 	my $genreFilter = $prefs->get('genrefilterid');
 	my @fileFormatsWithBitrate = ();
@@ -581,7 +581,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 }
 
 sub getDataTracksByBitrateAudioFileFormatScatter {
-	my $dbh = getCurrentDBH();
+	my $dbh = Slim::Schema->dbh;
 	my @result = ();
 	my $sqlfileformats = "select distinct tracks.content_type from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -717,7 +717,7 @@ sub getDataTracksByFileSize {
 }
 
 sub getDataTracksByFileSizeAudioFileFormat {
-	my $dbh = getCurrentDBH();
+	my $dbh = Slim::Schema->dbh;
 	my @result = ();
 	my @fileFormats = ();
 	my $genreFilter = $prefs->get('genrefilterid');
@@ -3331,7 +3331,7 @@ sub getDataListeningTimesAPC {
 }
 
 sub getDataTrackTitleMostFrequentWords {
-	my $dbh = getCurrentDBH();
+	my $dbh = Slim::Schema->dbh;
 	my $sqlstatement = "select tracks.titlesearch from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -3378,7 +3378,7 @@ sub getDataTrackTitleMostFrequentWords {
 }
 
 sub getDataTrackLyricsMostFrequentWords {
-	my $dbh = getCurrentDBH();
+	my $dbh = Slim::Schema->dbh;
 	my $sqlstatement = "select tracks.lyrics from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -3428,7 +3428,7 @@ sub getDataTrackLyricsMostFrequentWords {
 
 sub executeSQLstatement {
 	my @result = ();
-	my $dbh = getCurrentDBH();
+	my $dbh = Slim::Schema->dbh;
 	my $sqlstatement = shift;
 	my $valuesToBind = shift || 2;
 	my $getIDs = shift;
@@ -3479,7 +3479,7 @@ sub executeSQLstatement {
 }
 
 sub quickSQLcount {
-	my $dbh = getCurrentDBH();
+	my $dbh = Slim::Schema->dbh;
 	my $sqlstatement = shift;
 	my $thisCount;
 	my $sth = $dbh->prepare($sqlstatement);
@@ -3537,7 +3537,7 @@ sub getGenres {
 }
 
 sub getDecades {
-	my $dbh = getCurrentDBH();
+	my $dbh = Slim::Schema->dbh;
 	my @decades = ();
 	my $decadesQueryResult = {};
 	my $unknownString = string('PLUGIN_VISUALSTATISTICS_CHARTFILTER_UNKNOWN');
@@ -3577,10 +3577,6 @@ sub getDecades {
 	};
 	main::DEBUGLOG && $log->is_debug && $log->debug('decade list = '.Data::Dump::dump(\@decades));
 	return \@decades;
-}
-
-sub getCurrentDBH {
-	return Slim::Schema->storage->dbh();
 }
 
 sub prettifyTime {
