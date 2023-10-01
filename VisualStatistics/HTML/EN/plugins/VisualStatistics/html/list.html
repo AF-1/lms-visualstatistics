@@ -8,7 +8,7 @@
 [% END -%]
 [% PROCESS pageheader.html %]
 <style>
-[% IF systemSkin == "material" || systemSkin == "DarkDefault" %]
+[% IF systemSkin == "material" || systemSkin == "DarkDefault" || systemSkin == "TransparentDark" %]
 .updatebutton {font-size: 12px !important;}
 .info-circle {stroke: rgb(240, 240, 240);}
 .info-i {fill: rgb(240, 240, 240);}
@@ -23,7 +23,7 @@
 	var colorSchemeLight = false;
 [% ELSE %]
 	if(top != self) top.location.replace(location);
-	[% IF systemSkin == "DarkDefault" %]
+	[% IF systemSkin == "DarkDefault" || systemSkin == "TransparentDark" %]
 		var colorSchemeLight = false;
 	[% ELSE %]
 		var colorSchemeLight = true;
@@ -1253,7 +1253,7 @@
 </script>
 <script type="text/javascript" src="js/showchart.min.js"></script>
 <script type="text/javascript">
-	[% IF systemSkin == "material" || systemSkin == "DarkDefault" %]
+	[% IF systemSkin == "material" || systemSkin == "DarkDefault" || systemSkin == "TransparentDark" %]
 		document.getElementById('colorscheme_value').innerHTML = '[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_DARK" | string %]';
 		var toggle = document.getElementById('toggleswitch_colorscheme');
 		toggle.checked = !toggle.checked;
