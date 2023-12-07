@@ -414,6 +414,16 @@
 					</div>
 				</div>
 		</div>
+[% IF lmsminversion_rltypes %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataAlbumsByReleaseType">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsByReleaseType')">
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_RELEASETYPE' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
 [% IF ratedtrackcount != 0 %]
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataAlbumsWithMostRatedTracks">
@@ -1117,6 +1127,7 @@
 
 	getDataAlbumsByYear:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS" | string %]',
 	getDataAlbumsWithMostTracks:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_TRACKS" | string %]',
+	getDataAlbumsByReleaseType:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_RELEASETYPE" | string %]',
 	getDataAlbumsWithMostRatedTracks:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS" | string %]',
 	getDataAlbumsHighestPercentageRatedTracks:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_RATED" | string %]',
 	getDataAlbumsWithTopRatedTracksRated:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED" | string %]',

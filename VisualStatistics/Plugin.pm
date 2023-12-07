@@ -100,6 +100,7 @@ sub handleWeb {
 	$params->{'clickablebars'} = $prefs->get('clickablebars') || 'noclick';
 	$params->{'usefullscreen'} = $prefs->get('usefullscreen') ? 1 : 0;
 	$params->{'txtrefreshbtn'} = $prefs->get('txtrefreshbtn');
+	$params->{'lmsminversion_rltypes'} = 1 if (Slim::Utils::Versions->compareVersions($::VERSION, '8.4') >= 0); 
 
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);
 }
@@ -403,6 +404,33 @@ sub getDataLibStatsText {
 	foreach my $thismp3tagversion (@sortedmp3tagversions) {
 		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS").' '.$thismp3tagversion->{'xAxis'}.' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS").':', 'value' => $thismp3tagversion->{'yAxis'}});
 	}
+
+	# number of tracks with track musicbrainz id
+	my $tracksMusicbrainzIdSQL = "select count(distinct tracks.id) from tracks";
+	if ($selectedVL && $selectedVL ne '') {
+		$tracksMusicbrainzIdSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	$tracksMusicbrainzIdSQL .= " where tracks.audio = 1 and tracks.musicbrainz_id is not null";
+	my $tracksMusicbrainzId = quickSQLcount($tracksMusicbrainzIdSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID").':', 'value' => $tracksMusicbrainzId.' ('.(sprintf("%.1f", ($tracksMusicbrainzId/$trackCount * 100)).'%)')}) if $tracksMusicbrainzId > 0;
+
+	# number of artists with artist musicbrainz id
+	my $artistsMusicbrainzIdSQL = "select count(distinct contributors.id) from contributors";
+	if ($selectedVL && $selectedVL ne '') {
+		$artistsMusicbrainzIdSQL .= " join library_contributor on library_contributor.contributor = contributors.id and library_contributor.library = '$selectedVL'"
+	}
+	$artistsMusicbrainzIdSQL .= " where contributors.musicbrainz_id is not null";
+	my $artistsMusicbrainzId = quickSQLcount($artistsMusicbrainzIdSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID").':', 'value' => $artistsMusicbrainzId.' ('.(sprintf("%.1f", ($artistsMusicbrainzId/$artistCount * 100)).'%)')}) if $artistsMusicbrainzId > 0;
+
+	# number of albums with album musicbrainz id
+	my $albumsMusicbrainzIdSQL = "select count(distinct albums.id) from albums";
+	if ($selectedVL && $selectedVL ne '') {
+		$albumsMusicbrainzIdSQL .= "  join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'"
+	}
+	$albumsMusicbrainzIdSQL .= " where albums.musicbrainz_id is not null";
+	my $albumsMusicbrainzId = quickSQLcount($albumsMusicbrainzIdSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID").':', 'value' => $albumsMusicbrainzId.' ('.(sprintf("%.1f", ($albumsMusicbrainzId/$albumsCount * 100)).'%)')}) if $albumsMusicbrainzId > 0;
 
 	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
 	return \@result;
@@ -1718,6 +1746,34 @@ sub getDataAlbumsWithMostTracks {
 		order by nooftracks desc, albums.title asc
 		limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
+}
+
+sub getDataAlbumsByReleaseType {
+	my $sqlstatement = "select albums.release_type, count(distinct albums.id) as noofalbums from albums		join tracks on
+			tracks.album = albums.id";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where
+			albums.title is not null
+			and (tracks.audio = 1 or tracks.extid is not null)";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by albums.release_type
+		order by noofalbums desc";
+	my $rlTypeArr = executeSQLstatement($sqlstatement);
+
+	foreach my $thisRLtype (@{$rlTypeArr}) {
+		$thisRLtype->{'xAxis'} = _releaseTypeName($thisRLtype->{'xAxis'});
+	}
+	return $rlTypeArr;
 }
 
 sub getDataAlbumsWithMostRatedTracks {
@@ -3589,6 +3645,19 @@ sub prettifyTime {
 	my $years = (int($timeinseconds / (60*60*24*365))) % 10;
 	my $prettyTime = (($years > 0 ? $years.($years == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEAR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEARS").'  ') : '').($weeks > 0 ? $weeks.($weeks == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEK").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEKS").'  ') : '').($days > 0 ? $days.($days == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAY").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAYS").'  ') : '').($hours > 0 ? $hours.($hours == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOUR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOURS").'  ') : '').($minutes > 0 ? $minutes.($minutes == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMIN").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS").'  ') : '').($seconds > 0 ? $seconds.($seconds == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESEC") : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESECS")) : ''));
 	return $prettyTime;
+}
+
+sub _releaseTypeName {
+	my $releaseType = shift;
+
+	my $nameToken = uc($releaseType);
+	$nameToken =~ s/[^a-z_0-9]/_/ig;
+	my $name;
+	foreach ('RELEASE_TYPE_' . $nameToken, 'RELEASE_TYPE_CUSTOM_' . $nameToken, $nameToken) {
+		$name = string($_) if Slim::Utils::Strings::stringExists($_);
+		last if $name;
+	}
+	return $name || $releaseType;
 }
 
 1;
