@@ -29,12 +29,18 @@
 <br>
 
 [% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS_DESC" %]
-	<input type="checkbox" name="pref_clickablebars" id="clickablebars" [% IF prefs.clickablebars %] checked [% END %]">
+	<select class="stdedit" name="pref_clickablebars" id="clickablebars">
+		<option [% IF NOT prefs.clickablebars %]selected [% END %]value="0">[% 'NO' | getstring %]</option>
+		<option [% IF prefs.clickablebars %]selected [% END %]value="1">[% 'YES' | getstring %]</option>
+	</select>
 [% END %]
 <br><br>
 
 [% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC" %]
-	<input type="checkbox" name="pref_usefullscreen" id="usefullscreen" [% IF prefs.usefullscreen %] checked [% END %]">
+	<select class="stdedit" name="pref_usefullscreen" id="usefullscreen">
+		<option [% IF NOT prefs.usefullscreen %]selected [% END %]value="0">[% 'NO' | getstring %]</option>
+		<option [% IF prefs.usefullscreen %]selected [% END %]value="1">[% 'YES' | getstring %]</option>
+	</select>
 [% END %]
 
 [% PROCESS settings/footer.html %]

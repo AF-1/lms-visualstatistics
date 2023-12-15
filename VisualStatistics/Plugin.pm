@@ -100,7 +100,7 @@ sub handleWeb {
 	$params->{'clickablebars'} = $prefs->get('clickablebars') || 'noclick';
 	$params->{'usefullscreen'} = $prefs->get('usefullscreen') ? 1 : 0;
 	$params->{'txtrefreshbtn'} = $prefs->get('txtrefreshbtn');
-	$params->{'lmsminversion_rltypes'} = 1 if (Slim::Utils::Versions->compareVersions($::VERSION, '8.4') >= 0); 
+	$params->{'lmsminversion_rltypes'} = 1 if (Slim::Utils::Versions->compareVersions($::VERSION, '8.4') >= 0);
 
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);
 }
@@ -426,7 +426,7 @@ sub getDataLibStatsText {
 	# number of albums with album musicbrainz id
 	my $albumsMusicbrainzIdSQL = "select count(distinct albums.id) from albums";
 	if ($selectedVL && $selectedVL ne '') {
-		$albumsMusicbrainzIdSQL .= "  join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'"
+		$albumsMusicbrainzIdSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'"
 	}
 	$albumsMusicbrainzIdSQL .= " where albums.musicbrainz_id is not null";
 	my $albumsMusicbrainzId = quickSQLcount($albumsMusicbrainzIdSQL);
@@ -1749,7 +1749,7 @@ sub getDataAlbumsWithMostTracks {
 }
 
 sub getDataAlbumsByReleaseType {
-	my $sqlstatement = "select albums.release_type, count(distinct albums.id) as noofalbums from albums		join tracks on
+	my $sqlstatement = "select albums.release_type, count(distinct albums.id) as noofalbums from albums join tracks on
 			tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
