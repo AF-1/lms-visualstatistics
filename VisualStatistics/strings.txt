@@ -4,7 +4,7 @@ PLUGIN_VISUALSTATISTICS
 	NL	Visuele Statistieken
 
 PLUGIN_VISUALSTATISTICS_DESC
-	EN	Have a look at your library statistics with charts. More information on the GitHub page.
+	EN	Have a look at your library statistics with charts. Screenshots and more information on the GitHub page.
 	FR	Explorez les statistiques de votre bibliothèque musicale avec des graphiques. Plus d'information sur la page GitHub.
 	NL	Bekijk jouw mediabibliotheek statistieken door middel van grafieken
 
