@@ -17,6 +17,10 @@
 .info-circle {stroke: rgb(0, 0, 0);}
 .info-i {fill: rgb(0, 0, 0);}
 [% END %]
+[% IF systemSkin == "Default" || systemSkin == "DarkDefault" || systemSkin == "TransparentDark" %]
+.pagetitle {padding-top: 6px;}
+#headerSearch {padding-top: 3px;}
+[% END %]
 </style>
 <script type="text/javascript">
 [% IF systemSkin == "material" %]

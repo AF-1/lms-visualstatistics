@@ -153,7 +153,7 @@ sub getDataLibStatsText {
 	# number of tracks
 	my $trackCountSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$trackCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$trackCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$trackCountSQL .= " where tracks.audio = 1 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCount = quickSQLcount($trackCountSQL);
@@ -162,7 +162,7 @@ sub getDataLibStatsText {
 	# number of local tracks/files
 	my $trackCountLocalSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$trackCountLocalSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$trackCountLocalSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$trackCountLocalSQL .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCountLocal = quickSQLcount($trackCountLocalSQL);
@@ -171,7 +171,7 @@ sub getDataLibStatsText {
 	# number of remote tracks
 	my $trackCountRemoteSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$trackCountRemoteSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$trackCountRemoteSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$trackCountRemoteSQL .= " where tracks.audio =1 and tracks.remote = 1 and tracks.extid is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $trackCountRemote = quickSQLcount($trackCountRemoteSQL);
@@ -180,7 +180,7 @@ sub getDataLibStatsText {
 	# total playing time
 	my $totalTimeSQL = "select sum(secs) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$totalTimeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$totalTimeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$totalTimeSQL .=" where tracks.audio = 1 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
 	my $totalTime = prettifyTime(quickSQLcount($totalTimeSQL));
@@ -189,7 +189,7 @@ sub getDataLibStatsText {
 	# total library size
 	my $totalLibrarySizeSQL = "select round((sum(filesize)/1024/1024/1024),2)||' GB' from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$totalLibrarySizeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$totalLibrarySizeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$totalLibrarySizeSQL .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.filesize is not null";
 	my $totalLibrarySize = quickSQLcount($totalLibrarySizeSQL);
@@ -198,16 +198,16 @@ sub getDataLibStatsText {
 	# library age
 	my $libraryAgeinSecsSQL = "select (strftime('%s', 'now', 'localtime') - min(tracks_persistent.added)) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$libraryAgeinSecsSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$libraryAgeinSecsSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$libraryAgeinSecsSQL .= " join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio = 1";
 	my $libraryAge = prettifyTime(quickSQLcount($libraryAgeinSecsSQL));
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALIBAGE").':', 'value' => $libraryAge});
 
-	# number of artists
+	# number of artists (artists, album artists + track artists)
 	my $artistCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
 	if ($selectedVL && $selectedVL ne '') {
-		$artistCountSQL .= " join tracks on tracks.id = contributor_track.track join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$artistCountSQL .= " join library_contributor on contributor_track.contributor = library_contributor.contributor and library_contributor.library = '$selectedVL'";
 	}
 	$artistCountSQL .= " where contributor_track.role in (1,5,6)";
 	my $artistCount = quickSQLcount($artistCountSQL);
@@ -216,7 +216,7 @@ sub getDataLibStatsText {
 	# number of album artists
 	my $albumArtistCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
 	if ($selectedVL && $selectedVL ne '') {
-		$albumArtistCountSQL .= " join tracks on tracks.id = contributor_track.track join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$albumArtistCountSQL .= " join library_contributor on contributor_track.contributor = library_contributor.contributor and library_contributor.library = '$selectedVL'";
 	}
 	$albumArtistCountSQL .= " where contributor_track.role = 5";
 	my $albumArtistCount = quickSQLcount($albumArtistCountSQL);
@@ -225,18 +225,36 @@ sub getDataLibStatsText {
 	# number of composers
 	my $composerCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
 	if ($selectedVL && $selectedVL ne '') {
-		$albumArtistCountSQL .= " join tracks on tracks.id = contributor_track.track join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$composerCountSQL .= " join library_contributor on contributor_track.contributor = library_contributor.contributor and library_contributor.library = '$selectedVL'";
 	}
-	$albumArtistCountSQL .= " where contributor_track.role = 2";
+	$composerCountSQL .= " where contributor_track.role = 2";
 	my $composerCount = quickSQLcount($composerCountSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPOSERS").':', 'value' => $composerCount});
+
+	# number of conductors
+	my $conductorCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
+	if ($selectedVL && $selectedVL ne '') {
+		$conductorCountSQL .= " join library_contributor on contributor_track.contributor = library_contributor.contributor and library_contributor.library = '$selectedVL'";
+	}
+	$conductorCountSQL .= " where contributor_track.role = 3";
+	my $conductorCount = quickSQLcount($conductorCountSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_CONDUCTORS").':', 'value' => $conductorCount}) if $conductorCount > 0;
+
+	# number of bands
+	my $bandCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
+	if ($selectedVL && $selectedVL ne '') {
+		$bandCountSQL .= " join library_contributor on contributor_track.contributor = library_contributor.contributor and library_contributor.library = '$selectedVL'";
+	}
+	$bandCountSQL .= " where contributor_track.role = 4";
+	my $bandCount = quickSQLcount($bandCountSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_BANDS").':', 'value' => $bandCount}) if $bandCount > 0;
 
 	# number of artists played
 	my $artistsPlayedSQL = "select count(distinct contributor_track.contributor) from contributor_track
 		join tracks on
 			tracks.id = contributor_track.track";
 	if ($selectedVL && $selectedVL ne '') {
-		$artistsPlayedSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$artistsPlayedSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$artistsPlayedSQL .= " join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5 and tracks_persistent.playcount > 0
@@ -250,7 +268,7 @@ sub getDataLibStatsText {
 	# number of albums
 	my $albumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
 	if ($selectedVL && $selectedVL ne '') {
-		$albumsCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$albumsCountSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
 	}
 	$albumsCountSQL .= " where tracks.audio = 1";
 	my $albumsCount = quickSQLcount($albumsCountSQL);
@@ -259,7 +277,7 @@ sub getDataLibStatsText {
 	# number of compilations
 	my $compilationsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
 	if ($selectedVL && $selectedVL ne '') {
-		$compilationsCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$compilationsCountSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
 	}
 	$compilationsCountSQL .= " where tracks.audio = 1 and albums.compilation = 1";
 	my $compilationsCountFloat = quickSQLcount($compilationsCountSQL)/$albumsCount * 100;
@@ -269,7 +287,7 @@ sub getDataLibStatsText {
 	# number of artist albums
 	my $artistAlbumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
 	if ($selectedVL && $selectedVL ne '') {
-		$artistAlbumsCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$artistAlbumsCountSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
 	}
 	$artistAlbumsCountSQL .= " where tracks.audio = 1 and (albums.compilation is null or albums.compilation = 0)";
 	my $artistAlbumsCount = quickSQLcount($artistAlbumsCountSQL);
@@ -280,7 +298,7 @@ sub getDataLibStatsText {
 		join tracks on
 			tracks.album = albums.id";
 	if ($selectedVL && $selectedVL ne '') {
-		$albumsPlayedSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$albumsPlayedSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
 	}
 		$albumsPlayedSQL .= " join tracks_persistent on
 			tracks_persistent.urlmd5 = tracks.urlmd5
@@ -294,7 +312,7 @@ sub getDataLibStatsText {
 	# number of albums without artwork
 	my $albumsNoArtworkSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
 	if ($selectedVL && $selectedVL ne '') {
-		$albumsNoArtworkSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$albumsNoArtworkSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
 	}
 	$albumsNoArtworkSQL .= " where tracks.audio = 1 and albums.artwork is null";
 	my $albumsNoArtwork = quickSQLcount($albumsNoArtworkSQL);
@@ -303,7 +321,7 @@ sub getDataLibStatsText {
 	# number of genres
 	my $genreCountSQL = "select count(distinct genre_track.genre) from genre_track";
 	if ($selectedVL && $selectedVL ne '') {
-		$genreCountSQL .= " join tracks on tracks.id = genre_track.track join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$genreCountSQL .= " join library_genre on genre_track.genre = library_genre.genre and library_genre.library = '$selectedVL'";
 	}
 	my $genreCount = quickSQLcount($genreCountSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES").':', 'value' => $genreCount});
@@ -311,7 +329,7 @@ sub getDataLibStatsText {
 	# number of lossless tracks
 	my $losslessTrackCountSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$losslessTrackCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$losslessTrackCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$losslessTrackCountSQL .= " where tracks.audio = 1 and tracks.lossless = 1";
 	my $losslessTrackCountFloat = quickSQLcount($losslessTrackCountSQL)/$trackCount * 100;
@@ -321,7 +339,7 @@ sub getDataLibStatsText {
 	# number of rated tracks
 	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks, tracks_persistent";
 	if ($selectedVL && $selectedVL ne '') {
-		$ratedTrackCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$ratedTrackCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$ratedTrackCountSQL .= " where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL);
@@ -331,7 +349,7 @@ sub getDataLibStatsText {
 	# number of tracks played at least once
 	my $songsPlayedOnceSQL = "select count(distinct tracks.id) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
 	if ($selectedVL && $selectedVL ne '') {
-		$songsPlayedOnceSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$songsPlayedOnceSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$songsPlayedOnceSQL .= " where tracks.audio = 1 and tracks_persistent.playcount > 0";
 	my $songsPlayedOnceFloat = quickSQLcount($songsPlayedOnceSQL)/$trackCount * 100;
@@ -341,7 +359,7 @@ sub getDataLibStatsText {
 	# total play count
 	my $songsPlayedTotalSQL = "select sum(tracks_persistent.playcount) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
 	if ($selectedVL && $selectedVL ne '') {
-		$songsPlayedTotalSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$songsPlayedTotalSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$songsPlayedTotalSQL .= " where tracks.audio = 1 and tracks_persistent.playcount > 0";
 	my $songsPlayedTotal = quickSQLcount($songsPlayedTotalSQL);
@@ -350,7 +368,7 @@ sub getDataLibStatsText {
 	# average track length
 	my $avgTrackLengthSQL = "select strftime('%M:%S', avg(secs)/86400.0) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$avgTrackLengthSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$avgTrackLengthSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$avgTrackLengthSQL .= " where tracks.audio = 1";
 	my $avgTrackLength = quickSQLcount($avgTrackLengthSQL);
@@ -359,7 +377,7 @@ sub getDataLibStatsText {
 	# average bit rate
 	my $avgBitrateSQL = "select round((avg(bitrate)/10000)*10) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$avgBitrateSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$avgBitrateSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$avgBitrateSQL .= " where tracks.audio = 1 and tracks.bitrate is not null";
 	my $avgBitrate = quickSQLcount($avgBitrateSQL);
@@ -368,7 +386,7 @@ sub getDataLibStatsText {
 	# average file size
 	my$avgFileSizeSQL = "select round((avg(filesize)/(1024*1024)), 2)||' MB' from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$avgFileSizeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$avgFileSizeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$avgFileSizeSQL .= " where tracks.audio = 1 and tracks.remote=0 and tracks.filesize is not null";
 	my $avgFileSize = quickSQLcount($avgFileSizeSQL);
@@ -377,7 +395,7 @@ sub getDataLibStatsText {
 	# number of tracks with lyrics
 	my $tracksWithLyricsSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$tracksWithLyricsSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$tracksWithLyricsSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$tracksWithLyricsSQL .= " where tracks.audio = 1 and tracks.lyrics is not null";
 	my $tracksWithLyricsFloat = quickSQLcount($tracksWithLyricsSQL)/$trackCount * 100;
@@ -387,7 +405,7 @@ sub getDataLibStatsText {
 	# number of tracks without replay gain
 	my $tracksNoReplayGainSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$tracksNoReplayGainSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$tracksNoReplayGainSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$tracksNoReplayGainSQL .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_gain is null";
 	my $tracksNoReplayGain = quickSQLcount($tracksNoReplayGainSQL);
@@ -396,7 +414,7 @@ sub getDataLibStatsText {
 	# number of tracks for each mp3 tag version
 	my $mp3tagversionsSQL = "select tracks.tagversion as thistagversion, count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$mp3tagversionsSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$mp3tagversionsSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$mp3tagversionsSQL .= " where tracks.audio=1 and tracks.content_type = 'mp3' and tracks.tagversion is not null group by tracks.tagversion";
 	my $mp3tagversions = executeSQLstatement($mp3tagversionsSQL);
@@ -408,29 +426,102 @@ sub getDataLibStatsText {
 	# number of tracks with track musicbrainz id
 	my $tracksMusicbrainzIdSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
-		$tracksMusicbrainzIdSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$tracksMusicbrainzIdSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
 	$tracksMusicbrainzIdSQL .= " where tracks.audio = 1 and tracks.musicbrainz_id is not null";
 	my $tracksMusicbrainzId = quickSQLcount($tracksMusicbrainzIdSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID").':', 'value' => $tracksMusicbrainzId.' ('.(sprintf("%.1f", ($tracksMusicbrainzId/$trackCount * 100)).'%)')}) if $tracksMusicbrainzId > 0;
 
+	# number of tracks with identical musicbrainz ids in the LMS tracks table
+	if ($tracksMusicbrainzId > 0) {
+		my $tracksMusicbrainzIdDupeSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$tracksMusicbrainzIdDupeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$tracksMusicbrainzIdDupeSQL .= " where tracks.musicbrainz_id is not null group by tracks.musicbrainz_id having count(tracks.musicbrainz_id) > 1)";
+		my $tracksMusicbrainzIDdupeCount = quickSQLcount($tracksMusicbrainzIdDupeSQL);
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID_DUPES").':', 'value' => $tracksMusicbrainzIDdupeCount.' ('.(sprintf("%.1f", ($tracksMusicbrainzIDdupeCount/$trackCount * 100)).'%)')}) if $tracksMusicbrainzIDdupeCount > 0;
+	}
+
 	# number of artists with artist musicbrainz id
 	my $artistsMusicbrainzIdSQL = "select count(distinct contributors.id) from contributors";
 	if ($selectedVL && $selectedVL ne '') {
-		$artistsMusicbrainzIdSQL .= " join library_contributor on library_contributor.contributor = contributors.id and library_contributor.library = '$selectedVL'"
+		$artistsMusicbrainzIdSQL .= " join library_contributor on contributors.id = library_contributor.contributor and library_contributor.library = '$selectedVL'";
 	}
 	$artistsMusicbrainzIdSQL .= " where contributors.musicbrainz_id is not null";
 	my $artistsMusicbrainzId = quickSQLcount($artistsMusicbrainzIdSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID").':', 'value' => $artistsMusicbrainzId.' ('.(sprintf("%.1f", ($artistsMusicbrainzId/$artistCount * 100)).'%)')}) if $artistsMusicbrainzId > 0;
 
+	# number of artists with identical musicbrainz ids in the LMS contributors table
+	if ($artistsMusicbrainzId > 0) {
+		my $artistsMusicbrainzIdDupeSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from contributors";
+		if ($selectedVL && $selectedVL ne '') {
+			$artistsMusicbrainzIdDupeSQL .= " join library_contributor on contributors.id = library_contributor.contributor and library_contributor.library = '$selectedVL'";
+		}
+		$artistsMusicbrainzIdDupeSQL .= " where contributors.musicbrainz_id is not null group by contributors.musicbrainz_id having count(contributors.musicbrainz_id) > 1)";
+		my $artistsMusicbrainzIDdupeCount = quickSQLcount($artistsMusicbrainzIdDupeSQL);
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_DUPES").':', 'value' => $artistsMusicbrainzIDdupeCount.' ('.(sprintf("%.1f", ($artistsMusicbrainzIDdupeCount/$artistCount * 100)).'%)')}) if $artistsMusicbrainzIDdupeCount > 0;
+	}
+
 	# number of albums with album musicbrainz id
 	my $albumsMusicbrainzIdSQL = "select count(distinct albums.id) from albums";
 	if ($selectedVL && $selectedVL ne '') {
-		$albumsMusicbrainzIdSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'"
+		$albumsMusicbrainzIdSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
 	}
 	$albumsMusicbrainzIdSQL .= " where albums.musicbrainz_id is not null";
 	my $albumsMusicbrainzId = quickSQLcount($albumsMusicbrainzIdSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID").':', 'value' => $albumsMusicbrainzId.' ('.(sprintf("%.1f", ($albumsMusicbrainzId/$albumsCount * 100)).'%)')}) if $albumsMusicbrainzId > 0;
+
+	# number of albums with identical musicbrainz ids in the LMS albums table
+	if ($albumsMusicbrainzId > 0) {
+		my $albumsMusicbrainzIdDupeSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from albums";
+		if ($selectedVL && $selectedVL ne '') {
+		$albumsMusicbrainzIdDupeSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+		}
+		$albumsMusicbrainzIdDupeSQL .= " where albums.musicbrainz_id is not null group by albums.musicbrainz_id having count(albums.musicbrainz_id) > 1)";
+		my $albumsMusicbrainzIDdupeCount = quickSQLcount($albumsMusicbrainzIdDupeSQL);
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID_DUPES").':', 'value' => $albumsMusicbrainzIDdupeCount.' ('.(sprintf("%.1f", ($albumsMusicbrainzIDdupeCount/$albumsCount * 100)).'%)')}) if $albumsMusicbrainzIDdupeCount > 0;
+	}
+
+	# number of contributors without tracks
+	my $artistsWithoutTracksSQL ="select ifnull(sum(cnt),0) from (select count(*) as cnt from contributors";
+	if ($selectedVL && $selectedVL ne '') {
+		$artistsWithoutTracksSQL .= " join library_contributor on contributors.id = library_contributor.contributor and library_contributor.library = '$selectedVL'";
+	}
+	$artistsWithoutTracksSQL .= " left join contributor_track on contributor_track.contributor = contributors.id left join tracks on contributor_track.track = tracks.id where tracks.id is null)";
+	my $artistsWithoutTracks = quickSQLcount($artistsWithoutTracksSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_NOTRACKS").':', 'value' => $artistsWithoutTracks.' ('.(sprintf("%.1f", ($artistsWithoutTracks/$artistCount * 100)).'%)')}) if $artistsWithoutTracks > 0;
+
+	# number of albums without tracks
+	my $albumsWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from albums";
+	if ($selectedVL && $selectedVL ne '') {
+		$albumsWithoutTracksSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+	}
+	$albumsWithoutTracksSQL .= " left join tracks on albums.id = tracks.album where tracks.id is null)";
+	my $albumsWithoutTracks = quickSQLcount($albumsWithoutTracksSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_NOTRACKS").':', 'value' => $albumsWithoutTracks.' ('.(sprintf("%.1f", ($albumsWithoutTracks/$albumsCount * 100)).'%)')}) if $albumsWithoutTracks > 0;
+
+	# number of genres without tracks
+	my $genresWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from genres";
+	if ($selectedVL && $selectedVL ne '') {
+		$genresWithoutTracksSQL .= " join library_genre on genre_track.genre = library_genre.genre and library_genre.library = '$selectedVL'";
+	}
+	$genresWithoutTracksSQL .= " left join genre_track on genre_track.genre = genres.id left join tracks on genre_track.track = tracks.id where tracks.id is null)";
+	$albumsWithoutTracksSQL .= " left join tracks on albums.id = tracks.album where tracks.id is null)";
+	my $genresWithoutTracks = quickSQLcount($genresWithoutTracksSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES_NOTRACKS").':', 'value' => $genresWithoutTracks.' ('.(sprintf("%.1f", ($genresWithoutTracks/$genreCount * 100)).'%)')}) if $genresWithoutTracks > 0;
+
+	# number of years without tracks
+	my $yearsWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from years left join tracks on years.id = tracks.year";
+	if ($selectedVL && $selectedVL ne '') {
+		$yearsWithoutTracksSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	$yearsWithoutTracksSQL .= " where tracks.id is null)";
+	my $yearsWithoutTracks = quickSQLcount($yearsWithoutTracksSQL);
+	if ($yearsWithoutTracks > 0) {
+		my $yearCount = quickSQLcount("select count(*) from years where years.id is not null");
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_YEARS_NOTRACKS").':', 'value' => $yearsWithoutTracks.' ('.(sprintf("%.1f", ($yearsWithoutTracks/$yearCount * 100)).'%)')}) if $yearCount > 0;
+	}
 
 	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
 	return \@result;
@@ -3542,6 +3633,7 @@ sub quickSQLcount {
 	$sth->execute();
 	$sth->bind_columns(undef, \$thisCount);
 	$sth->fetch();
+	$sth->finish();
 	return $thisCount;
 }
 
