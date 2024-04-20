@@ -10,7 +10,7 @@
 	<homepageURL>https://github.com/AF-1/lms-visualstatistics</homepageURL>
 	<defaultState>enabled</defaultState>
 	<targetApplication>
-		<id>Logitech Media Server</id>
+		<id>Lyrion Music Server</id>
 		<minVersion>8.0</minVersion>
 		<maxVersion>*</maxVersion>
 	</targetApplication>
