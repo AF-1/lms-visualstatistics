@@ -14,15 +14,16 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/lms-alterna
 [⬅️ **Back to the list of all plugins**](https://github.com/AF-1/)
 <br><br><br>
 
+
+## Screenshots[^2]
+<img src="screenshots/vs.gif" width="100%">
+<br><br><br>
+
+
 ## Requirements
 
 - LMS version >= **8**.0
 - LMS database = **SQLite**
-<br><br><br>
-
-
-## Screenshots[^2]
-<img src="screenshots/vs.gif" width="100%">
 <br><br><br>
 
 
@@ -42,4 +43,4 @@ If you want to report a new issue, please fill out this [**issue report template
 <br><br>
 
 [^1]: If you want localized strings in your language, please read <a href="https://github.com/AF-1/sobras/wiki/Adding-localization-to-LMS-plugins"><b>this</b></a>.
-[^2]: The screenshots might not correspond to the current UI in every detail.
+[^2]: The screenshots might not correspond to the UI of the latest release in every detail.
