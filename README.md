@@ -4,13 +4,13 @@ Visual Statistics
 With **Visual Statistics**[^1] you can display statistics of your LMS music library using all kinds of charts. Hovering over segments, bars or data points will display more information.<br><br>
 💡 The <b>bars</b> in many <i>bar charts</i> are <b>clickable</b> and will take you directly to the <b>browse menu</b> of the <i>artist, album, genre or year</i>.<br>
 
-If you're interested in lists with tracks, albums or artists sorted by statistics for a specific artist, album, genre, year/decade or playlist, have a look at the [**Context Stats**](https://github.com/AF-1/lms-contextstats#context-stats) plugin.<br>
+If you're interested in lists with tracks, albums or artists sorted by statistics for a specific artist, album, genre, year/decade or playlist, have a look at the [**Context Stats**](https://github.com/AF-1/#-context-stats) plugin.<br>
 
 Go to *Home Menu* > *Extras* > *Visual Statistics*
 <br><br>
 While the charts scale down, please note that this plugin was designed for wide/big screens.
 <br><br>
-If you have the [**Alternative Play Count**](https://github.com/AF-1/lms-alternativeplaycount) plugin installed, you will see some additional charts that use the data from this plugin.
+If you have the [**Alternative Play Count**](https://github.com/AF-1/#-alternative-play-count) plugin installed, you will see some additional charts that use the data from this plugin.
 <br><br>
 [⬅️ **Back to the list of all plugins**](https://github.com/AF-1/)
 <br><br><br>
