@@ -128,6 +128,9 @@ PLUGIN_VISUALSTATISTICS_SECTION_ALBUMS
 	FR	ALBUMS
 	NL	ALBUMS
 
+PLUGIN_VISUALSTATISTICS_SECTION_WORKS
+	EN	WORKS
+
 PLUGIN_VISUALSTATISTICS_SECTION_GENRES
 	EN	GENRES
 	FR	GENRES
@@ -365,14 +368,6 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_DPSV_LOWESTAVG_APC
 	EN	Artists with lowest avg. dynamic played/skipped value (APC)
 	FR	Artistes avec la plus petite valeur dynamique joués/sautés (DPSV) (APC)
 
-PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_HIGHESTAVG_APC
-	EN	Albums with highest avg. dynamic played/skipped value (APC)
-	FR	Albums avec la plus grand valeur dynamique joués/sautés (DPSV) (APC)
-
-PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_LOWESTAVG_APC
-	EN	Albums with lowest avg. dynamic played/skipped value (APC)
-	FR	Albums avec la plus petite valeur dynamique joués/sautés (DPSV) (APC)
-
 
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS
@@ -457,6 +452,90 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	EN	Albums with top average skip count (APC)
 	FR	Albums avec le nombre de sauts moyen le plus élevé (APC)
 	NL	Albums met het hoogste gemiddelde aantal overslagen nummers (APC)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_HIGHESTAVG_APC
+	EN	Albums with highest avg. dynamic played/skipped value (APC)
+	FR	Albums avec la plus grand valeur dynamique joués/sautés (DPSV) (APC)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_LOWESTAVG_APC
+	EN	Albums with lowest avg. dynamic played/skipped value (APC)
+	FR	Albums avec la plus petite valeur dynamique joués/sautés (DPSV) (APC)
+
+
+
+PLUGIN_VISUALSTATISTICS_WORKS_YEARS
+	EN	Works by year
+	FR	Œuvres par année
+
+PLUGIN_VISUALSTATISTICS_WORKS_COMPOSERS_MOST_WORKS
+	EN	Composers with most works
+
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_RATED_TRACKS
+	EN	Works with most rated tracks
+	FR	Œuvres avec le plus de morceaux notés
+
+PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_RATED
+	EN	Works with the highest percentage of rated tracks
+	FR	Œuvres avec le plus haut pourcentage de morceaux notés
+
+PLUGIN_VISUALSTATISTICS_WORKS_TOP_RATED_TRACKS_RATED
+	EN	Works with top average track rating
+	FR	Œuvres avec la meilleure note moyenne de morceaux
+
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_RECORDINGS
+	EN	Works with most recordings
+
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS
+	EN	Works with most played tracks (number of all tracks played at least once)
+	FR	Œuvres avec le plus de morceaux joués (nombre de morceaux joués au moins une fois)
+
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_APC
+	EN	Works with most played tracks (APC) (number of all tracks played at least once)
+	FR	Œuvres avec le plus de morceaux joués (APC) (nombre de morceaux joués au moins une fois)
+
+PLUGIN_VISUALSTATISTICS_WORKS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE
+	EN	Works with fully played, partially played tracks and without played tracks
+	FR	Œuvres avec ses morceaux complètement joués, partiellement joués et sans morceaux joués
+
+PLUGIN_VISUALSTATISTICS_WORKS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC
+	EN	Works with fully played, partially played tracks and without played tracks (APC)
+	FR	Œuvres avec ses morceaux complètement joués, partiellement joués et sans morceaux joués (APC)
+
+PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_PLAYED
+	EN	Works with the highest percentage of played tracks (not completely played)
+	FR	Œuvres avec le plus haut pourcentage de morceaux joués (non joués complètement)
+
+PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC
+	EN	Works with the highest percentage of played tracks (APC) (not completely played)
+	FR	Œuvres avec le plus haut pourcentage de morceaux joués (APC) (non joués complètement)
+
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT
+	EN	Works with top average play count
+	FR	Œuvres avec le nombre d’écoutes moyen le plus élevé
+
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
+	EN	Works with top average play count (APC)
+	FR	Œuvres avec le nombre d’écoutes moyen le plus élevé (APC)
+
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_SKIPPED_TRACKS_APC
+	EN	Works with most skipped tracks (APC) (number of all tracks skipped at least once)
+	FR	Œuvres avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
+
+PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
+	EN	Works with the highest percentage of skipped tracks (APC)
+	FR	Œuvres avec le plus haut pourcentage de morceaux sautés (APC)
+
+PLUGIN_VISUALSTATISTICS_WORKS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
+	EN	Works with top average skip count (APC)
+	FR	Œuvres avec le nombre de sauts moyen le plus élevé (APC)
+
+PLUGIN_VISUALSTATISTICS_WORKS_DPSV_HIGHESTAVG_APC
+	EN	Works with highest avg. dynamic played/skipped value (APC)
+	FR	Œuvres avec la plus grand valeur dynamique joués/sautés (DPSV) (APC)
+
+PLUGIN_VISUALSTATISTICS_WORKS_DPSV_LOWESTAVG_APC
+	EN	Works with lowest avg. dynamic played/skipped value (APC)
+	FR	Œuvres avec la plus petite valeur dynamique joués/sautés (DPSV) (APC)
 
 
 
@@ -757,6 +836,15 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMS_PLAYED_NOTPLAYED
 	FR	Albums pas joués du tout
 	NL	Albums helemaal niet afgespeeld
 
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKS_PLAYED_COMPLETELY
+	EN	Works completely played
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKS_PLAYED_PARTIALLY
+	EN	Works partially played
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKS_PLAYED_NOTPLAYED
+	EN	Works not played at all
+
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED
 	EN	Percentage of played tracks
 	FR	Pourcentage de morceaux joués
@@ -811,6 +899,9 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT
 	FR	Nombre d’albums
 	NL	Aantal albums
 
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKCOUNT
+	EN	Number of works
+
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTCOUNT
 	EN	Number of artists
 	FR	Nombre d’artistes
@@ -825,6 +916,9 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT
 	EN	Number of tracks
 	FR	Nombre de morceaux
 	NL	Aantal nummers
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_RECORDINGCOUNT
+	EN	Number of recordings
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT
 	EN	Word count
@@ -871,10 +965,16 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME
 	FR	Artiste
 	NL	Artiest
 
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_COMPOSERNAME
+	EN	Composer
+
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMNAME
 	EN	Album
 	FR	Album
 	NL	Album
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE
+	EN	Work
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME
 	EN	Genre
@@ -1069,6 +1169,12 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS
 	EN	Albums
 	FR	Albums
 	NL	Albums
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS
+	EN	Works
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS_MULTIPLE_RECORDINGS
+	EN	Works with multiple recordings
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPIS
 	EN	Compilations
