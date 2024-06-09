@@ -294,20 +294,20 @@ sub getDataLibStatsText {
 		my $worksCount = quickSQLcount($worksCountSQL);
 		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS").':', 'value' => $worksCount});
 
-		# number of works with < 1 recording
-		my $worksMultipleRecordingsCountSQL = "select works.id, (select count(distinct album||work||coalesce(grouping,1)) from tracks where tracks.work = works.id) as noofrecordings from works join tracks on tracks.work = works.id";
+		# number of works with < 1 performance
+		my $worksMultiplePerformancesCountSQL = "select works.id, (select count(distinct album||work||coalesce(performance,1)) from tracks where tracks.work = works.id) as noofperformances from works join tracks on tracks.work = works.id";
 		if ($selectedVL && $selectedVL ne '') {
-			$worksMultipleRecordingsCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+			$worksMultiplePerformancesCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 		}
-		$worksMultipleRecordingsCountSQL .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having noofrecordings > 1";
+		$worksMultiplePerformancesCountSQL .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having noofperformances > 1";
 		my $dbh = Slim::Schema->dbh;
-		my $sth = $dbh->prepare($worksMultipleRecordingsCountSQL);
+		my $sth = $dbh->prepare($worksMultiplePerformancesCountSQL);
 		$sth->execute();
-		my $worksMultipleRecordingsArr = $sth->fetchall_arrayref();
+		my $worksMultiplePerformancesArr = $sth->fetchall_arrayref();
 		$sth->finish();
-		if (scalar @{$worksMultipleRecordingsArr} > 0) {
-			my $worksMultipleRecordingsCountPercentage = sprintf("%.1f", (scalar @{$worksMultipleRecordingsArr}/$worksCount * 100)).'%';
-			push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS_MULTIPLE_RECORDINGS").':', 'value' => $worksMultipleRecordingsCountPercentage});
+		if (scalar @{$worksMultiplePerformancesArr} > 0) {
+			my $worksMultiplePerformancesCountPercentage = sprintf("%.1f", (scalar @{$worksMultiplePerformancesArr}/$worksCount * 100)).'%';
+			push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS_MULTIPLE_PERFORMANCES").':', 'value' => $worksMultiplePerformancesCountPercentage});
 		}
 	}
 
@@ -2040,8 +2040,8 @@ sub getDataWorksWithTopRatedTracksRated {
 	return executeSQLstatement($sqlstatement, 4);
 }
 
-sub getDataWorksWithMostRecordings {
-	my $sqlstatement = "select works.title, (select count(distinct album||work||coalesce(grouping,1)) from tracks where tracks.work = works.id) as noofrecordings, works.id, contributors.name from works join tracks on tracks.work = works.id";
+sub getDataWorksWithMostPerformances {
+	my $sqlstatement = "select works.title, (select count(distinct album||work||coalesce(performance,1)) from tracks where tracks.work = works.id) as noofperformances, works.id, contributors.name from works join tracks on tracks.work = works.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2055,7 +2055,7 @@ sub getDataWorksWithMostRecordings {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " group by works.id order by noofrecordings desc, contributors.namesort asc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " group by works.id order by noofperformances desc, contributors.namesort asc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
