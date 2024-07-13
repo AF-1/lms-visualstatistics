@@ -332,11 +332,39 @@
 					</div>
 				</div>
 		</div>
+[% END %]
+[% IF displayapcdupes < 2 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataArtistsWithMostPlayedTracksTotal">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithMostPlayedTracksTotal')">
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataArtistsWithMostPlayedTracksTotalAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithMostPlayedTracksTotalAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC' | string %]
+					</div>
+				</div>
+		</div>
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataArtistsWithMostSkippedTracksAPC">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithMostSkippedTracksAPC')">
 						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_APC' | string %]
+					</div>
+				</div>
+		</div>
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataArtistsWithTopTotalSkipCountAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataArtistsWithTopTotalSkipCountAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC' | string %]
 					</div>
 				</div>
 		</div>
@@ -533,6 +561,42 @@
 					</div>
 				</div>
 		</div>
+[% END %]
+[% IF displayapcdupes < 2 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataAlbumsWithMostPlayedTracksTotal">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithMostPlayedTracksTotal')">
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataAlbumsWithMostPlayedTracksTotalAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithMostPlayedTracksTotalAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC' | string %]
+					</div>
+				</div>
+		</div>
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataAlbumsWithMostSkippedTracksAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithMostSkippedTracksAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_APC' | string %]
+					</div>
+				</div>
+		</div>
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataAlbumsWithTopTotalSkipCountAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataAlbumsWithTopTotalSkipCountAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC' | string %]
+					</div>
+				</div>
+		</div>
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataAlbumsWithMostSkippedTracksAPC">
 				<div class="flexitem">
@@ -709,11 +773,39 @@
 					</div>
 				</div>
 		</div>
+[% END %]
+[% IF displayapcdupes < 2 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataWorksWithMostPlayedTracksTotal">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataWorksWithMostPlayedTracksTotal')">
+						[% 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataWorksWithMostPlayedTracksTotalAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataWorksWithMostPlayedTracksTotalAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC' | string %]
+					</div>
+				</div>
+		</div>
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataWorksWithMostSkippedTracksAPC">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataWorksWithMostSkippedTracksAPC')">
 						[% 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_SKIPPED_TRACKS_APC' | string %]
+					</div>
+				</div>
+		</div>
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataWorksWithTopTotalSkipCountAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataWorksWithTopTotalSkipCountAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_WORKS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC' | string %]
 					</div>
 				</div>
 		</div>
@@ -857,11 +949,39 @@
 					</div>
 				</div>
 		</div>
+[% END %]
+[% IF displayapcdupes < 2 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataGenresWithMostPlayedTracksTotal">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithMostPlayedTracksTotal')">
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataGenresWithMostPlayedTracksTotalAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithMostPlayedTracksTotalAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC' | string %]
+					</div>
+				</div>
+		</div>
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataGenresWithMostSkippedTracksAPC">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithMostSkippedTracksAPC')">
 						[% 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_APC' | string %]
+					</div>
+				</div>
+		</div>
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataGenresWithTopTotalSkipCountAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataGenresWithTopTotalSkipCountAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_TOTAL_SKIPCOUNT_TRACKS_APC' | string %]
 					</div>
 				</div>
 		</div>
@@ -996,11 +1116,39 @@
 					</div>
 				</div>
 		</div>
+[% END %]
+[% IF displayapcdupes < 2 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataYearsWithMostPlayedTracksTotal">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithMostPlayedTracksTotal')">
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataYearsWithMostPlayedTracksTotalAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithMostPlayedTracksTotalAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC' | string %]
+					</div>
+				</div>
+		</div>
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataYearsWithMostSkippedTracksAPC">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithMostSkippedTracksAPC')">
 						[% 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC' | string %]
+					</div>
+				</div>
+		</div>
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataYearsWithTopTotalSkipCountAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataYearsWithTopTotalSkipCountAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_YEARS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC' | string %]
 					</div>
 				</div>
 		</div>
@@ -1127,11 +1275,39 @@
 					</div>
 				</div>
 		</div>
+[% END %]
+[% IF displayapcdupes < 2 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataDecadesWithMostPlayedTracksTotal">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataDecadesWithMostPlayedTracksTotal')">
+						[% 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT' | string %]
+					</div>
+				</div>
+		</div>
+[% END %]
+[% IF apcenabled && displayapcdupes > 0 %]
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataDecadesWithMostPlayedTracksTotalAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataDecadesWithMostPlayedTracksTotalAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC' | string %]
+					</div>
+				</div>
+		</div>
 		<div class="filler"></div>
 		<div class="wrapper" id="getDataDecadesWithMostSkippedTracksAPC">
 				<div class="flexitem">
 					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataDecadesWithMostSkippedTracksAPC')">
 						[% 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_APC' | string %]
+					</div>
+				</div>
+		</div>
+		<div class="filler"></div>
+		<div class="wrapper" id="getDataDecadesWithTopTotalSkipCountAPC">
+				<div class="flexitem">
+					<div class="flexitem textwrapper chartlink" onclick="showChart('getDataDecadesWithTopTotalSkipCountAPC')">
+						[% 'PLUGIN_VISUALSTATISTICS_DECADES_TOP_TOTAL_SKIPCOUNT_TRACKS_APC' | string %]
 					</div>
 				</div>
 		</div>
@@ -1298,7 +1474,10 @@
 	getDataArtistsHighestPercentagePlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC" | string %]',
 	getDataArtistsWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT" | string %]',
 	getDataArtistsWithMostPlayedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC" | string %]',
+	getDataArtistsWithMostPlayedTracksTotal:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT" | string %]',
+	getDataArtistsWithMostPlayedTracksTotalAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC" | string %]',
 	getDataArtistsWithMostSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_APC" | string %]',
+	getDataArtistsWithTopTotalSkipCountAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC" | string %]',
 	getDataArtistsHighestPercentageSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC" | string %]',
 	getDataArtistsWithMostSkippedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT" | string %]',
 	getDataArtistsRatingPlaycount:'[% "PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT" | string %]',
@@ -1320,7 +1499,10 @@
 	getDataAlbumsHighestPercentagePlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC" | string %]',
 	getDataAlbumsWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT" | string %]',
 	getDataAlbumsWithMostPlayedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC" | string %]',
+	getDataAlbumsWithMostPlayedTracksTotal:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT" | string %]',
+	getDataAlbumsWithMostPlayedTracksTotalAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC" | string %]',
 	getDataAlbumsWithMostSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_APC" | string %]',
+	getDataAlbumsWithTopTotalSkipCountAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC" | string %]',
 	getDataAlbumsHighestPercentageSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC" | string %]',
 	getDataAlbumsWithMostSkippedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT" | string %]',
 	getDataAlbumsHighestAvgDpsvAPC:'[% "PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_HIGHESTAVG_APC" | string %]',
@@ -1340,7 +1522,10 @@
 	getDataWorksHighestPercentagePlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC" | string %]',
 	getDataWorksWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT" | string %]',
 	getDataWorksWithMostPlayedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC" | string %]',
+	getDataWorksWithMostPlayedTracksTotal:'[% "PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT" | string %]',
+	getDataWorksWithMostPlayedTracksTotalAPC:'[% "PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC" | string %]',
 	getDataWorksWithMostSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_WORKS_MOST_SKIPPED_TRACKS_APC" | string %]',
+	getDataWorksWithTopTotalSkipCountAPC:'[% "PLUGIN_VISUALSTATISTICS_WORKS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC" | string %]',
 	getDataWorksHighestPercentageSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC" | string %]',
 	getDataWorksWithMostSkippedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_WORKS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT" | string %]',
 	getDataWorksHighestAvgDpsvAPC:'[% "PLUGIN_VISUALSTATISTICS_WORKS_DPSV_HIGHESTAVG_APC" | string %]',
@@ -1357,7 +1542,10 @@
 	getDataGenresHighestPercentagePlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC" | string %]',
 	getDataGenresWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT" | string %]',
 	getDataGenresWithMostPlayedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC" | string %]',
+	getDataGenresWithMostPlayedTracksTotal:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT" | string %]',
+	getDataGenresWithMostPlayedTracksTotalAPC:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC" | string %]',
 	getDataGenresWithMostSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_APC" | string %]',
+	getDataGenresWithTopTotalSkipCountAPC:'[% "PLUGIN_VISUALSTATISTICS_GENRES_TOP_TOTAL_SKIPCOUNT_TRACKS_APC" | string %]',
 	getDataGenresHighestPercentageSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC" | string %]',
 	getDataGenresWithMostSkippedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_GENRES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT" | string %]',
 	getDataGenresWithTopAverageBitrate:'[% "PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE" | string %]',
@@ -1373,7 +1561,10 @@
 	getDataYearsHighestPercentagePlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC" | string %]',
 	getDataYearsWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT" | string %]',
 	getDataYearsWithMostPlayedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC" | string %]',
+	getDataYearsWithMostPlayedTracksTotal:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT" | string %]',
+	getDataYearsWithMostPlayedTracksTotalAPC:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC" | string %]',
 	getDataYearsWithMostSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC" | string %]',
+	getDataYearsWithTopTotalSkipCountAPC:'[% "PLUGIN_VISUALSTATISTICS_YEARS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC" | string %]',
 	getDataYearsHighestPercentageSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC" | string %]',
 	getDataYearsWithMostSkippedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_YEARS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT" | string %]',
 
@@ -1388,7 +1579,10 @@
 	getDataDecadesHighestPercentagePlayedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC" | string %]',
 	getDataDecadesWithMostPlayedTracksAverage:'[% "PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT" | string %]',
 	getDataDecadesWithMostPlayedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC" | string %]',
+	getDataDecadesWithMostPlayedTracksTotal:'[% "PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT" | string %]',
+	getDataDecadesWithMostPlayedTracksTotalAPC:'[% "PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC" | string %]',
 	getDataDecadesWithMostSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_APC" | string %]',
+	getDataDecadesWithTopTotalSkipCountAPC:'[% "PLUGIN_VISUALSTATISTICS_DECADES_TOP_TOTAL_SKIPCOUNT_TRACKS_APC" | string %]',
 	getDataDecadesHighestPercentageSkippedTracksAPC:'[% "PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC" | string %]',
 	getDataDecadesWithMostSkippedTracksAverageAPC:'[% "PLUGIN_VISUALSTATISTICS_DECADES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT" | string %]',
 
@@ -1410,9 +1604,11 @@
 	VLchartlabelPercentageRated:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED" | string %]',
 	VLchartlabelPlayedTrackCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT" | string %]',
 	VLchartlabelPlayCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT" | string %]',
+	VLchartlabelTotalPlayCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT" | string %]',
 	VLchartlabelPercentagePlayed:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED" | string %]',
 	VLchartlabelSkippedTrackCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT" | string %]',
 	VLchartlabelSkipCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPCOUNT" | string %]',
+	VLchartlabelTotalSkipCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALSKIPCOUNT" | string %]',
 	VLchartlabelPercentageSkipped:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED" | string %]',
 	VLchartlabelDPSV:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV" | string %]',
 	VLchartlabelWordCount:'[% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT" | string %]',

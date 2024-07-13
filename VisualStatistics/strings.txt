@@ -336,6 +336,14 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 	FR	Artistes avec le nombre d’écoutes moyen le plus élevé (APC)
 	NL	Artiesten met de meeste gemiddelde keren afgespeeld (APC)
 
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT
+	EN	Artists with top total play count
+	FR	Artistes avec le nombre d’écoutes total le plus élevé
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC
+	EN	Artists with top total play count (APC)
+	FR	Artistes avec le nombre d’écoutes total le plus élevé (APC)
+
 PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT
 	EN	Artists - average rating vs. average play count
 	FR	Artistes - note moyenne vs. nombre d’écoutes moyen
@@ -355,6 +363,10 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC
 	EN	Artists with the highest percentage of skipped tracks (APC)
 	FR	Artistes avec le plus haut pourcentage de morceaux sautés (APC)
 	NL	Artiesten met het hoogste percentage overgeslagen nummers (APC)
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC
+	EN	Artists with top total skip count (APC)
+	FR	Artistes avec le nombre de sauts total le plus élevé (APC)
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	EN	Artists with top average skip count (APC)
@@ -440,6 +452,18 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 	FR	Albums avec le nombre d’écoutes moyen le plus élevé (APC)
 	NL	Albums met de meeste gemiddelde keren afgespeeld (APC)
 
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT
+	EN	Albums with top total play count
+	FR	Albums avec le nombre d’écoutes total le plus élevé
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC
+	EN	Albums with top total play count (APC)
+	FR	Albums avec le nombre d’écoutes total le plus élevé (APC)
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC
+	EN	Albums with top total skip count (APC)
+	FR	Albums avec le nombre de sauts total le plus élevé (APC)
+
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_APC
 	EN	Albums with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Albums avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
@@ -521,6 +545,18 @@ PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 	EN	Works with top average play count (APC)
 	FR	Œuvres avec le nombre d’écoutes moyen le plus élevé (APC)
 
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT
+	EN	Works with top total play count
+	FR	Œuvres avec le nombre d’écoutes total le plus élevé
+
+PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC
+	EN	Works with top total play count (APC)
+	FR	Œuvres avec le nombre d’écoutes total le plus élevé (APC)
+
+PLUGIN_VISUALSTATISTICS_WORKS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC
+	EN	Works with top total skip count (APC)
+	FR	Œuvres avec le nombre de sauts total le plus élevé (APC)
+
 PLUGIN_VISUALSTATISTICS_WORKS_MOST_SKIPPED_TRACKS_APC
 	EN	Works with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Œuvres avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
@@ -597,6 +633,18 @@ PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 	EN	Genres with top average play count (APC)
 	FR	Genres avec le nombre d’écoutes moyen le plus élevé (APC)
 	NL	Genres met de meeste gemiddelde keren afgespeeld (APC)
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT
+	EN	Genres with top total play count
+	FR	Genres avec le nombre d’écoutes total le plus élevé
+
+PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC
+	EN	Genres with top total play count (APC)
+	FR	Genres avec le nombre d’écoutes total le plus élevé (APC)
+
+PLUGIN_VISUALSTATISTICS_GENRES_TOP_TOTAL_SKIPCOUNT_TRACKS_APC
+	EN	Genres with top total skip count (APC)
+	FR	Genres avec le nombre de sauts total le plus élevé (APC)
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_APC
 	EN	Genres with most skipped tracks (APC) (number of all tracks skipped at least once)
@@ -675,6 +723,18 @@ PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 	FR	Années avec le nombre d’écoutes moyen le plus élevé (APC)
 	NL	Jaren met de meeste gemiddelde keren afgespeelde nummers (APC)
 
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT
+	EN	Years with top total play count
+	FR	Années avec le nombre d’écoutes total le plus élevé
+
+PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC
+	EN	Years with top total play count (APC)
+	FR	Années avec le nombre d’écoutes total le plus élevé (APC)
+
+PLUGIN_VISUALSTATISTICS_YEARS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC
+	EN	Years with top total skip count (APC)
+	FR	Années avec le nombre de sauts total le plus élevé (APC)
+
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC
 	EN	Years with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Années avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
@@ -747,6 +807,18 @@ PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC
 	FR	Décennies avec le nombre d’écoutes moyen le plus élevé (APC)
 	NL	Decennia met de meeste gemiddelde keren afgespeeld (APC)
 
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT
+	EN	Decades with top total play count
+	FR	Décennies avec le nombre d’écoutes total le plus élevé
+
+PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC
+	EN	Decades with top total play count (APC)
+	FR	Décennies avec le nombre d’écoutes total le plus élevé (APC)
+
+PLUGIN_VISUALSTATISTICS_DECADES_TOP_TOTAL_SKIPCOUNT_TRACKS_APC
+	EN	Decades with top total skip count (APC)
+	FR	Décennies avec le nombre de sauts total le plus élevé (APC)
+
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_APC
 	EN	Decades with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Décennies avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
@@ -810,6 +882,11 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT
 	FR	Nombre d’écoutes
 	NL	Keren afgespeeld
 
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT
+	EN	Total play count
+	FR	Nombre d’écoutes total
+	NL	Totaal keren afgespeeld
+
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTS_PLAYED_COMPLETELY
 	EN	Artists completely played
 	FR	Artistes joués complètement
@@ -866,6 +943,11 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPCOUNT
 	EN	Skip count
 	FR	Nombre de sauts
 	NL	Aantal overgeslagen
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALSKIPCOUNT
+	EN	Total skip count
+	FR	Nombre de sauts total
+	NL	Totaal aantal overgeslagen
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED
 	EN	Percentage of skipped tracks
