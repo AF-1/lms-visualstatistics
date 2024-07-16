@@ -5,7 +5,7 @@ PLUGIN_VISUALSTATISTICS
 
 PLUGIN_VISUALSTATISTICS_DESC
 	EN	Have a look at your library statistics with charts. More information on the GitHub page.
-	FR	Explorez les statistiques de votre bibliothèque musicale avec des graphiques. Plus d'information sur la page GitHub.
+	FR	Explorez les statistiques de votre bibliothèque musicale avec des graphiques. Plus d’information sur la page GitHub.
 	NL	Bekijk jouw mediabibliotheek statistieken door middel van grafieken.
 
 PLUGIN_STATISTICSLIGH_LOG_DESC
@@ -20,7 +20,7 @@ PLUGIN_VISUALSTATISTICS_SETTINGS
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK_TEXT
 	EN	Click here for more information.
-	FR	Cliquez ici pour plus d'informations.
+	FR	Cliquez ici pour plus d’informations.
 	NL	Klik hier voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK
@@ -45,32 +45,32 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_LMSONLY
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_APCONLY
 	EN	only charts based on APC values
-	FR	seulement les graphiques basés sur les valeurs d'APC
+	FR	seulement les graphiques basés sur les valeurs d’APC
 	NL	alleen grafieken gebaseerd op APC info
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES_BOTH
 	EN	charts based on LMS and APC values
-	FR	graphiques basés sur les valeurs de LMS et d'APC
+	FR	graphiques basés sur les valeurs de LMS et d’APC
 	NL	grafieken gebaseerd op LMS en APC info
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS
 	EN	Minimum artist tracks
-	FR	Nombre de morceaux minimum d'un artiste
+	FR	Nombre de morceaux minimum d’un artiste
 	NL	Minimum aantal nummers van een artiest
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINARTISTTRACKS_DESC
 	EN	Some artist charts (percentage, average) would show very skewed and uninformative results if artists with very few songs were not excluded.<br>Example: Artists with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of artist tracks played</i> would consist only of such artists in the worst case.<br>The <b>minimum artist tracks</b> setting allows you to exclude artists with very few tracks to get more meaningful results.
-	FR	Certains graphiques sur les artistes (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les artistes avec peu de morceaux ne sont pas exclus.<br>Exemple : Les artistes avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>artistes par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'artistes dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un artiste</b> permet d'exclure les artistes avec peu de morceaux pour avoir des résultats plus significatifs.
+	FR	Certains graphiques sur les artistes (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les artistes avec peu de morceaux ne sont pas exclus.<br>Exemple : Les artistes avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>artistes par pourcentage de morceaux joués</i> consisterait seulement de ce genre d’artistes dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d’un artiste</b> permet d’exclure les artistes avec peu de morceaux pour avoir des résultats plus significatifs.
 	NL	Sommige artiest grafieken (percentage, gemiddeld) zouden zeer scheve en weinig informatieve resultaten laten zien als artiesten met heel weinig nummers niet worden uitgesloten.<br>Voorbeeld: artiesten met slechts <b>één</b> nummer waarvan het aantal afgespeelde nummers minimaal 1 is, hebben 100% van hun nummers gespeeld. Dus een grafiek zoals <i>percentage van afgespeelde artiesten nummers</i> zou in het ergste geval alleen uit dergelijke artiesten bestaan.<br>Met de instelling <b>minimum aantal nummers van een artiest</b> kan je artiesten uitsluiten met weinig nummers om meer betekenisvolle resultaten te krijgen.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS
 	EN	Minimum album tracks
-	FR	Nombre de morceaux minimum d'un album
+	FR	Nombre de morceaux minimum d’un album
 	NL	Minimum aantal nummers in een album
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_MINALBUMTRACKS_DESC
 	EN	Some album charts (percentage, average) would show very skewed and uninformative results if albums with very few songs were not excluded.<br>Example: Albums with just <b>one</b> track whose play count is at least 1 have 100% of their tracks played. So a chart like <i>percentage of album tracks played</i> would consist only of such albums in the worst case.<br>The <b>minimum album tracks</b> setting allows you to exclude albums with very few tracks to get more meaningful results.
-	FR	Certains graphiques sur les albums (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les albums avec peu de morceaux ne sont pas exclus.<br>Exemple : Les albums avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>albums par pourcentage de morceaux joués</i> consisterait seulement de ce genre d'albums dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d'un album</b> permet d'exclure les albums avec peu de morceaux pour avoir des résultats plus significatifs.
+	FR	Certains graphiques sur les albums (pourcentage, moyenne) pourraient montrer des résultats biaisés et non informatifs si les albums avec peu de morceaux ne sont pas exclus.<br>Exemple : Les albums avec seulement <b>un</b> morceau dont le nombre de lectures est au moins 1 auront 100% de leurs morceaux joués. Donc un graphe comme <i>albums par pourcentage de morceaux joués</i> consisterait seulement de ce genre d’albums dans le pire cas.<br>Le réglage <b>nombre minimum de morceaux d’un album</b> permet d’exclure les albums avec peu de morceaux pour avoir des résultats plus significatifs.
 	NL	Sommige album grafieken (percentage, gemiddeld) zouden zeer scheve en weinig informatieve resultaten laten zien als albums met heel weinig nummers niet werden uitgesloten.<br>Voorbeeld: albums met slechts <b>één</b> nummer waarvan het aantal afgespeelde nummers minimaal 1 is, hebben 100% van hun nummers gespeeld. Dus een grafiek zoals <i>percentage van afgespeelde album nummers</i> zou in het ergste geval alleen uit dergelijke albums bestaan.<br>Met de instelling <b>minimum aantal nummers in een album</b> kan je albums uitsluiten met weinig nummers om meer betekenisvolle resultaten te krijgen.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS
@@ -80,7 +80,7 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS_DESC
 	EN	If checked, clicking on bars in some bar charts will display a rudimentary browse menu for the artist, album, genre, year or track you clicked on.
-	FR	Si cette case est cochée, un clic sur les barres de certains graphiques affichera un menu de navigation rudimentaire pour l'artiste, l'album, le genre, l'année ou le morceau sur lesquels vous avez cliqué.
+	FR	Si cette case est cochée, un clic sur les barres de certains graphiques affichera un menu de navigation rudimentaire pour l’artiste, l’album, le genre, l’année ou le morceau sur lesquels vous avez cliqué.
 	NL	Indien aangevinkt, zal het klikken op staven in sommige staafdiagrammen een rudimentair bladermenu tonen voor de artiest, het album, het genre, het jaar of het nummer waarop u geklikt hebt.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
@@ -495,7 +495,7 @@ PLUGIN_VISUALSTATISTICS_WORKS_YEARS
 
 PLUGIN_VISUALSTATISTICS_WORKS_COMPOSERS_MOST_WORKS
 	EN	Composers with most works
-	FR	Compositeurs avec le plus d'œuvres
+	FR	Compositeurs avec le plus d’œuvres
 
 PLUGIN_VISUALSTATISTICS_WORKS_MOST_RATED_TRACKS
 	EN	Works with most rated tracks
@@ -511,7 +511,7 @@ PLUGIN_VISUALSTATISTICS_WORKS_TOP_RATED_TRACKS_RATED
 
 PLUGIN_VISUALSTATISTICS_WORKS_MOST_PERFORMANCES
 	EN	Works with most performances
-	FR	Œuvres avec le plus d'enregistrements
+	FR	Œuvres avec le plus d’enregistrements
 
 PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS
 	EN	Works with most played tracks (number of all tracks played at least once)
@@ -1009,7 +1009,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERFORMANCECOUNT
 	EN	Number of performances
-	FR	Nombre d'enregistrements
+	FR	Nombre d’enregistrements
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT
 	EN	Word count
@@ -1249,7 +1249,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPOSERS
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_CONDUCTORS
 	EN	Conductors
-	FR	Chefs d'orchestre
+	FR	Chefs d’orchestre
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_BANDS
 	EN	Bands
@@ -1280,7 +1280,7 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPIS
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AALBUMS
 	EN	Artist albums
-	FR	Albums d'artistes
+	FR	Albums d’artistes
 	NL	Artiest albums
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSPLAYED
