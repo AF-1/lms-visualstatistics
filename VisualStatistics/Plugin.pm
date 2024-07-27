@@ -1169,10 +1169,12 @@ sub getDataArtistsHighestPercentageRatedTracks {
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
-sub getDataArtistsWithTopRatedTracksRated {
+sub getDataArtistsWithTopRatedTracksAvg {
+	my $agg = shift;
+	my $aggFunc = $agg ? 'sum' : 'avg';
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
 	my $minArtistTracks = $prefs->get('minartisttracks');
-	my $sqlstatement = "select distinct contributors.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.id from tracks left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
+	my $sqlstatement = "select distinct contributors.name, $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating, contributors.id from tracks left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -1186,8 +1188,12 @@ sub getDataArtistsWithTopRatedTracksRated {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " group by tracks.primary_artist having count(distinct tracks.id) >= $minArtistTracks order by avgrating desc, contributors.namesort asc limit $rowLimit;";
+	$sqlstatement .= " group by tracks.primary_artist having count(distinct tracks.id) >= $minArtistTracks order by procrating desc, contributors.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
+}
+
+sub getDataArtistsWithTopRatedTracksTotal {
+	return getDataArtistsWithTopRatedTracksAvg(1);
 }
 
 sub getDataArtistsWithMostPlayedTracks {
@@ -1392,10 +1398,11 @@ sub getDataArtistsWithMostSkippedTracksAverageAPC {
 }
 
 sub getDataArtistsRatingPlaycount {
-	my $useAPC = shift;
+	my ($useAPC, $agg) = @_;
 	my $dbTable = $useAPC ? 'alternativeplaycount' : 'tracks_persistent';
+	my $aggFunc = $agg ? 'sum' : 'avg';
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select t.* from (select avg(ifnull($dbTable.playCount,0)) as avgplaycount, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, contributors.name from tracks";
+	my $sqlstatement = "select t.* from (select $aggFunc(ifnull($dbTable.playCount,0)) as procplaycount, $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating, contributors.name from tracks";
 	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5" if $useAPC;
 	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1411,12 +1418,20 @@ sub getDataArtistsRatingPlaycount {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " group by tracks.primary_artist) as t where (t.avgplaycount >= 0.05 and t.avgrating >= 0.05);";
+	$sqlstatement .= " group by tracks.primary_artist) as t where (t.procplaycount >= 0.05 and t.procrating >= 0.05);";
 	return executeSQLstatement($sqlstatement, 3);
 }
 
 sub getDataArtistsRatingPlaycountAPC {
 	return getDataArtistsRatingPlaycount(1);
+}
+
+sub getDataArtistsRatingPlaycountTotal {
+	return getDataArtistsRatingPlaycount(0,1);
+}
+
+sub getDataArtistsRatingPlaycountTotalAPC {
+	return getDataArtistsRatingPlaycountAPC(1,1);
 }
 
 sub getDataArtistsHighestAvgDpsvAPC {
@@ -1564,9 +1579,11 @@ sub getDataAlbumsHighestPercentageRatedTracks {
 	return executeSQLstatement($sqlstatement, 4);
 }
 
-sub getDataAlbumsWithTopRatedTracksRated {
+sub getDataAlbumsWithTopRatedTracksAvg {
+	my $agg = shift;
+	my $aggFunc = $agg ? 'sum' : 'avg';
 	my $minAlbumTracks = $prefs->get('minalbumtracks');
-	my $sqlstatement = "select albums.title, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, albums.id, contributors.name from albums join tracks on tracks.album = albums.id";
+	my $sqlstatement = "select albums.title, $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating, albums.id, contributors.name from albums join tracks on tracks.album = albums.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -1580,8 +1597,12 @@ sub getDataAlbumsWithTopRatedTracksRated {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title having count(distinct tracks.id) >= $minAlbumTracks order by avgrating desc, contributors.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title having count(distinct tracks.id) >= $minAlbumTracks order by procrating desc, contributors.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
+}
+
+sub getDataAlbumsWithTopRatedTracksTotal {
+	return getDataAlbumsWithTopRatedTracksAvg(1);
 }
 
 sub getDataAlbumsWithMostPlayedTracks {
@@ -1894,9 +1915,11 @@ sub getDataWorksHighestPercentageRatedTracks {
 	return executeSQLstatement($sqlstatement, 4);
 }
 
-sub getDataWorksWithTopRatedTracksRated {
+sub getDataWorksWithTopRatedTracksAvg {
+	my $agg = shift;
+	my $aggFunc = $agg ? 'sum' : 'avg';
 	my $minAlbumTracks = $prefs->get('minalbumtracks');
-	my $sqlstatement = "select works.title, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, works.id, contributors.name from works join tracks on tracks.work = works.id";
+	my $sqlstatement = "select works.title, $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating, works.id, contributors.name from works join tracks on tracks.work = works.id";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -1910,8 +1933,12 @@ sub getDataWorksWithTopRatedTracksRated {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having count(distinct tracks.id) >= $minAlbumTracks order by avgrating desc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having count(distinct tracks.id) >= $minAlbumTracks order by procrating desc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
+}
+
+sub getDataWorksWithTopRatedTracksTotal {
+	return getDataWorksWithTopRatedTracksAvg(1);
 }
 
 sub getDataWorksWithMostPerformances {
@@ -2224,8 +2251,10 @@ sub getDataGenresHighestPercentageRatedTracks {
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
-sub getDataGenresWithTopRatedTracksRated {
-	my $sqlstatement = "select genres.name, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, genres.id from tracks";
+sub getDataGenresWithTopRatedTracksAvg {
+	my $agg = shift;
+	my $aggFunc = $agg ? 'sum' : 'avg';
+	my $sqlstatement = "select genres.name, $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating, genres.id from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2235,8 +2264,12 @@ sub getDataGenresWithTopRatedTracksRated {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by avgrating desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by procrating desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
+}
+
+sub getDataGenresWithTopRatedTracksTotal {
+	return getDataGenresWithTopRatedTracksAvg(1);
 }
 
 sub getDataGenresWithMostPlayedTracks {
@@ -2438,8 +2471,10 @@ sub getDataYearsHighestPercentageRatedTracks {
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
-sub getDataYearsWithTopRatedTracksRated {
-	my $sqlstatement = "select tracks.year, avg(ifnull(tracks_persistent.rating,0)/20) as avgrating, tracks.year from tracks";
+sub getDataYearsWithTopRatedTracksAvg {
+	my $agg = shift;
+	my $aggFunc = $agg ? 'sum' : 'avg';
+	my $sqlstatement = "select tracks.year, $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating, tracks.year from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2448,8 +2483,12 @@ sub getDataYearsWithTopRatedTracksRated {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by avgrating desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by procrating desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
+}
+
+sub getDataYearsWithTopRatedTracksTotal {
+	return getDataYearsWithTopRatedTracksAvg(1);
 }
 
 sub getDataYearsWithMostPlayedTracks {
@@ -2630,8 +2669,10 @@ sub getDataDecadesHighestPercentageRatedTracks {
 	return executeSQLstatement($sqlstatement);
 }
 
-sub getDataDecadesWithTopRatedTracksRated {
-	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', avg(ifnull(tracks_persistent.rating,0)/20) as avgrating from tracks";
+sub getDataDecadesWithTopRatedTracksAvg {
+	my $agg = shift;
+	my $aggFunc = $agg ? 'sum' : 'avg';
+	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
@@ -2640,8 +2681,12 @@ sub getDataDecadesWithTopRatedTracksRated {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by avgrating desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by procrating desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataDecadesWithTopRatedTracksTotal {
+	return getDataDecadesWithTopRatedTracksAvg(1);
 }
 
 sub getDataDecadesWithMostPlayedTracks {

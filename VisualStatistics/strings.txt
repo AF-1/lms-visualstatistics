@@ -291,10 +291,15 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_RATED
 	FR	Artistes avec le plus haut pourcentage de morceaux notés
 	NL	Artiesten met het hoogste percentage beoordeelde nummers
 
-PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_RATED
+PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_AVG
 	EN	Artists with top average track rating
 	FR	Artistes avec la meilleure note moyenne de morceaux
 	NL	Artiesten met de nummers met de hoogste gemiddelde waardering
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_TOTAL
+	EN	Artists with top total track rating
+	FR	Artistes avec la meilleure note totale de morceaux totale
+	NL	Artiesten met de nummers met de hoogste totale waardering
 
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS
 	EN	Artists with most played tracks (number of all tracks played at least once)
@@ -354,6 +359,16 @@ PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT_APC
 	FR	Artistes - note moyenne vs. nombre d’écoutes moyen (APC)
 	NL	Artiesten - gemiddelde beoordeling vs. gemiddelde keren afgespeeld (APC)
 
+PLUGIN_VISUALSTATISTICS_ARTISTS_TOTALRATING_TOTALPLAYCOUNT
+	EN	Artists - total rating vs. total play count
+	FR	Artistes - note totale vs. nombre d’écoutes total
+	NL	Artiesten - totale beoordeling vs. totale keren afgespeeld
+
+PLUGIN_VISUALSTATISTICS_ARTISTS_TOTALRATING_TOTALPLAYCOUNT_APC
+	EN	Artists - total rating vs. total play count (APC)
+	FR	Artistes - note totale vs. nombre d’écoutes total (APC)
+	NL	Artiesten - totale beoordeling vs. totale keren afgespeeld (APC)
+
 PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_APC
 	EN	Artists with most skipped tracks (APC) (number of all tracks skipped at least once)
 	FR	Artistes avec le plus de morceaux sautés (APC) (nombre de morceaux sautés au moins une fois)
@@ -407,10 +422,15 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_RATED
 	FR	Albums avec le plus haut pourcentage de morceaux notés
 	NL	Albums met het hoogste percentage beoordeelde nummers
 
-PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_RATED
+PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_AVG
 	EN	Albums with top average track rating
 	FR	Albums avec la meilleure note moyenne de morceaux
 	NL	Albums met de beste gemiddelde beoordeling
+
+PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_TOTAL
+	EN	Albums with top total track rating
+	FR	Albums avec la meilleure note totale de morceaux
+	NL	Albums met de beste totale beoordeling
 
 PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS
 	EN	Albums with most played tracks (number of all tracks played at least once)
@@ -505,9 +525,13 @@ PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_RATED
 	EN	Works with the highest percentage of rated tracks
 	FR	Œuvres avec le plus haut pourcentage de morceaux notés
 
-PLUGIN_VISUALSTATISTICS_WORKS_TOP_RATED_TRACKS_RATED
+PLUGIN_VISUALSTATISTICS_WORKS_TOP_RATED_TRACKS_AVG
 	EN	Works with top average track rating
 	FR	Œuvres avec la meilleure note moyenne de morceaux
+
+PLUGIN_VISUALSTATISTICS_WORKS_TOP_RATED_TRACKS_TOTAL
+	EN	Works with top total track rating
+	FR	Œuvres avec la meilleure note totale de morceaux
 
 PLUGIN_VISUALSTATISTICS_WORKS_MOST_PERFORMANCES
 	EN	Works with most performances
@@ -599,10 +623,15 @@ PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_RATED
 	FR	Genres avec le plus haut pourcentage de morceaux notés
 	NL	Genres met het hoogste percentage beoordeelde nummers
 
-PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_RATED
+PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_AVG
 	EN	Genres with top average track rating
 	FR	Genres avec la meilleure note moyenne de morceaux
 	NL	Genres met de beste gemiddelde beoordeling
+
+PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_TOTAL
+	EN	Genres with top total track rating
+	FR	Genres avec la meilleure note totale de morceaux
+	NL	Genres met de beste totale beoordeling
 
 PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS
 	EN	Genres with most played tracks (number of all tracks played at least once)
@@ -688,10 +717,15 @@ PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_RATED
 	FR	Années avec le plus haut pourcentage de morceaux notés
 	NL	Jaren met het hoogste percentage beoordeelde nummers
 
-PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_RATED
+PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_AVG
 	EN	Years with top average track rating
 	FR	Années avec la meilleure note moyenne de morceaux
 	NL	Jaren met de beste gemiddelde beoordeling
+
+PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_TOTAL
+	EN	Years with top total track rating
+	FR	Années avec la meilleure note totale de morceaux
+	NL	Jaren met de beste totale beoordeling
 
 PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS
 	EN	Years with most played tracks (number of all tracks played at least once)
@@ -772,10 +806,15 @@ PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_RATED
 	FR	Décennies avec le plus haut pourcentage de morceaux notés
 	NL	Decennia met het hoogste percentage beoordeelde nummers
 
-PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_RATED
+PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_AVG
 	EN	Decades with top average track rating
 	FR	Décennies avec la meilleure note moyenne de morceaux
 	NL	Decennia met de beste gemiddelde beoordeling
+
+PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_TOTAL
+	EN	Decades with top total track rating
+	FR	Décennies avec la meilleure note totale de morceaux
+	NL	Decennia met de beste totale beoordeling
 
 PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS
 	EN	Decades with most played tracks (number of all tracks played at least once)
@@ -978,10 +1017,20 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST
 	FR	Note moyenne/nombre d’écoutes de l’artiste
 	NL	Gemiddelde beoordeling/aantal keren afgespeeld voor artiest
 
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALRATINGPLAYCOUNTFORARTIST
+	EN	Total rating/play count for artist
+	FR	Note totale/nombre d’écoutes total de l’artiste
+	NL	Totale beoordeling/aantal keren afgespeeld voor artiest
+
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING
 	EN	Average track rating
 	FR	Note moyenne des morceaux
 	NL	Gemiddelde beoordeling van nummers
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALTRACKRATING
+	EN	Total track rating
+	FR	Note totale des morceaux
+	NL	Totale beoordeling van nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT
 	EN	Number of albums
