@@ -100,7 +100,6 @@ sub handleWeb {
 	$params->{'clickablebars'} = $prefs->get('clickablebars') || 'noclick';
 	$params->{'usefullscreen'} = $prefs->get('usefullscreen') ? 1 : 0;
 	$params->{'txtrefreshbtn'} = $prefs->get('txtrefreshbtn');
-	$params->{'lmsminversion_rltypes'} = 1 if (Slim::Utils::Versions->compareVersions($::VERSION, '8.4') >= 0);
 
 	if (Slim::Utils::Versions->compareVersions($::VERSION, '9.0') >= 0) {
 		my $workTrackCountSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.work is not null";
