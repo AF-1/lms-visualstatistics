@@ -26,7 +26,7 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/#-alternati
 
 ## Requirements
 
-- LMS version >= **8**.0
+- LMS version >= 8.**4**
 - LMS database = **SQLite**
 <br><br><br>
 
