@@ -32,6 +32,7 @@ use Slim::Utils::Prefs;
 use Slim::Schema;
 use JSON::XS;
 use Time::HiRes qw(time);
+use POSIX qw(strftime);
 
 use constant LIST_URL => 'plugins/VisualStatistics/html/list.html';
 use constant JSON_URL => 'plugins/VisualStatistics/getdata.html';
@@ -58,6 +59,8 @@ sub initPlugin {
 	Slim::Web::Pages->addPageFunction(LIST_URL, \&handleWeb);
 	Slim::Web::Pages->addPageFunction(JSON_URL, \&handleJSON);
 	Slim::Web::Pages->addPageLinks('plugins', {'PLUGIN_VISUALSTATISTICS' => LIST_URL});
+
+	Slim::Control::Request::addDispatch(['visualstatistics', 'savetopl', '_pltype'], [0, 1, 1, \&saveResultsToPL]);
 }
 
 sub initPrefs {
@@ -66,12 +69,16 @@ sub initPrefs {
 		minartisttracks => 3,
 		minalbumtracks => 3,
 		clickablebars => 1,
+		savetoploverwrite => 1,
+		savetoplmaxtracks => 3000,
 	});
 	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
 	if (!$apc_enabled && $prefs->get('displayapcdupes') == 2) {
 		$prefs->set('displayapcdupes', 1);
 	}
+	$prefs->setValidate({'validator' => 'intlimit', 'low' => 500, 'high' => 5000}, 'savetoplmaxtracks');
 	$prefs->set('selectedvirtuallibrary', '');
+	$prefs->set('status_savingtopl', 0);
 	%ignoreCommonWords = map {
 		$_ => 1
 	} ("able", "about", "above", "acoustic", "act", "adagio", "after", "again", "against", "ago", "ain", "air", "akt", "album", "all", "allegretto", "allegro", "alone", "also", "alt", "alternate", "always", "among", "and", "andante", "another", "any", "are", "aria", "around", "atto", "autre", "away", "baby", "back", "bad", "beat", "because", "been", "before", "behind", "believe", "better", "big", "black", "blue", "bonus", "boy", "bring", "but", "bwv", "call", "can", "cause", "came", "chanson", "che", "chorus", "club", "come", "comes", "comme", "con", "concerto", "cosa", "could", "couldn", "dans", "das", "day", "days", "deezer", "dein", "del", "demo", "den", "der", "des", "did", "didn", "die", "does", "doesn", "don", "done", "down", "dub", "dur", "each", "edit", "ein", "either", "else", "end", "est", "even", "ever", "every", "everybody", "everything", "extended", "feat", "featuring", "feel", "find", "first", "flat", "for", "from", "fur", "get", "girl", "give", "going", "gone", "gonna", "good", "got", "gotta", "had", "hard", "has", "have", "hear", "heart", "her", "here", "hey", "him", "his", "hit", "hold", "home", "how", "ich", "iii", "inside", "instrumental", "interlude", "into", "intro", "isn", "ist", "just", "keep", "know", "las", "last", "leave", "left", "les", "let", "life", "like", "little", "live", "long", "look", "los", "love", "made", "major", "make", "man", "master", "may", "medley", "mein", "meu", "might", "mind", "mine", "minor", "miss", "mix", "moderato", "moi", "moll", "molto", "mon", "mono", "more", "most", "move", "much", "music", "must", "myself", "name", "nao", "near", "need", "never", "new", "nicht", "nobody", "non", "not", "nothing", "now", "off", "old", "once", "one", "only", "ooh", "orchestra", "original", "other", "ouh", "our", "ours", "out", "over", "own", "part", "pas", "people", "piano", "place", "play", "please", "plus", "por", "pour", "prelude", "presto", "put", "quartet", "que", "qui", "quite", "radio", "rather", "real", "really", "recitativo", "recorded", "remix", "right", "rock", "roll", "run", "said", "same", "sao", "say", "scene", "see", "seem", "session", "she", "should", "shouldn", "side", "single", "skit", "solo", "some", "something", "somos", "son", "sonata", "song", "sous", "spotify", "start", "stay", "stereo", "still", "stop", "street", "such", "suite", "symphony", "szene", "take", "talk", "teil", "tel", "tell", "tempo", "than", "that", "the", "their", "them", "then", "there", "these", "they", "thing", "things", "think", "this", "those", "though", "thought", "three", "through", "thus", "till", "time", "titel", "together", "told", "tonight", "too", "track", "trio", "true", "try", "turn", "two", "una", "und", "under", "une", "until", "use", "version", "very", "vivace", "vocal", "walk", "wanna", "want", "was", "way", "well", "went", "were", "what", "when", "where", "whether", "which", "while", "who", "whose", "why", "will", "with", "without", "woman", "won", "woo", "world", "would", "wrong", "yeah", "yes", "yet", "you", "your");
@@ -352,7 +359,34 @@ sub getDataLibStatsText {
 	}
 	$albumsNoArtworkSQL .= " where tracks.audio = 1 and albums.artwork is null";
 	my $albumsNoArtwork = quickSQLcount($albumsNoArtworkSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK").':', 'value' => $albumsNoArtwork});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK").':', 'value' => $albumsNoArtwork, 'savetopl' => 'albumswithoutartwork'}) if $albumsNoArtwork > 0;
+
+	# number of albums without year
+	my $albumsNoYearSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
+	if ($selectedVL && $selectedVL ne '') {
+		$albumsNoYearSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+	}
+	$albumsNoYearSQL .= " where tracks.audio = 1 and ifnull(albums.year, 0) = 0";
+	my $albumsNoYear = quickSQLcount($albumsNoYearSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOYEAR").':', 'value' => $albumsNoYear, 'savetopl' => 'albumswithoutyear'}) if $albumsNoYear > 0;
+
+	# number of albums with album replay gain
+	my $albumsWithReplayGainSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
+	if ($selectedVL && $selectedVL ne '') {
+		$albumsWithReplayGainSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+	}
+	$albumsWithReplayGainSQL .= " where tracks.audio = 1 and albums.replay_gain is not null";
+	my $albumsWithReplayGain = quickSQLcount($albumsWithReplayGainSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYGAIN").':', 'value' => $albumsWithReplayGain, 'savetopl' => 'albumswithreplaygain'}) if $albumsWithReplayGain > 0;
+
+	# number of albums with album replay peak
+	my $albumsWithReplayPeakSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
+	if ($selectedVL && $selectedVL ne '') {
+		$albumsWithReplayPeakSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+	}
+	$albumsWithReplayPeakSQL .= " where tracks.audio = 1 and albums.replay_peak is not null";
+	my $albumsWithReplayPeak = quickSQLcount($albumsWithReplayPeakSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYPEAK").':', 'value' => $albumsWithReplayPeak, 'savetopl' => 'albumswithreplaypeak'}) if $albumsWithReplayPeak > 0;
 
 	# number of genres
 	my $genreCountSQL = "select count(distinct genre_track.genre) from genre_track";
@@ -438,6 +472,15 @@ sub getDataLibStatsText {
 	my $tracksWithLyricsPercentage = sprintf("%.1f", $tracksWithLyricsFloat).'%';
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHLYRICS").':', 'value' => $tracksWithLyricsPercentage});
 
+	# number of tracks without year
+	my $tracksNoYearSQL = "select count(distinct tracks.id) from tracks";
+	if ($selectedVL && $selectedVL ne '') {
+		$tracksNoYearSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	$tracksNoYearSQL .= " where tracks.audio = 1 and tracks.filesize is not null and ifnull(tracks.year, 0) = 0";
+	my $tracksNoYear = quickSQLcount($tracksNoYearSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOYEAR").':', 'value' => $tracksNoYear, 'savetopl' => 'trackswithoutyear'}) if $tracksNoYear > 0;
+
 	# number of tracks without replay gain
 	my $tracksNoReplayGainSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
@@ -445,7 +488,16 @@ sub getDataLibStatsText {
 	}
 	$tracksNoReplayGainSQL .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_gain is null";
 	my $tracksNoReplayGain = quickSQLcount($tracksNoReplayGainSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN").':', 'value' => $tracksNoReplayGain});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN").':', 'value' => $tracksNoReplayGain, 'savetopl' => 'trackswithoutreplaygain'}) if $tracksNoReplayGain > 0;
+
+	# number of tracks with replay peak
+	my $tracksWithReplayPeakSQL = "select count(distinct tracks.id) from tracks";
+	if ($selectedVL && $selectedVL ne '') {
+		$tracksWithReplayPeakSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	$tracksWithReplayPeakSQL .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_peak is not null";
+	my $tracksWithReplayPeak = quickSQLcount($tracksWithReplayPeakSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHREPLAYPEAK").':', 'value' => $tracksWithReplayPeak, 'savetopl' => 'trackswithreplaypeak'}) if $tracksWithReplayPeak > 0;
 
 	# number of tracks for each mp3 tag version
 	my $mp3tagversionsSQL = "select tracks.tagversion as thistagversion, count(distinct tracks.id) from tracks";
@@ -455,8 +507,10 @@ sub getDataLibStatsText {
 	$mp3tagversionsSQL .= " where tracks.audio=1 and tracks.content_type = 'mp3' and tracks.tagversion is not null group by tracks.tagversion";
 	my $mp3tagversions = executeSQLstatement($mp3tagversionsSQL);
 	my @sortedmp3tagversions = sort { $a->{'xAxis'} cmp $b->{'xAxis'} } @{$mp3tagversions};
-	foreach my $thismp3tagversion (@sortedmp3tagversions) {
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS").' '.$thismp3tagversion->{'xAxis'}.' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS").':', 'value' => $thismp3tagversion->{'yAxis'}});
+	if (scalar(@sortedmp3tagversions) > 0) {
+		foreach my $thismp3tagversion (@sortedmp3tagversions) {
+			push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS").' '.$thismp3tagversion->{'xAxis'}.' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS").':', 'value' => $thismp3tagversion->{'yAxis'}, 'savetopl' => $thismp3tagversion->{'xAxis'}});
+		}
 	}
 
 	# number of tracks with track musicbrainz id
@@ -466,7 +520,7 @@ sub getDataLibStatsText {
 	}
 	$tracksMusicbrainzIdSQL .= " where tracks.audio = 1 and tracks.musicbrainz_id is not null";
 	my $tracksMusicbrainzId = quickSQLcount($tracksMusicbrainzIdSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID").':', 'value' => $tracksMusicbrainzId.' ('.(sprintf("%.1f", ($tracksMusicbrainzId/$trackCount * 100)).'%)')}) if $tracksMusicbrainzId > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID").':', 'value' => $tracksMusicbrainzId, 'savetopl' => 'trackswithmusicbrainzid'}) if $tracksMusicbrainzId > 0;
 
 	# number of tracks with identical musicbrainz ids in the LMS tracks table
 	if ($tracksMusicbrainzId > 0) {
@@ -476,7 +530,7 @@ sub getDataLibStatsText {
 		}
 		$tracksMusicbrainzIdDupeSQL .= " where tracks.musicbrainz_id is not null group by tracks.musicbrainz_id having count(tracks.musicbrainz_id) > 1)";
 		my $tracksMusicbrainzIDdupeCount = quickSQLcount($tracksMusicbrainzIdDupeSQL);
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID_DUPES").':', 'value' => $tracksMusicbrainzIDdupeCount.' ('.(sprintf("%.1f", ($tracksMusicbrainzIDdupeCount/$trackCount * 100)).'%)')}) if $tracksMusicbrainzIDdupeCount > 0;
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID_DUPES").':', 'value' => $tracksMusicbrainzIDdupeCount, 'savetopl' => 'trackswithidenticalmusicbrainzid'}) if $tracksMusicbrainzIDdupeCount > 0;
 	}
 
 	# number of artists with artist musicbrainz id
@@ -486,7 +540,13 @@ sub getDataLibStatsText {
 	}
 	$artistsMusicbrainzIdSQL .= " where contributors.musicbrainz_id is not null";
 	my $artistsMusicbrainzId = quickSQLcount($artistsMusicbrainzIdSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID").':', 'value' => $artistsMusicbrainzId.' ('.(sprintf("%.1f", ($artistsMusicbrainzId/$artistCount * 100)).'%)')}) if $artistsMusicbrainzId > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID").':', 'value' => $artistsMusicbrainzId, 'savetopl' => 'artistswithmusicbrainzid'}) if $artistsMusicbrainzId > 0;
+
+	# Various Artists has musicbrainz id ?
+	my $VAid = Slim::Schema->variousArtistsObject->id;
+	my $VAMusicbrainzIdSQL = "select count(distinct contributors.id) from contributors where contributors.musicbrainz_id is not null and contributors.id = $VAid";
+	my $VAMusicbrainzId = quickSQLcount($VAMusicbrainzIdSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_VA").':', 'value' => string('YES')}) if $VAMusicbrainzId > 0;
 
 	# number of artists with identical musicbrainz ids in the LMS contributors table
 	if ($artistsMusicbrainzId > 0) {
@@ -496,7 +556,7 @@ sub getDataLibStatsText {
 		}
 		$artistsMusicbrainzIdDupeSQL .= " where contributors.musicbrainz_id is not null group by contributors.musicbrainz_id having count(contributors.musicbrainz_id) > 1)";
 		my $artistsMusicbrainzIDdupeCount = quickSQLcount($artistsMusicbrainzIdDupeSQL);
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_DUPES").':', 'value' => $artistsMusicbrainzIDdupeCount.' ('.(sprintf("%.1f", ($artistsMusicbrainzIDdupeCount/$artistCount * 100)).'%)')}) if $artistsMusicbrainzIDdupeCount > 0;
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_DUPES").':', 'value' => $artistsMusicbrainzIDdupeCount, 'savetopl' => 'artistswithidenticalmusicbrainzid'}) if $artistsMusicbrainzIDdupeCount > 0;
 	}
 
 	# number of albums with album musicbrainz id
@@ -506,7 +566,7 @@ sub getDataLibStatsText {
 	}
 	$albumsMusicbrainzIdSQL .= " where albums.musicbrainz_id is not null";
 	my $albumsMusicbrainzId = quickSQLcount($albumsMusicbrainzIdSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID").':', 'value' => $albumsMusicbrainzId.' ('.(sprintf("%.1f", ($albumsMusicbrainzId/$albumsCount * 100)).'%)')}) if $albumsMusicbrainzId > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID").':', 'value' => $albumsMusicbrainzId, 'savetopl' => 'albumswithmusicbrainzid'}) if $albumsMusicbrainzId > 0;
 
 	# number of albums with identical musicbrainz ids in the LMS albums table
 	if ($albumsMusicbrainzId > 0) {
@@ -516,7 +576,7 @@ sub getDataLibStatsText {
 		}
 		$albumsMusicbrainzIdDupeSQL .= " where albums.musicbrainz_id is not null group by albums.musicbrainz_id having count(albums.musicbrainz_id) > 1)";
 		my $albumsMusicbrainzIDdupeCount = quickSQLcount($albumsMusicbrainzIdDupeSQL);
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID_DUPES").':', 'value' => $albumsMusicbrainzIDdupeCount.' ('.(sprintf("%.1f", ($albumsMusicbrainzIDdupeCount/$albumsCount * 100)).'%)')}) if $albumsMusicbrainzIDdupeCount > 0;
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID_DUPES").':', 'value' => $albumsMusicbrainzIDdupeCount, 'savetopl' => 'albumswithidenticalmusicbrainzid'}) if $albumsMusicbrainzIDdupeCount > 0;
 	}
 
 	# number of contributors without tracks
@@ -526,7 +586,7 @@ sub getDataLibStatsText {
 	}
 	$artistsWithoutTracksSQL .= " left join contributor_track on contributor_track.contributor = contributors.id left join tracks on contributor_track.track = tracks.id where tracks.id is null)";
 	my $artistsWithoutTracks = quickSQLcount($artistsWithoutTracksSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_NOTRACKS").':', 'value' => $artistsWithoutTracks.' ('.(sprintf("%.1f", ($artistsWithoutTracks/$artistCount * 100)).'%)')}) if $artistsWithoutTracks > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_NOTRACKS").':', 'value' => $artistsWithoutTracks}) if $artistsWithoutTracks > 0;
 
 	# number of albums without tracks
 	my $albumsWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from albums";
@@ -535,7 +595,7 @@ sub getDataLibStatsText {
 	}
 	$albumsWithoutTracksSQL .= " left join tracks on albums.id = tracks.album where tracks.id is null)";
 	my $albumsWithoutTracks = quickSQLcount($albumsWithoutTracksSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_NOTRACKS").':', 'value' => $albumsWithoutTracks.' ('.(sprintf("%.1f", ($albumsWithoutTracks/$albumsCount * 100)).'%)')}) if $albumsWithoutTracks > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_NOTRACKS").':', 'value' => $albumsWithoutTracks}) if $albumsWithoutTracks > 0;
 
 	# number of genres without tracks
 	my $genresWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from genres";
@@ -545,7 +605,7 @@ sub getDataLibStatsText {
 	$genresWithoutTracksSQL .= " left join genre_track on genre_track.genre = genres.id left join tracks on genre_track.track = tracks.id where tracks.id is null)";
 	$albumsWithoutTracksSQL .= " left join tracks on albums.id = tracks.album where tracks.id is null)";
 	my $genresWithoutTracks = quickSQLcount($genresWithoutTracksSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES_NOTRACKS").':', 'value' => $genresWithoutTracks.' ('.(sprintf("%.1f", ($genresWithoutTracks/$genreCount * 100)).'%)')}) if $genresWithoutTracks > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES_NOTRACKS").':', 'value' => $genresWithoutTracks}) if $genresWithoutTracks > 0;
 
 	# number of years without tracks
 	my $yearsWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from years left join tracks on years.id = tracks.year";
@@ -556,13 +616,316 @@ sub getDataLibStatsText {
 	my $yearsWithoutTracks = quickSQLcount($yearsWithoutTracksSQL);
 	if ($yearsWithoutTracks > 0) {
 		my $yearCount = quickSQLcount("select count(*) from years where years.id is not null");
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_YEARS_NOTRACKS").':', 'value' => $yearsWithoutTracks.' ('.(sprintf("%.1f", ($yearsWithoutTracks/$yearCount * 100)).'%)')}) if $yearCount > 0;
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_YEARS_NOTRACKS").':', 'value' => $yearsWithoutTracks}) if $yearCount > 0;
 	}
+
+	# tracks with long urls (> 2048 characters)
+	my $tracksWithLongUrlSQL = "select count(distinct tracks.id) from tracks";
+	if ($selectedVL && $selectedVL ne '') {
+		$tracksWithLongUrlSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	$tracksWithLongUrlSQL .= " where tracks.audio = 1 and length(tracks.url) > 2048";
+	my $tracksWithLongURL = quickSQLcount($tracksWithLongUrlSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_LONGURLS").':', 'value' => $tracksWithLongURL, 'savetopl' => 'trackswithlongurl'}) if $tracksWithLongURL > 0;
+
+	# possibly dead tracks in tracks_persistent table
+	my $deadTracksPersistentSQL = "select count(*) from tracks_persistent where urlmd5 not in (select urlmd5 from tracks where tracks.urlmd5 = tracks_persistent.urlmd5)";
+	my $deadTracksPersistent = quickSQLcount($deadTracksPersistentSQL);
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_DEADTRACKSPERSISTENT").':', 'value' => $deadTracksPersistent}) if $deadTracksPersistent > 0;
 
 	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
 	return \@result;
 }
 
+sub saveResultsToPL {
+	if ($prefs->get('status_savingtopl') == 1) {
+		$log->warn('LMS is already saving the results to a playlist. Please wait for the process to finish.');
+		return;
+	}
+	$prefs->set('status_savingtopl', 1);
+
+	my $request = shift;
+	my $params = $request->getParamsCopy();
+	main::DEBUGLOG && $log->is_debug && $log->debug('params = '.Data::Dump::dump($params));
+	my $playlistType = $params->{_pltype};
+	return if !$playlistType;
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+
+	## get sql, sort order and playlist name
+	my $sqlstatement;
+	my $sortOrder = 1;
+	my $staticPLname = 'Visual Statistics - ';
+
+	# albums without artwork
+	if ($playlistType eq 'albumswithoutartwork') {
+		$sqlstatement = "select tracks.id from albums join tracks on tracks.album = albums.id";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and albums.artwork is null group by albums.id";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK');
+	}
+
+	# albums without year
+	if ($playlistType eq 'albumswithoutyear') {
+		$sqlstatement = "select tracks.id from albums join tracks on tracks.album = albums.id";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and ifnull(albums.year, 0) = 0 group by albums.id";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOYEAR');
+	}
+
+	# albums with album replay gain
+	if ($playlistType eq 'albumswithreplaygain') {
+		$sqlstatement = "select tracks.id from tracks join albums on tracks.album = albums.id";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and albums.replay_gain is not null group by albums.id";
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYGAIN');
+	}
+
+	# albums with album replay peak
+	if ($playlistType eq 'albumswithreplaypeak') {
+		$sqlstatement = "select tracks.id from tracks join albums on tracks.album = albums.id";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and albums.replay_peak is not null group by albums.id";
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYPEAK');
+	}
+
+	# tracks without year
+	if ($playlistType eq 'trackswithoutyear') {
+		$sqlstatement = "select tracks.id from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and ifnull(tracks.year, 0) = 0 group by tracks.id";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOYEAR');
+	}
+
+	# tracks without replay gain
+	if ($playlistType eq 'trackswithoutreplaygain') {
+		$sqlstatement = "select tracks.id from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_gain is null group by tracks.id";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN');
+	}
+
+	# tracks with replay peak
+	if ($playlistType eq 'trackswithreplaypeak') {
+		$sqlstatement = "select tracks.id from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_peak is not null group by tracks.id";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHREPLAYPEAK');
+	}
+
+	# tracks for mp3 tag version
+	if (rindex($playlistType,'ID3v', 0) == 0) {
+		$sqlstatement = "select tracks.id from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and tracks.content_type = 'mp3' and tracks.tagversion is \"$playlistType\" group by tracks.id";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS').' '.$playlistType.' '.string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS');
+	}
+
+	# tracks with Musicbrainz ID
+	if ($playlistType eq 'trackswithmusicbrainzid') {
+		$sqlstatement = "select tracks.id from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and tracks.musicbrainz_id is not null group by tracks.id";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID');
+	}
+
+	# tracks with identical Musicbrainz IDs in the LMS tracks table
+	if ($playlistType eq 'trackswithidenticalmusicbrainzid') {
+		$sqlstatement = "select tracks.id from tracks where tracks.id in (select tracks.id from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and tracks.musicbrainz_id is not null and tracks.musicbrainz_id in (select othertracks.musicbrainz_id from tracks othertracks where othertracks.musicbrainz_id is not null group by othertracks.musicbrainz_id having count(othertracks.musicbrainz_id) > 1))";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID_DUPES');
+	}
+
+	# artists with Musicbrainz ID
+	if ($playlistType eq 'artistswithmusicbrainzid') {
+		$sqlstatement = "select tracks.id from tracks join contributor_track on contributor_track.track = tracks.id join contributors on contributors.id = contributor_track.contributor";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_contributor on contributors.id = library_contributor.contributor and library_contributor.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where contributors.musicbrainz_id is not null group by contributors.id";
+
+		$sortOrder = 2;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID');
+	}
+
+	# artists with identical Musicbrainz IDs
+	if ($playlistType eq 'artistswithidenticalmusicbrainzid') {
+		my $VAid = Slim::Schema->variousArtistsObject->id;
+		$sqlstatement = "select tracks.id from tracks where tracks.id in (select tracks.id from tracks join contributor_track on contributor_track.track = tracks.id join contributors on contributors.id = contributor_track.contributor";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_contributor on contributors.id = library_contributor.contributor and library_contributor.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where contributors.musicbrainz_id is not null and contributors.musicbrainz_id in (select othercontributors.musicbrainz_id from contributors othercontributors where othercontributors.musicbrainz_id is not null group by othercontributors.musicbrainz_id having count(othercontributors.musicbrainz_id) > 1) group by contributors.id)";
+
+		$sortOrder = 2;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_DUPES');
+	}
+
+	# albums with Musicbrainz ID
+	if ($playlistType eq 'albumswithmusicbrainzid') {
+		$sqlstatement = "select tracks.id from tracks join albums on tracks.album = albums.id";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where albums.musicbrainz_id is not null group by albums.id";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID');
+	}
+
+	# albums with identical Musicbrainz IDs
+	if ($playlistType eq 'albumswithidenticalmusicbrainzid') {
+		$sqlstatement = "select tracks.id from tracks where tracks.id in (select tracks.id from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+		}
+		$sqlstatement .= " join albums on tracks.album = albums.id where albums.musicbrainz_id is not null and albums.musicbrainz_id in (select otheralbums.musicbrainz_id from albums otheralbums where otheralbums.musicbrainz_id is not null group by otheralbums.musicbrainz_id having count(otheralbums.musicbrainz_id) > 1) group by albums.id)";
+
+		$sortOrder = 3;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID_DUPES');
+	}
+
+	# tracks with long urls (> 2048 characters)
+	if ($playlistType eq 'trackswithlongurl') {
+		$sqlstatement = "select tracks.id from tracks";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlstatement .= " where tracks.audio = 1 and length(tracks.url) > 2048 group by tracks.id";
+
+		$sortOrder = 4;
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_LONGURLS');
+	}
+
+	my $staticPLmaxTrackLimit = $prefs->get('savetoplmaxtracks');
+	main::DEBUGLOG && $log->is_debug && $log->debug("Creating static playlist with max. $staticPLmaxTrackLimit items for type: $playlistType");
+	my $started = time();
+
+	## get track ids
+	my @trackIDs = ();
+	my $dbh = Slim::Schema->dbh;
+	my $sth = $dbh->prepare($sqlstatement);
+	$sth->execute() or do {
+		$log->warn('sqlstatement = '.$sqlstatement);
+		$sqlstatement = undef;
+	};
+
+	if (!$sqlstatement) {
+		$log->warn("Problem with saving playlist for type $playlistType.");
+		$prefs->set('status_savingtopl', 0);
+		return;
+	}
+
+	my $trackID;
+	$sth->bind_col(1,\$trackID);
+	while ($sth->fetch()) {
+		push (@trackIDs, $trackID);
+	}
+	$sth->finish();
+
+	## limit results if necessary
+	if (scalar(@trackIDs) > $staticPLmaxTrackLimit) {
+		main::DEBUGLOG && $log->is_debug && $log->debug("Limiting the number of saved playlist tracks to the specified limit ($staticPLmaxTrackLimit)");
+		my $limitingExecStartTime = time();
+		@trackIDs = @trackIDs[0..($staticPLmaxTrackLimit - 1)];
+		main::DEBUGLOG && $log->is_debug && $log->debug('Limiting exec time: '.(time() - $limitingExecStartTime).' secs');
+	}
+
+	## Get tracks for ids
+	my @allTracks;
+	my $getTracksForIDsStartTime = time();
+	foreach (@trackIDs) {
+		push @allTracks, Slim::Schema->rs('Track')->single({'id' => $_});
+	}
+	main::DEBUGLOG && $log->is_debug && $log->debug('Getting track objects for track IDs took '.(time()-$getTracksForIDsStartTime). ' seconds');
+	main::idleStreams();
+
+	# Sort tracks?
+	if (scalar(@allTracks) > 1 && $sortOrder > 1) {
+		my $sortStartTime= time();
+		if ($sortOrder == 2) {
+			# sort order: artist > album > disc no. > track no.
+			@allTracks = sort {lc($a->artist->namesort) cmp lc($b->artist->namesort) || lc($a->album->namesort) cmp lc($b->album->namesort) || ($a->disc || 0) <=> ($b->disc || 0) || ($a->tracknum || 0) <=> ($b->tracknum || 0)} @allTracks;
+		} elsif ($sortOrder == 3) {
+			# sort order: album > artist > disc no. > track no.
+			@allTracks = sort {lc($a->album->namesort) cmp lc($b->album->namesort) || lc($a->artist->namesort) cmp lc($b->artist->namesort) || ($a->disc || 0) <=> ($b->disc || 0) || ($a->tracknum || 0) <=> ($b->tracknum || 0)} @allTracks;
+		} elsif ($sortOrder == 4) {
+			# sort order: album > disc no. > track no.
+			@allTracks = sort {lc($a->album->namesort) cmp lc($b->album->namesort) || ($a->disc || 0) <=> ($b->disc || 0) || ($a->tracknum || 0) <=> ($b->tracknum || 0)} @allTracks;
+		}
+		main::DEBUGLOG && $log->is_debug && $log->debug('Sorting tracks took '.(time()-$sortStartTime).' seconds');
+		main::idleStreams();
+	}
+
+	## Save tracks as static playlist ###
+
+	# if PL with same name exists, add epoch time to PL name
+	my $newStaticPL = Slim::Schema->search('Playlist', {'title' => $staticPLname })->first();
+	if ($newStaticPL) {
+		if ($prefs->get('savetoploverwrite')) {
+			Slim::Control::Request::executeRequest(undef, ['playlists', 'delete', 'playlist_id:'.$newStaticPL->id])
+		} else {
+			my $timestamp = strftime "%Y-%m-%d--%H-%M-%S", localtime time;
+			$staticPLname = $staticPLname.'_'.$timestamp;
+		}
+	}
+	$newStaticPL = Slim::Schema->search('Playlist', {'title' => $staticPLname })->first();
+	Slim::Control::Request::executeRequest(undef, ['playlists', 'new', 'name:'.$staticPLname]) if !$newStaticPL;
+	$newStaticPL = Slim::Schema->search('Playlist', {'title' => $staticPLname })->first();
+
+	my $setTracksStartTime = time();
+	$newStaticPL->setTracks(\@allTracks);
+	main::DEBUGLOG && $log->is_debug && $log->debug("setTracks took ".(time()-$setTracksStartTime).' seconds');
+	$newStaticPL->update;
+	main::idleStreams();
+
+	my $scheduleWriteOfPlaylistStartTime = time();
+	Slim::Player::Playlist::scheduleWriteOfPlaylist(undef, $newStaticPL);
+	main::DEBUGLOG && $log->is_debug && $log->debug("scheduleWriteOfPlaylist took ".(time()-$scheduleWriteOfPlaylistStartTime).' seconds');
+
+	main::INFOLOG && $log->is_info && $log->info('Saved static playlist "'.$staticPLname.'" with '.scalar(@allTracks).(scalar(@allTracks) == 1 ? ' track' : ' tracks').'. Task completed after '.(time()-$started)." seconds.\n\n");
+
+	$prefs->set('status_savingtopl', 0);
+	return;
+}
 
 ## ---- library stats charts ---- ##
 

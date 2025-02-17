@@ -8,19 +8,48 @@
 [% END -%]
 [% PROCESS pageheader.html %]
 <style>
-[% IF systemSkin == "material" || systemSkin == "DarkDefault" || systemSkin == "DarkLogic" %]
+[%- IF systemSkin == "material" || systemSkin == "Classic" %]
+.savetoplicon {
+	width: 15px;
+	height: 15px;
+}
+[%- ELSE %]
+.savetoplicon {
+	width: 10px;
+	height: 10px;
+}
+[%- END %]
+.savetopliconanimate {animation: savetopliconglowing 1000ms infinite;}
+.savetopliconerror {background-color: red;}
+[%- IF systemSkin == "material" || systemSkin == "DarkDefault" || systemSkin == "DarkLogic" %]
 .updatebutton {font-size: 12px !important;}
 .info-circle {stroke: rgb(240, 240, 240);}
 .info-i {fill: rgb(240, 240, 240);}
-[% ELSE %]
+.savetoplicon {background-color: rgb(240, 240, 240);}
+@keyframes savetopliconglowing {
+	0% {background-color: rgb(240, 240, 240);}
+	15% {background-color: rgb(178, 213, 255);}
+	30% {background-color: rgb(87, 160, 238);}
+	45% {background-color: rgb((178, 213, 255);}
+	60% , 100% {background-color: rgb(240, 240, 240);}
+}
+[%- ELSE %]
 .updatebutton {height: 18px;font-size: 11px !important;padding: 0px 2px;}
 .info-circle {stroke: rgb(0, 0, 0);}
 .info-i {fill: rgb(0, 0, 0);}
-[% END %]
-[% IF systemSkin == "Default" || systemSkin == "Logic" || systemSkin == "DarkDefault" || systemSkin == "DarkLogic" %]
+.savetoplicon {background-color: #666;}
+@keyframes savetopliconglowing {
+	0% {background-color: #666;}
+	15% {background-color: rgb(43, 79, 119);}
+	30% {background-color: rgb(87, 160, 238);}
+	45% {background-color: rgb(43, 79, 119);}
+	60% , 100% {background-color: #666;}
+}
+[%- END %]
+[%- IF systemSkin == "Default" || systemSkin == "Logic" || systemSkin == "DarkDefault" || systemSkin == "DarkLogic" %]
 .pagetitle {padding-top: 6px;}
 #headerSearch {padding-top: 3px;}
-[% END %]
+[%- END %]
 </style>
 <script type="text/javascript">
 [% IF systemSkin == "material" %]
@@ -1712,6 +1741,7 @@
 
 	colorSchemeLight:'[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_LIGHT" | string %]',
 	colorSchemeDark:'[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_DARK" | string %]',
+	saveToPL:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_SAVETOPLAYLIST" | string %]',
 	subtitleBars:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS" | string %]',
 	subtitleSegments:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS" | string %]',
 	subtitleDataPoints:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS" | string %]',
@@ -1743,6 +1773,42 @@
 		var toggle = document.getElementById('toggleswitch_colorscheme');
 		toggle.checked = !toggle.checked;
 	[% END %]
+
+	function saveResultsToPL(thisPL) {
+		let elmid = thisPL.replace(/[,. ]/g,"_");
+		let varID = 'saveresultstoplaylist_' + elmid;
+		document.getElementById(varID).classList.remove("savetoplbuttonerror");
+		document.getElementById(varID).classList.add("savetopliconanimate");
+		const serverjsonurl = "[% squeezebox_server_jsondatareq %]";
+		const vsBody = JSON.stringify({
+			id: 1,
+			method: 'slim.request',
+			params: ['', ['visualstatistics', 'savetopl', thisPL]]
+		});
+
+		async function saveToPlaylistLMS() {
+			let response = await fetch(serverjsonurl, {
+				method: "post",
+				headers: { "Content-Type": "application/json", "Origin": window.location.hostname },
+				body: vsBody
+			});
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			return await response.json();
+		}
+
+		saveToPlaylistLMS().then(() => {
+			//console.log('Saved playlist.');
+		}).then(function() {
+			//console.log('remove class');
+			document.getElementById(varID).classList.remove("savetopliconanimate");
+		}).catch(function(error) {
+			console.log(error);
+			document.getElementById(varID).classList.remove("savetopliconanimate");
+			document.getElementById(varID).classList.add("savetoplbuttonerror");
+		});
+	}
 
 	function setLMSpref(prefname, prefval) {
 		const serverjsonurl = "[% squeezebox_server_jsondatareq %]";

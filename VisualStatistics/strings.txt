@@ -83,6 +83,19 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_CLICKABLEBARS_DESC
 	FR	Si cette case est cochée, un clic sur les barres de certains graphiques affichera un menu de navigation rudimentaire pour l’artiste, l’album, le genre, l’année ou le morceau sur lesquels vous avez cliqué.
 	NL	Indien aangevinkt, zal het klikken op staven in sommige staafdiagrammen een rudimentair bladermenu tonen voor de artiest, het album, het genre, het jaar of het nummer waarop u geklikt hebt.
 
+PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLMAXTRACKS
+	EN	Max. number of tracks in saved playlists
+	FR	Nombre max. de morceaux dans les listes de lecture enregistrées
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLMAXTRACKS_DESC
+	EN	Limit the number of tracks in saved playlists.<br>The larger the playlist, the more time it takes LMS to save it. LMS might be unresponsive in the meantime.
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLOVERWRITE
+	EN	Overwrite previously saved playlists
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLOVERWRITE_DESC
+	EN	If you have a previously saved playlists with the same name, LMS can delete and replace it. If you disable overwriting, LMS will append the date and time to the playlist name if it finds a playlist with an same name.
+
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
 	FR	Utiliser le mode plein écran de l’OS
@@ -1342,6 +1355,21 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK
 	FR	Albums sans couverture
 	NL	Albums zonder albumhoes
 
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOYEAR
+	EN	Albums without year
+	FR	Albums sans année
+	NL	Albums zonder jaar
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYGAIN
+	EN	Albums with replay gain
+	FR	Albums avec replay gain
+	NL	Albums met replay gain
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYPEAK
+	EN	Albums with replay peak
+	FR	Albums avec replay peak
+	NL	Albums met replay peak
+
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES
 	EN	Genres
 	FR	Genres
@@ -1387,10 +1415,20 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHLYRICS
 	FR	Morceaux avec paroles
 	NL	Nummers met songteksten
 
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOYEAR
+	EN	Tracks without year
+	FR	Morceaux sans année
+	NL	Nummers zonder jaar
+
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN
 	EN	Tracks without replay gain
 	FR	Morceaux sans replay gain
 	NL	Nummers zonder replay gain
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHREPLAYPEAK
+	EN	Tracks with replay peak
+	FR	Morceaux avec replay peak
+	NL	Nummers met replay peak
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS
 	EN	MP3 tracks with
@@ -1413,6 +1451,10 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID_DUPES
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID
 	EN	Artists with Musicbrainz ID
 	FR	Artistes avec un ID Musicbrainz
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_VA
+	EN	Various Artists has Musicbrainz ID
+	FR	Artistes divers a ID Musicbrainz
 
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_DUPES
 	EN	Artists with identical LMS Musicbrainz IDs
@@ -1441,6 +1483,18 @@ PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES_NOTRACKS
 PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_YEARS_NOTRACKS
 	EN	Years without tracks
 	FR	Années sans morceaux
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_LONGURLS
+	EN	Tracks with long urls (> 2048 characters)
+	FR	Morceaux avec url longue (> 2048 caractères)
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_DEADTRACKSPERSISTENT
+	EN	Possibly dead tracks in tracks_persistent table
+	FR	Possibles morceaux morts dans la table tracks_persistent
+
+PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_SAVETOPLAYLIST
+	EN	Save the result to a playlist. This may take a while...
+	FR	Enregistrer le résultat dans une liste de lecture .Cela peut prendre un certain temps...
 
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS

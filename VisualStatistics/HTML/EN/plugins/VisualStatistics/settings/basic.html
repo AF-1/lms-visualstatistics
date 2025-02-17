@@ -35,6 +35,19 @@
 		<option [% IF prefs.clickablebars %]selected [% END %]value="1">[% 'YES' | getstring %]</option>
 	</select>
 [% END %]
+<br>
+
+[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLMAXTRACKS" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLMAXTRACKS_DESC" %]
+	<input type="text" class="stdedit sliderInput_500_5000_500" name="pref_savetoplmaxtracks" id="savetoplmaxtracks" value="[% prefs.savetoplmaxtracks %]" size="3"> [% "PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS" | string %]
+[% END %]
+<br>
+
+[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLOVERWRITE" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLOVERWRITE_DESC" %]
+	<select class="stdedit" name="pref_savetoploverwrite" id="savetoploverwrite">
+		<option [% IF NOT prefs.savetoploverwrite %]selected [% END %]value="0">[% 'NO' | getstring %]</option>
+		<option [% IF prefs.savetoploverwrite %]selected [% END %]value="1">[% 'YES' | getstring %]</option>
+	</select>
+[% END %]
 <br><br>
 
 [% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC" %]
