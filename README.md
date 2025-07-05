@@ -55,7 +55,7 @@ To report a new issue please file a GitHub [**issue report**](https://github.com
 
 ## Contributing
 
-If you find this plugin useful, please consider giving it a <img src="screenshots/githubstar.png" width="20" height="20" padding-top="4" alt="star" /> on GitHub (top right page) so that other users can discover it (in their News Feed).
+If you find this plugin useful, please consider giving it a <img src="screenshots/githubstar.png" width="20" height="20" padding-top="4" alt="star" /> on GitHub (top right of this page) so that other users can discover it (in their News Feed).
 <br><br>
 
 [^1]: If you want localized strings in your language, please read <a href="https://github.com/AF-1/sobras/wiki/Adding-localization-to-LMS-plugins"><b>this</b></a>.
