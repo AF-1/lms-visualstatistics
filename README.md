@@ -56,10 +56,8 @@ To report a new issue please file a GitHub [**issue report**](https://github.com
 ## Contributing
 
 If you find this plugin useful, please consider giving it a ⭐️ on GitHub so that other users can discover it (in their News Feed).<br>
-<a class="github-button" href="https://github.com/AF-1/lms-visualstatistics" data-color-scheme="no-preference: light; light: light; dark: dark;" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star AF-1/lms-visualstatistics on GitHub">Star</a>
+<img src="https://img.shields.io/github/stars/F-1/lms-visualstatistics">
 <br><br>
 
 [^1]: If you want localized strings in your language, please read <a href="https://github.com/AF-1/sobras/wiki/Adding-localization-to-LMS-plugins"><b>this</b></a>.
 [^2]: The screenshots might not correspond to the UI of the latest release in every detail.
-
-<script async defer src="https://buttons.github.io/buttons.js"></script>
