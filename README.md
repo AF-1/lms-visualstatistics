@@ -50,7 +50,7 @@ If you want to test a new patch that hasn't made it into a release version yet, 
 ## Report a new issue
 
 To report a new issue please file a GitHub [**issue report**](https://github.com/AF-1/lms-visualstatistics/issues/new/choose).
-<br><br><br><br>
+<br><br><br>
 
 
 ## ⭐ Contributing
