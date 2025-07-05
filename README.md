@@ -1,6 +1,6 @@
 Visual Statistics
 ====
-<img src="https://img.shields.io/github/stars/AF-1/lms-visualstatistics">
+![current star count](https://img.shields.io/github/stars/AF-1/lms-visualstatistics)
 
 With **Visual Statistics**[^1] you can display statistics of your LMS music library using all kinds of charts. Hovering over segments, bars or data points will display more information.<br>
 
