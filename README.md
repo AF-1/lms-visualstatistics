@@ -55,7 +55,7 @@ To report a new issue please file a GitHub [**issue report**](https://github.com
 
 ## Contributing
 
-If you find this plugin useful, please consider giving it a <a class="github-button" data-color-scheme="no-preference: light; light: light; dark: dark;" data-icon="octicon-star" data-size="large" aria-label="Star buttons/github-buttons on GitHub">Star</a> ⭐️ on GitHub so that other users can discover it (in their News Feed).<br>
+If you find this plugin useful, please consider giving it a [![star](https://img.shields.io/github/stars/AF-1/lms-visualstatistics?style=social)](https://github.com/AF-1/lms-visualstatistics) ⭐️ on GitHub so that other users can discover it (in their News Feed).<br>
 <br><br>
 
 [^1]: If you want localized strings in your language, please read <a href="https://github.com/AF-1/sobras/wiki/Adding-localization-to-LMS-plugins"><b>this</b></a>.
