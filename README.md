@@ -30,7 +30,7 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/#-alternati
 
 ## Screenshots[^2]
 <img src="screenshots/vs.gif" width="100%">
-<br><br><br><br>
+<br><br><br>
 
 
 ## Installation
