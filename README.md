@@ -32,7 +32,6 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/#-alternati
 <img src="screenshots/vs.gif" width="100%">
 <br><br><br>
 
-
 ## Installation
 
 *Visual Statistics* is available from the LMS plugin library: **LMS > Settings > Manage Plugins**.<br>
