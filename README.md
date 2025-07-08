@@ -34,7 +34,7 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/#-alternati
 
 ## Installation
 
-*Visual Statistics* is available from the LMS plugin library: **LMS > Settings > Manage Plugins**.<br>
+*Visual Statistics* is available from the LMS plugin library: `LMS > Settings > Manage Plugins`.<br>
 
 If you want to test a new patch that hasn't made it into a release version yet, you'll have to [install the plugin manually](https://github.com/AF-1/sobras/wiki/Manual-installation-of-LMS-plugins).
 <br><br><br><br>
