@@ -1,5 +1,6 @@
 Visual Statistics
 ====
+![Min. LMS Version](https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAF-1%2Fsobras%2Fmain%2Frepos%2Flms%2Fpublic.xml&query=%2F%2F*%5Blocal-name()%3D'plugin'%20and%20%40name%3D'VisualStatistics'%5D%2F%40minTarget&prefix=v&label=Min.%20LMS%20Version&color=darkgreen)<br>
 
 With **Visual Statistics**[^1] you can display statistics of your LMS music library using all kinds of charts. Hovering over segments, bars or data points will display more information.<br>
 
@@ -29,14 +30,7 @@ If you have the [**Alternative Play Count**](https://github.com/AF-1/#-alternati
 
 ## Screenshots[^2]
 <img src="screenshots/vs.gif" width="100%">
-<br><br><br>
-
-
-## Requirements
-
-- LMS version >= 8.**4**
-- LMS database = **SQLite**
-<br><br><br>
+<br><br><br><br>
 
 
 ## Installation
