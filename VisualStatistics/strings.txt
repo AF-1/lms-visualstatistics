@@ -24,9 +24,9 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK_TEXT
 	NL	Klik hier voor meer informatie.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_GITHUB_LINK
-	EN	https://github.com/AF-1/#-visual-statistics
-	FR	https://github.com/AF-1/#-visual-statistics
-	NL	https://github.com/AF-1/#-visual-statistics
+	EN	https://github.com/AF-1
+	FR	https://github.com/AF-1
+	NL	https://github.com/AF-1
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_DISPLAYAPCDUPES
 	EN	Enable/disable APC (duplicate) playlists
