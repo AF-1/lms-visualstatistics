@@ -8,7 +8,8 @@ If you're interested in lists with tracks, albums or artists sorted by statistic
 
 > [!TIP]
 > You can find the menus / GUI here: `Home Menu > Extras > Visual Statistics`
-<br><br>
+
+<br>
 While the charts scale down, please note that this plugin was designed for wide/big screens.
 <br><br>
 If you have the [**Alternative Play Count**](https://github.com/AF-1/#-alternative-play-count) plugin installed, you will see some additional charts that use the data from this plugin.
