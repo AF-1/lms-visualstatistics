@@ -8,7 +8,6 @@ If you're interested in lists with tracks, albums or artists sorted by statistic
 
 > [!TIP]
 > You can find the menus / GUI here: `Home Menu > Extras > Visual Statistics`
-
 <br><br>
 While the charts scale down, please note that this plugin was designed for wide/big screens.
 <br><br>
