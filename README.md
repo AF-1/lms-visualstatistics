@@ -7,7 +7,7 @@ With **Visual Statistics**[^1] you can display statistics of your LMS music libr
 If you're interested in lists with tracks, albums or artists sorted by statistics for a specific artist, album, genre, year/decade or playlist, have a look at the [**Context Stats**](https://github.com/AF-1/#-context-stats) plugin.<br>
 
 > [!TIP]
-> You can find the menus / GUI here: `Home Menu > Extras > Visual Statistics`<br>
+> The user interface and menus are here: `Home Menu > Extras > Visual Statistics`<br>
 
 
 While the charts scale down, please note that this plugin was designed for wide/big screens.
