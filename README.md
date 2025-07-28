@@ -2,9 +2,9 @@ Visual Statistics
 ====
 ![Min. LMS Version](https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fraw.githubusercontent.com%2FAF-1%2Fsobras%2Fmain%2Frepos%2Flms%2Fpublic.xml&query=%2F%2F*%5Blocal-name()%3D'plugin'%20and%20%40name%3D'VisualStatistics'%5D%2F%40minTarget&prefix=v&label=Min.%20LMS%20Version%20Required&color=darkgreen)<br>
 
-With **Visual Statistics**[^1] you can display statistics of your LMS music library using all kinds of charts. Hovering over segments, bars or data points will display more information.<br>
+<img src="screenshots/vs_icon.png" align="right" width="90px">With **Visual Statistics**[^1] you can display statistics of your LMS music library using all kinds of charts. Hovering over segments, bars or data points will display more information.<br>
 
-If you're interested in lists with tracks, albums or artists sorted by statistics for a specific artist, album, genre, year/decade or playlist, have a look at the [**Context Stats**](https://github.com/AF-1/#-context-stats) plugin.<br>
+If you're interested in lists with tracks, albums or artists sorted by statistics for a specific artist, album, genre, year/decade or playlist, have a look at the [**Context Stats**](https://github.com/AF-1/#-context-stats) plugin.<br clear="right">
 
 > [!TIP]
 > The user interface and menus are here: `Home Menu > Extras > Visual Statistics`<br>
