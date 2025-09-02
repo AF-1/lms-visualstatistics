@@ -1742,6 +1742,7 @@
 	colorSchemeLight:'[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_LIGHT" | string %]',
 	colorSchemeDark:'[% "PLUGIN_VISUALSTATISTICS_CHARTSCOLORSCHEME_DARK" | string %]',
 	saveToPL:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_SAVETOPLAYLIST" | string %]',
+	saveToTextFile:'[% "PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_SAVETOTEXTFILE" | string %]',
 	subtitleBars:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS" | string %]',
 	subtitleSegments:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS" | string %]',
 	subtitleDataPoints:'[% "PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS" | string %]',
@@ -1774,16 +1775,20 @@
 		toggle.checked = !toggle.checked;
 	[% END %]
 
-	function saveResultsToPL(thisPL) {
+	function saveResultsToPL(thisPL, useTextFile) {
 		let elmid = thisPL.replace(/[,. ]/g,"_");
 		let varID = 'saveresultstoplaylist_' + elmid;
 		document.getElementById(varID).classList.remove("savetoplbuttonerror");
 		document.getElementById(varID).classList.add("savetopliconanimate");
 		const serverjsonurl = "[% squeezebox_server_jsondatareq %]";
+		let targetFunc = 'savetopl';
+		if (useTextFile) {
+			targetFunc = 'savetotextfile';
+		}
 		const vsBody = JSON.stringify({
 			id: 1,
 			method: 'slim.request',
-			params: ['', ['visualstatistics', 'savetopl', thisPL]]
+			params: ['', ['visualstatistics', targetFunc, thisPL]]
 		});
 
 		async function saveToPlaylistLMS() {

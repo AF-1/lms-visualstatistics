@@ -33,6 +33,7 @@ use Slim::Schema;
 use JSON::XS;
 use Time::HiRes qw(time);
 use POSIX qw(strftime);
+use File::Spec::Functions qw(:ALL);
 
 use constant LIST_URL => 'plugins/VisualStatistics/html/list.html';
 use constant JSON_URL => 'plugins/VisualStatistics/getdata.html';
@@ -61,6 +62,7 @@ sub initPlugin {
 	Slim::Web::Pages->addPageLinks('plugins', {'PLUGIN_VISUALSTATISTICS' => LIST_URL});
 
 	Slim::Control::Request::addDispatch(['visualstatistics', 'savetopl', '_pltype'], [0, 1, 1, \&saveResultsToPL]);
+	Slim::Control::Request::addDispatch(['visualstatistics', 'savetotextfile', '_pltype'], [0, 1, 1, \&saveResultsToTextFile]);
 }
 
 sub initPrefs {
@@ -79,6 +81,7 @@ sub initPrefs {
 	$prefs->setValidate({'validator' => 'intlimit', 'low' => 500, 'high' => 5000}, 'savetoplmaxtracks');
 	$prefs->set('selectedvirtuallibrary', '');
 	$prefs->set('status_savingtopl', 0);
+	$prefs->set('status_savingtotextfile', 0);
 	%ignoreCommonWords = map {
 		$_ => 1
 	} ("able", "about", "above", "acoustic", "act", "adagio", "after", "again", "against", "ago", "ain", "air", "akt", "album", "all", "allegretto", "allegro", "alone", "also", "alt", "alternate", "always", "among", "and", "andante", "another", "any", "are", "aria", "around", "atto", "autre", "away", "baby", "back", "bad", "beat", "because", "been", "before", "behind", "believe", "better", "big", "black", "blue", "bonus", "boy", "bring", "but", "bwv", "call", "can", "cause", "came", "chanson", "che", "chorus", "club", "come", "comes", "comme", "con", "concerto", "cosa", "could", "couldn", "dans", "das", "day", "days", "deezer", "dein", "del", "demo", "den", "der", "des", "did", "didn", "die", "does", "doesn", "don", "done", "down", "dub", "dur", "each", "edit", "ein", "either", "else", "end", "est", "even", "ever", "every", "everybody", "everything", "extended", "feat", "featuring", "feel", "find", "first", "flat", "for", "from", "fur", "get", "girl", "give", "going", "gone", "gonna", "good", "got", "gotta", "had", "hard", "has", "have", "hear", "heart", "her", "here", "hey", "him", "his", "hit", "hold", "home", "how", "ich", "iii", "inside", "instrumental", "interlude", "into", "intro", "isn", "ist", "just", "keep", "know", "las", "last", "leave", "left", "les", "let", "life", "like", "little", "live", "long", "look", "los", "love", "made", "major", "make", "man", "master", "may", "medley", "mein", "meu", "might", "mind", "mine", "minor", "miss", "mix", "moderato", "moi", "moll", "molto", "mon", "mono", "more", "most", "move", "much", "music", "must", "myself", "name", "nao", "near", "need", "never", "new", "nicht", "nobody", "non", "not", "nothing", "now", "off", "old", "once", "one", "only", "ooh", "orchestra", "original", "other", "ouh", "our", "ours", "out", "over", "own", "part", "pas", "people", "piano", "place", "play", "please", "plus", "por", "pour", "prelude", "presto", "put", "quartet", "que", "qui", "quite", "radio", "rather", "real", "really", "recitativo", "recorded", "remix", "right", "rock", "roll", "run", "said", "same", "sao", "say", "scene", "see", "seem", "session", "she", "should", "shouldn", "side", "single", "skit", "solo", "some", "something", "somos", "son", "sonata", "song", "sous", "spotify", "start", "stay", "stereo", "still", "stop", "street", "such", "suite", "symphony", "szene", "take", "talk", "teil", "tel", "tell", "tempo", "than", "that", "the", "their", "them", "then", "there", "these", "they", "thing", "things", "think", "this", "those", "though", "thought", "three", "through", "thus", "till", "time", "titel", "together", "told", "tonight", "too", "track", "trio", "true", "try", "turn", "two", "una", "und", "under", "une", "until", "use", "version", "very", "vivace", "vocal", "walk", "wanna", "want", "was", "way", "well", "went", "were", "what", "when", "where", "whether", "which", "while", "who", "whose", "why", "will", "with", "without", "woman", "won", "woo", "world", "would", "wrong", "yeah", "yes", "yet", "you", "your");
@@ -631,7 +634,7 @@ sub getDataLibStatsText {
 	# possibly dead tracks in tracks_persistent table
 	my $deadTracksPersistentSQL = "select count(*) from tracks_persistent where urlmd5 not in (select urlmd5 from tracks where tracks.urlmd5 = tracks_persistent.urlmd5)";
 	my $deadTracksPersistent = quickSQLcount($deadTracksPersistentSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_DEADTRACKSPERSISTENT").':', 'value' => $deadTracksPersistent}) if $deadTracksPersistent > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_DEADTRACKSPERSISTENT").':', 'value' => $deadTracksPersistent, 'savetotextfile' => 'deadtracks'}) if $deadTracksPersistent > 0;
 
 	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
 	return \@result;
@@ -924,6 +927,83 @@ sub saveResultsToPL {
 	main::INFOLOG && $log->is_info && $log->info('Saved static playlist "'.$staticPLname.'" with '.scalar(@allTracks).(scalar(@allTracks) == 1 ? ' track' : ' tracks').'. Task completed after '.(time()-$started)." seconds.\n\n");
 
 	$prefs->set('status_savingtopl', 0);
+	return;
+}
+
+sub saveResultsToTextFile {
+	if ($prefs->get('status_savingtotextfile') == 1) {
+		$log->warn('LMS is already saving the results to a text file. Please wait for the process to finish.');
+		return;
+	}
+	$prefs->set('status_savingtotextfile', 1);
+
+	my $request = shift;
+	my $params = $request->getParamsCopy();
+	main::DEBUGLOG && $log->is_debug && $log->debug('params = '.Data::Dump::dump($params));
+	my $playlistType = $params->{_pltype};
+	return if !$playlistType;
+
+	## get sql and stat name
+	my $sqlstatement;
+	my $statName = '';
+
+	# dead tracks
+	if ($playlistType eq 'deadtracks') {
+		$sqlstatement = "select tracks_persistent.url from tracks_persistent where tracks_persistent.urlmd5 not in (select urlmd5 from tracks where tracks.urlmd5 = tracks_persistent.urlmd5)";
+		$statName = string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_DEADTRACKSPERSISTENT');
+	}
+
+	## get data
+	my $started = time();
+	my @items = ();
+	my $dbh = Slim::Schema->dbh;
+	my $sth = $dbh->prepare($sqlstatement);
+	$sth->execute() or do {
+		$log->warn('sqlstatement = '.$sqlstatement);
+		$sqlstatement = undef;
+	};
+
+	if (!$sqlstatement) {
+		$log->warn("Problem with saving text file for type $playlistType.");
+		$prefs->set('status_savingtotextfile', 0);
+		return;
+	}
+
+	my $item;
+	$sth->bind_col(1,\$item);
+	while ($sth->fetch()) {
+		push (@items, $item);
+	}
+	$sth->finish();
+
+	# save results to text file
+	my $savingStartTime = time();
+	my $prefDir = Slim::Utils::OSDetect::dirsFor('prefs');
+	my $timestamp = strftime "%Y%m%d-%H%M%S", localtime time;
+	my $textFileName = 'Visual_Statistics_-_'.$statName;
+	$textFileName =~ s/ /_/g;
+	$textFileName =~ s/[^a-zA-Z0-9_-]//g;
+
+	if (@items) {
+		my $filename = catfile($prefDir, $textFileName.'-'.$timestamp.'.txt');
+		my $output = FileHandle->new($filename, '>:utf8') or do {
+			$log->error('Could not open '.$filename.' for writing. Does the preferences folder exist? Does LMS have read/write permissions (755) for the (parent) folder?');
+			$prefs->set('status_savingtotextfile', 0);
+			return;
+		};
+
+		print $output "#### Text file created by Visual Statistics ####\n";
+		print $output "#### ".$statName."\n";
+		print $output "#### This text file contains ".scalar(@items).(scalar(@items) == 1 ? ' item' : ' items').".\n\n";
+		for my $thisItem (@items) {
+			print $output "".$thisItem."\n";
+		}
+		close $output;
+	}
+
+	main::DEBUGLOG && $log->is_debug && $log->debug("saving text file took ".(time()-$savingStartTime).' seconds');
+	main::INFOLOG && $log->is_info && $log->info('Saved text file for "'.$statName.'" with '.scalar(@items).(scalar(@items) == 1 ? ' item' : ' items').'. Task completed after '.(time()-$started)." seconds.\n\n");
+	$prefs->set('status_savingtotextfile', 0);
 	return;
 }
 
