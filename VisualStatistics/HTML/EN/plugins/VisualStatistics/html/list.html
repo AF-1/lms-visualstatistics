@@ -1823,17 +1823,11 @@
 			params: ['', ['pref', 'plugin.visualstatistics:' + prefname, prefval]]
 		});
 
-		async function sendPrefChange() {
-			var vspref = new XMLHttpRequest();
-			vspref.open("POST", serverjsonurl);
-			vspref.setRequestHeader("Content-type", "application/json");
-			vspref.onreadystatechange = function () {
-				//console.log(vspref.responseText);
-			};
-			let response = await vspref.send(vsBody);
-		}
-
-		sendPrefChange().then(() => {
+		return fetch(serverjsonurl, {
+			method: "POST",
+			headers: { "Content-type": "application/json" },
+			body: vsBody
+		}).then(() => {
 			if (prefname == 'selectedvirtuallibrary') {
 				updateGenreFilterList();
 				updateDecadeFilterList();
@@ -1864,4 +1858,5 @@
 		updateDecadeFilterList();
 	});
 </script>
+
 [% PROCESS pagefooter.html %]

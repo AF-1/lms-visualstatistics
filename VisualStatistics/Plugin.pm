@@ -92,7 +92,9 @@ sub handleWeb {
 	$prefs->set('genrefilterid', '');
 	$prefs->set('decadefilterval', '');
 	$prefs->set('selectedvirtuallibrary', '');
-	$params->{'vlselect'} = $prefs->get('selectedvirtuallibrary');
+	$params->{'genreselect'} = '';
+	$params->{'decadeselect'} = '';
+	$params->{'vlselect'} = '';
 
 	my $host = $params->{host} || (Slim::Utils::Network::serverAddr() . ':' . preferences('server')->get('httpport'));
 	$params->{'squeezebox_server_jsondatareq'} = 'http://' . $host . '/jsonrpc.js';
@@ -120,6 +122,9 @@ sub handleWeb {
 		my $ratedWorkTrackCount = quickSQLcount($ratedWorkTrackCountSQL) || 0;
 		$params->{'ratedworktrackcount'} = $ratedWorkTrackCount;
 	}
+
+	# Do not store page to ensure that all filters are reset.
+	$httpResponse->header('Cache-Control' => 'no-store');
 
 	return Slim::Web::HTTP::filltemplatefile($params->{'path'}, $params);
 }
@@ -1535,7 +1540,7 @@ sub getDataTracksByDateLastModified {
 
 sub getDataArtistWithMostTracks {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from contributors join contributor_track on contributor_track.contributor = contributors.id and contributor_track.role in (1,5,6) join tracks on tracks.id = contributor_track.track";
+	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from contributors join (select distinct contributor, track from contributor_track where role in (1,5,6)) as ct on ct.contributor = contributors.id join tracks on tracks.id = ct.track";
 	my $genreFilter = $prefs->get('genrefilterid');
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
@@ -1547,7 +1552,7 @@ sub getDataArtistWithMostTracks {
 	$sqlstatement .= " where contributors.id is not null";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
-		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
 	$sqlstatement .= " and contributors.name != '$VAstring' and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by contributors.name order by nooftracks desc, contributors.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
@@ -1555,7 +1560,7 @@ sub getDataArtistWithMostTracks {
 
 sub getDataArtistWithMostAlbums {
 	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
-	my $sqlstatement = "select distinct contributors.name, count(distinct albums.id) as noofalbums, contributors.id from albums join tracks on tracks.album = albums.id join contributors on contributors.id = albums.contributor join contributor_track on contributor_track.contributor = albums.contributor and contributor_track.role in (1,5)";
+	my $sqlstatement = "select distinct contributors.name, count(distinct albums.id) as noofalbums, contributors.id from albums join tracks on tracks.album = albums.id join contributors on contributors.id = albums.contributor join (select distinct contributor from contributor_track where role in (1,5)) as ct on ct.contributor = albums.contributor";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
