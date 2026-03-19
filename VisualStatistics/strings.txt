@@ -89,12 +89,15 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLMAXTRACKS
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLMAXTRACKS_DESC
 	EN	Limit the number of tracks in saved playlists.<br>The larger the playlist, the more time it takes LMS to save it. LMS might be unresponsive in the meantime.
+	FR	Limiter le nombre de morceaux dans les listes de lecture sauvegardées.<br>Plus la liste est grande, plus LMS met du temps à la sauvegarder. LMS pourrait ne pas répondre pendant ce temps.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLOVERWRITE
 	EN	Overwrite previously saved playlists
+	FR	Écraser les listes de lecture sauvegardées précédemment
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLOVERWRITE_DESC
 	EN	If you have a previously saved playlists with the same name, LMS can delete and replace it. If you disable overwriting, LMS will append the date and time to the playlist name if it finds a playlist with an same name.
+	FR	Si vous avez une liste de lecture sauvegardée précédemment avec le même nom, LMS peut la supprimer et la remplacer. Si vous désactivez l’écrasement, LMS ajoutera la date et l’heure au nom de la liste de lecture s’il trouve une liste avec le même nom.
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
@@ -608,7 +611,7 @@ PLUGIN_VISUALSTATISTICS_WORKS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 
 PLUGIN_VISUALSTATISTICS_WORKS_DPSV_HIGHESTAVG_APC
 	EN	Works with highest avg. dynamic played/skipped value (APC)
-	FR	Œuvres avec la plus grand valeur dynamique joués/sautés (DPSV) (APC)
+	FR	Œuvres avec la plus grande valeur dynamique joués/sautés (DPSV) (APC)
 
 PLUGIN_VISUALSTATISTICS_WORKS_DPSV_LOWESTAVG_APC
 	EN	Works with lowest avg. dynamic played/skipped value (APC)
