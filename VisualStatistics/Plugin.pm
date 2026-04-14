@@ -1,21 +1,7 @@
 #
 # Visual Statistics
-#
 # (c) 2021 AF
-#
-# GPLv3 license
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# Licensed under the GPLv3 - see LICENSE file
 #
 
 package Plugins::VisualStatistics::Plugin;
@@ -95,7 +81,6 @@ sub handleWeb {
 	$params->{'genreselect'} = '';
 	$params->{'decadeselect'} = '';
 	$params->{'vlselect'} = '';
-
 	$params->{'squeezebox_server_jsondatareq'} = '/jsonrpc.js';
 
 	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
@@ -150,9 +135,12 @@ sub handleJSON {
 				results => getGenres(),
 			};
 		} else {
-			$response = {
-				results => eval("$querytype()")
-			};
+			my $sub = Plugins::VisualStatistics::Plugin->can($querytype);
+			if ($sub && $querytype =~ /^getData[A-Za-z]+$/) {
+				$response = { results => $sub->() };
+			} else {
+				$response = { error => 'Unknown query type: ' . $querytype };
+			}
 		}
 	}
 
@@ -465,7 +453,7 @@ sub getDataLibStatsText {
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGBITRATE").':', 'value' => $avgBitrate.' kbps'});
 
 	# average file size
-	my$avgFileSizeSQL = "select round((avg(filesize)/(1024*1024)), 2)||' MB' from tracks";
+	my $avgFileSizeSQL = "select round((avg(filesize)/(1024*1024)), 2)||' MB' from tracks";
 	if ($selectedVL && $selectedVL ne '') {
 		$avgFileSizeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
@@ -798,7 +786,6 @@ sub saveResultsToPL {
 
 	# artists with identical Musicbrainz IDs
 	if ($playlistType eq 'artistswithidenticalmusicbrainzid') {
-		my $VAid = Slim::Schema->variousArtistsObject->id;
 		$sqlstatement = "select tracks.id from tracks where tracks.id in (select tracks.id from tracks join contributor_track on contributor_track.track = tracks.id join contributors on contributors.id = contributor_track.contributor";
 		if ($selectedVL && $selectedVL ne '') {
 			$sqlstatement .= " join library_contributor on contributors.id = library_contributor.contributor and library_contributor.library = '$selectedVL'";
@@ -1096,7 +1083,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 		}
 		$sqlbitrate .= " and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir') group by tracks.content_type order by tracks.content_type asc";
 		my $sth = $dbh->prepare($sqlbitrate);
-		#eval {
+		eval {
 			$sth->execute();
 			my $xAxisDataItem; # string values
 			my $yAxisDataItem; # numeric values
@@ -1109,7 +1096,10 @@ sub getDataTracksByBitrateAudioFileFormat {
 			$sth->finish();
 			$subData = '{"x": '.'"'.$xLabelName.'"'.$subData.'}';
 			push(@result, $subData);
-		#};
+		};
+		if ($@) {
+			$log->error("Database error in getDataTracksByBitrateAudioFileFormat: $DBI::errstr\n$@");
+		}
 	}
 
 	my $sqlfileformats = "select distinct tracks.content_type from tracks";
@@ -1221,7 +1211,7 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 			end)
 		order by tracks.bitrate asc;";
 		my $sth = $dbh->prepare($sqlbitrate);
-		#eval {
+		eval {
 			$sth->execute();
 			my $xAxisDataItem;
 			my $yAxisDataItem;
@@ -1237,7 +1227,10 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 			$sth->finish();
 			$subData = '{'.$subData.'}';
 			push(@result, $subData);
-		#};
+		};
+		if ($@) {
+			$log->error("Database error in getDataTracksByBitrateAudioFileFormatScatter: $DBI::errstr\n$@");
+		}
 	}
 	my @sortedbitRates = sort { $a <=> $b } @bitRates;
 
@@ -1320,7 +1313,7 @@ sub getDataTracksByFileSizeAudioFileFormat {
 		}
 		$sqlfilesize .= " group by tracks.content_type order by tracks.content_type asc";
 		my $sth = $dbh->prepare($sqlfilesize);
-		#eval {
+		eval {
 			$sth->execute();
 			my $xAxisDataItem; # string values
 			my $yAxisDataItem; # numeric values
@@ -1333,7 +1326,10 @@ sub getDataTracksByFileSizeAudioFileFormat {
 			$sth->finish();
 			$subData = '{"x": '.'"'.$xLabelName.'"'.$subData.'}';
 			push(@result, $subData);
-		#};
+		};
+		if ($@) {
+			$log->error("Database error in getDataTracksByFileSizeAudioFileFormat: $DBI::errstr\n$@");
+		}
 	}
 
 	# aggregate for files > 100 MB
@@ -1354,7 +1350,7 @@ sub getDataTracksByFileSizeAudioFileFormat {
 		}
 		$sqlfilesize .= " group by tracks.content_type order by tracks.content_type asc";
 		my $sth = $dbh->prepare($sqlfilesize);
-		#eval {
+		eval {
 			$sth->execute();
 			my $xAxisDataItem; # string values
 			my $yAxisDataItem; # numeric values
@@ -1367,7 +1363,10 @@ sub getDataTracksByFileSizeAudioFileFormat {
 			$sth->finish();
 			$subData = '{"x": '.'"'.$xLabelName.'"'.$subData.'}';
 			push(@result, $subData);
-		#};
+		};
+		if ($@) {
+			$log->error("Database error in getDataTracksByFileSizeAudioFileFormat (>100MB): $DBI::errstr\n$@");
+		}
 	my @wrapper = (\@result, \@fileFormats);
 	main::DEBUGLOG && $log->is_debug && $log->debug('wrapper = '.Data::Dump::dump(\@wrapper));
 
@@ -1538,7 +1537,7 @@ sub getDataTracksByDateLastModified {
 # ---- artists ---- #
 
 sub getDataArtistWithMostTracks {
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from contributors join (select distinct contributor, track from contributor_track where role in (1,5,6)) as ct on ct.contributor = contributors.id join tracks on tracks.id = ct.track";
 	my $genreFilter = $prefs->get('genrefilterid');
 	if (defined($genreFilter) && $genreFilter ne '') {
@@ -1551,14 +1550,14 @@ sub getDataArtistWithMostTracks {
 	$sqlstatement .= " where contributors.id is not null";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
-	$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and contributors.name != '$VAstring' and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by contributors.name order by nooftracks desc, contributors.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and contributors.id != $VAid and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by contributors.name order by nooftracks desc, contributors.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataArtistWithMostAlbums {
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name, count(distinct albums.id) as noofalbums, contributors.id from albums join tracks on tracks.album = albums.id join contributors on contributors.id = albums.contributor join (select distinct contributor from contributor_track where role in (1,5)) as ct on ct.contributor = albums.contributor";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -1568,7 +1567,7 @@ sub getDataArtistWithMostAlbums {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where ifnull(albums.compilation, 0) != 1 and contributors.name != '$VAstring'";
+	$sqlstatement .= " where ifnull(albums.compilation, 0) != 1 and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
@@ -1578,7 +1577,7 @@ sub getDataArtistWithMostAlbums {
 }
 
 sub getDataArtistWithMostRatedTracks {
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from tracks left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -1588,7 +1587,7 @@ sub getDataArtistWithMostRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring' and tracks_persistent.rating > 0";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid and tracks_persistent.rating > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1598,7 +1597,7 @@ sub getDataArtistWithMostRatedTracks {
 }
 
 sub getDataArtistsHighestPercentageRatedTracks {
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $minArtistTracks = $prefs->get('minartisttracks');
 	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(tracks_persistent.rating, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as ratedpercentage, contributors.id from tracks left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1609,7 +1608,7 @@ sub getDataArtistsHighestPercentageRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1621,7 +1620,7 @@ sub getDataArtistsHighestPercentageRatedTracks {
 sub getDataArtistsWithTopRatedTracksAvg {
 	my $agg = shift;
 	my $aggFunc = $agg ? 'sum' : 'avg';
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $minArtistTracks = $prefs->get('minartisttracks');
 	my $sqlstatement = "select distinct contributors.name, $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating, contributors.id from tracks left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1632,7 +1631,7 @@ sub getDataArtistsWithTopRatedTracksAvg {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1648,7 +1647,7 @@ sub getDataArtistsWithTopRatedTracksTotal {
 sub getDataArtistsWithMostPlayedTracks {
 	my $useAPC = shift;
 	my $dbTable = $useAPC ? 'alternativeplaycount' : 'tracks_persistent';
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name, count(distinct tracks.id) as nooftracks, contributors.id from tracks left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -1658,7 +1657,7 @@ sub getDataArtistsWithMostPlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring' and $dbTable.playCount > 0";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid and $dbTable.playCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1675,7 +1674,7 @@ sub getDataArtistsWithTracksCompletelyPartlyNonePlayed {
 	my $useAPC = shift;
 	my $dbTable = $useAPC ? 'alternativeplaycount' : 'tracks_persistent';
 	my @result = ();
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 
 	my $sqlstatement_shared = "select count (distinct playedtracks.artistname) from (select distinct contributors.name as artistname, cast(count(distinct case when ifnull($dbTable.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage from tracks left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1686,7 +1685,7 @@ sub getDataArtistsWithTracksCompletelyPartlyNonePlayed {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement_shared .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement_shared .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement_shared .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement_shared .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1714,7 +1713,7 @@ sub getDataArtistsWithTracksCompletelyPartlyNonePlayedAPC {
 sub getDataArtistsHighestPercentagePlayedTracks {
 	my $useAPC = shift;
 	my $dbTable = $useAPC ? 'alternativeplaycount' : 'tracks_persistent';
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $minArtistTracks = $prefs->get('minartisttracks');
 	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull($dbTable.playCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as playedpercentage, contributors.id from tracks left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1725,7 +1724,7 @@ sub getDataArtistsHighestPercentagePlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1742,7 +1741,7 @@ sub getDataArtistsWithMostPlayedTracksAverage {
 	my ($useAPC, $totalabs) = @_;
 	my $dbTable = $useAPC ? 'alternativeplaycount' : 'tracks_persistent';
 	my $func = $totalabs ? 'sum' : 'avg';
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name, $func(ifnull($dbTable.playCount,0)) as procplaycount, contributors.id from tracks left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -1752,7 +1751,7 @@ sub getDataArtistsWithMostPlayedTracksAverage {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1775,7 +1774,7 @@ sub getDataArtistsWithMostPlayedTracksTotalAPC {
 
 sub getDataArtistsWithMostSkippedTracksAPC {
 	my $totalabs = shift;
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name,";
 	$sqlstatement .= $totalabs ? " sum(ifnull(alternativeplaycount.skipCount,0)) as aggskipcount," : " count(distinct tracks.id) as nooftracks,";
 	$sqlstatement .= " contributors.id from tracks left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
@@ -1787,7 +1786,7 @@ sub getDataArtistsWithMostSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring' and alternativeplaycount.skipCount > 0";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid and alternativeplaycount.skipCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1803,7 +1802,7 @@ sub getDataArtistsWithTopTotalSkipCountAPC {
 }
 
 sub getDataArtistsHighestPercentageSkippedTracksAPC {
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $minArtistTracks = $prefs->get('minartisttracks');
 	my $sqlstatement = "select distinct contributors.name, cast(count(distinct case when ifnull(alternativeplaycount.skipCount, 0) > 0 then tracks.id else null end) as float) / cast (count(distinct tracks.id) as float) * 100 as skippedpercentage, contributors.id from tracks left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
@@ -1814,7 +1813,7 @@ sub getDataArtistsHighestPercentageSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1824,7 +1823,7 @@ sub getDataArtistsHighestPercentageSkippedTracksAPC {
 }
 
 sub getDataArtistsWithMostSkippedTracksAverageAPC {
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.skipCount,0)) as avgskipcount, contributors.id from tracks left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -1834,7 +1833,7 @@ sub getDataArtistsWithMostSkippedTracksAverageAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1849,7 +1848,7 @@ sub getDataArtistsRatingPlaycount {
 	my ($useAPC, $agg) = @_;
 	my $dbTable = $useAPC ? 'alternativeplaycount' : 'tracks_persistent';
 	my $aggFunc = $agg ? 'sum' : 'avg';
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select t.* from (select $aggFunc(ifnull($dbTable.playCount,0)) as procplaycount, $aggFunc(ifnull(tracks_persistent.rating,0)/20) as procrating, contributors.name from tracks";
 	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5" if $useAPC;
 	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
@@ -1861,7 +1860,7 @@ sub getDataArtistsRatingPlaycount {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1883,7 +1882,7 @@ sub getDataArtistsRatingPlaycountTotalAPC {
 }
 
 sub getDataArtistsHighestAvgDpsvAPC {
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.dynPSval,0)) as avgdpsv, contributors.id from tracks left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -1893,7 +1892,7 @@ sub getDataArtistsHighestAvgDpsvAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and alternativeplaycount.dynPSval is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and alternativeplaycount.dynPSval is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1903,7 +1902,7 @@ sub getDataArtistsHighestAvgDpsvAPC {
 }
 
 sub getDataArtistsLowestAvgDpsvAPC {
-	my $VAstring = $serverPrefs->get('variousArtistsString') || 'Various Artists';
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
 	my $sqlstatement = "select distinct contributors.name, avg(ifnull(alternativeplaycount.dynPSval,0)) as avgdpsv, contributors.id from tracks left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 join contributors on contributors.id = tracks.primary_artist";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
@@ -1913,7 +1912,7 @@ sub getDataArtistsLowestAvgDpsvAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and alternativeplaycount.dynPSval is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.name != '$VAstring'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and alternativeplaycount.dynPSval is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -3391,7 +3390,7 @@ sub executeSQLstatement {
 	my $sqlstatement = shift;
 	my $valuesToBind = shift || 2;
 	my $getIDs = shift;
-	#eval {
+	eval {
 		my $sth = $dbh->prepare($sqlstatement);
 		$sth->execute() or do {
 			$sqlstatement = undef;
@@ -3431,7 +3430,10 @@ sub executeSQLstatement {
 			}
 		}
 		$sth->finish();
-	#};
+	};
+	if ($@) {
+		$log->error("Database error in executeSQLstatement: $DBI::errstr\n$@");
+	}
 	main::DEBUGLOG && $log->is_debug && $log->debug('SQL result = '.Data::Dump::dump(\@result));
 	main::DEBUGLOG && $log->is_debug && $log->debug('Got '.scalar(@result).' items');
 	return \@result;
@@ -3441,11 +3443,16 @@ sub quickSQLcount {
 	my $dbh = Slim::Schema->dbh;
 	my $sqlstatement = shift;
 	my $thisCount;
-	my $sth = $dbh->prepare($sqlstatement);
-	$sth->execute();
-	$sth->bind_columns(undef, \$thisCount);
-	$sth->fetch();
-	$sth->finish();
+	eval {
+		my $sth = $dbh->prepare($sqlstatement);
+		$sth->execute();
+		$sth->bind_columns(undef, \$thisCount);
+		$sth->fetch();
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in quickSQLcount: $DBI::errstr\n$@");
+	}
 	return $thisCount;
 }
 
@@ -3499,7 +3506,6 @@ sub getGenres {
 sub getDecades {
 	my $dbh = Slim::Schema->dbh;
 	my @decades = ();
-	my $decadesQueryResult = {};
 	my $unknownString = string('PLUGIN_VISUALSTATISTICS_CHARTFILTER_UNKNOWN');
 
 	my $sql_decades = "select cast(((ifnull(tracks.year,0)/10)*10) as int) as decade,case when tracks.year>0 then cast(((tracks.year/10)*10) as int)||'s' else '$unknownString' end as decadedisplayed from tracks";
@@ -3525,7 +3531,7 @@ sub getDecades {
 			push (@decades, {'name' => $decadeDisplayName, 'val' => $decade});
 		}
 		$sth->finish();
-		main::DEBUGLOG && $log->is_debug && $log->debug('decadesQueryResult = '.Data::Dump::dump($decadesQueryResult));
+		main::DEBUGLOG && $log->is_debug && $log->debug('decades query result = '.Data::Dump::dump(\@decades));
 	};
 	if ($@) {
 		$log->error("Database error: $DBI::errstr\n$@");
