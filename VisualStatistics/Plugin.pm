@@ -96,8 +96,7 @@ sub handleWeb {
 	$params->{'decadeselect'} = '';
 	$params->{'vlselect'} = '';
 
-	my $host = $params->{host} || (Slim::Utils::Network::serverAddr() . ':' . preferences('server')->get('httpport'));
-	$params->{'squeezebox_server_jsondatareq'} = 'http://' . $host . '/jsonrpc.js';
+	$params->{'squeezebox_server_jsondatareq'} = '/jsonrpc.js';
 
 	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL) || 0;
