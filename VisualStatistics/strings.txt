@@ -99,15 +99,77 @@ PLUGIN_VISUALSTATISTICS_SETTINGS_SAVETOPLOVERWRITE_DESC
 	EN	If you have a previously saved playlists with the same name, LMS can delete and replace it. If you disable overwriting, LMS will append the date and time to the playlist name if it finds a playlist with an same name.
 	FR	Si vous avez une liste de lecture sauvegardée précédemment avec le même nom, LMS peut la supprimer et la remplacer. Si vous désactivez l’écrasement, LMS ajoutera la date et l’heure au nom de la liste de lecture s’il trouve une liste avec le même nom.
 
+PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE
+	EN	Outlier cutoff for histogram charts
+	FR	Seuil d'exclusion des valeurs aberrantes pour les histogrammes
+	NL	Uitbijtergrens voor histogramgrafieken
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE_DESC
+	EN	Some histogram charts (e.g. song duration, play count distribution) can contain extreme outliers - very long tracks or tracks with unusually high play counts - that compress the majority of data into a small area, making the chart hard to read.<br>This setting removes the top outliers from the display. <i>99th percentile</i> excludes the top 1% of values (recommended). <i>95th percentile</i> excludes the top 5%. The data itself is not affected, only the chart display.
+	FR	Certains histogrammes (durée des morceaux, distribution du nombre de lectures) peuvent contenir des valeurs aberrantes extrêmes (morceaux très longs ou morceaux avec un nombre de lectures inhabituellement élevé) qui compriment la majorité des données dans une petite zone, rendant le graphique difficile à lire. Ce paramètre supprime les valeurs les plus extrêmes de l'affichage. <i>99e percentile</i> exclut le 1 % supérieur des valeurs (recommandé). <i>95e percentile</i> exclut les 5 % supérieurs. Les données elles-mêmes ne sont pas affectées, uniquement l'affichage du graphique.
+	NL	Sommige histogramgrafieken (duur van nummers, verdeling van het aantal keren afgespeeld) kunnen extreme uitbijters bevatten (zeer lange nummers of nummers met een ongewoon hoog aantal keren afgespeeld) die de meerderheid van de gegevens samendrukken in een klein gebied, waardoor de grafiek moeilijk leesbaar wordt. Deze instelling verwijdert de meest extreme waarden uit de weergave. <i>99e percentiel</i> sluit de bovenste 1% van de waarden uit (aanbevolen). <i>95e percentiel</i> sluit de bovenste 5% uit. De gegevens zelf worden niet beïnvloed, alleen de grafiekweergave.
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE_NONE
+	EN	No cutoff (show all values)
+	FR	Aucun seuil (afficher toutes les valeurs)
+	NL	Geen grens (alle waarden weergeven)
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE_95
+	EN	95th percentile (exclude top 5%)
+	FR	95e percentile (exclure les 5% supérieurs)
+	NL	95e percentiel (top 5% uitsluiten)
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE_99
+	EN	99th percentile (exclude top 1%)
+	FR	99e percentile (exclure le 1% supérieur)
+	NL	99e percentiel (top 1% uitsluiten)
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENRELIMIT
+	EN	Maximum number of genres in stacked genre charts
+	FR	Nombre maximum de genres dans les graphiques de genres empilés
+	NL	Maximum aantal genres in gestapelde genregrafieken
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENRELIMIT_DESC
+	EN	The some play history charts (<i>Genre preferences over time</i>, <i>Plays by decade and genre</i> etc.) group plays by genre. With many genres in your library, the chart can become unreadable. This setting limits the number of genres shown. Remaining genres are grouped as <i>Other</i>. Choose a lower value for cleaner charts, a higher value for more detail.
+	FR	Certains graphiques d'historique de lecture (<i>Préférences de genre au fil du temps</i>, <i>Lectures par décennie et genre</i> etc.) regroupent les lectures par genre. Avec de nombreux genres dans votre bibliothèque, le graphique peut devenir illisible. Ce paramètre limite le nombre de genres affichés; les genres restants sont regroupés sous <i>Autres</i>. Choisissez une valeur plus basse pour des graphiques plus clairs, une valeur plus élevée pour plus de détails.
+	NL	Sommige afspeelgeschiedenisgrafieken (<i>Genrevoorkeuren over tijd</i>, <i>Weergaven per decennium en genre</i> etc.) groeperen weergaven per genre. Met veel genres in uw bibliotheek kan de grafiek onleesbaar worden. Deze instelling beperkt het aantal weergegeven genres; overige genres worden gegroepeerd als <i>Overige</i>. Kies een lagere waarde voor overzichtelijkere grafieken, een hogere waarde voor meer detail.
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENRELIMIT_GENRES
+	EN	genres
+	FR	genres
+	NL	genres
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHFORGOTTENMINPLAYS
+	EN	Minimum plays for <i>Forgotten Favorites</i>
+	FR	Nombre minimum de lectures pour <i>Favoris oubliés</i>
+	NL	Minimum aantal weergaven voor <i>Vergeten favorieten</i>
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHFORGOTTENMINPLAYS_DESC
+	EN	The <i>Forgotten Favorites</i> chart shows tracks that were played frequently in the past but have not been played recently. This setting defines the minimum number of plays a track must have to be included. Tracks with fewer plays are excluded to avoid showing rarely-heard tracks as "forgotten". Combine with the <i>Not played since</i> filter to tune what counts as forgotten.
+	FR	Le graphique <i>Favoris oubliés</i> affiche les morceaux souvent joués dans le passé mais plus écoutés récemment. Ce paramètre définit le nombre minimum de lectures qu'un morceau doit avoir pour être inclus. Les morceaux moins joués sont exclus pour éviter que des morceaux rarement écoutés apparaissent comme "oubliés"". Combinez avec le filtre <i>Pas joué depuis</i> pour affiner ce qui compte comme oublié.
+	NL	De grafiek <i>Vergeten favorieten</i> toont nummers die vroeger vaak werden afgespeeld maar recentelijk niet meer. Deze instelling bepaalt het minimale aantal weergaven dat een nummer moet hebben om opgenomen te worden. Nummers met minder weergaven worden uitgesloten om te voorkomen dat zelden beluisterde nummers als "vergeten" worden weergegeven. Combineer met het filter <i>Niet gespeeld sinds</i> om te bepalen wat als vergeten telt.
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHFORGOTTENMINPLAYS_PLAYS
+	EN	plays
+	FR	lectures
+	NL	weergaven
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHFORGOTTENMINPLAYS_PLAY
+	EN	play
+	FR	lecture
+	NL	weergave
+
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN
 	EN	Use OS fullscreen mode
 	FR	Utiliser le mode plein écran de l’OS
 	NL	Gebruik OS volledig schermmodus
 
 PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC
-	EN	If checked <i>Visual Statistics</i> will try to display the charts in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It’s just an <b>unsupported experimental</b> setting.
+	EN	If checked, charts should be displayed in (OS) fullscreen mode, they should cover your entire screen. Worked in Firefox, Chrome and Edge but not in Safari. No promises, no guarantees. It’s just an <b>unsupported experimental</b> setting.
 	FR	Si activé <i>Statistiques Visuelles</i> tentera d’afficher les graphiques dans le mode plein écran (de l’OS), ils devraient remplir l’écran entier. Fonctionne sur Firefox, Chrome et Edge mais pas sur Safari. Aucunes promesses ni garanties. C’est juste un réglage <b>expérimental non supporté</b>.
 	NL	Indien aangevinkt zal de plug-in <i>Visuale Statistieken</i> de grafieken tonen in (OS) volledig schermmodus. Werkt met de webbrowsers Firefox, Chrome en Edge, maar niet met Safari. Deze instelling wordt <b>niet ondersteund en is experimenteel</b>.
+
+
 
 PLUGIN_VISUALSTATISTICS_LIST
 	EN	Visual Statistics
@@ -163,11 +225,6 @@ PLUGIN_VISUALSTATISTICS_SECTION_DECADES
 	FR	DÉCENNIES
 	NL	DECENNIA
 
-PLUGIN_VISUALSTATISTICS_SECTION_MISC
-	EN	MISC.
-	FR	AUTRES
-	NL	OVERIG
-
 PLUGIN_VISUALSTATISTICS_CHARTFILTER_ALLGENRES
 	EN	 All genres
 	FR	 Tous les genres
@@ -192,6 +249,11 @@ PLUGIN_VISUALSTATISTICS_OTHERS
 	EN	Others
 	FR	Autres
 	NL	Anderen
+
+PLUGIN_VISUALSTATISTICS_OTHER
+	EN	Other
+	FR	Autres
+	NL	Overige
 
 PLUGIN_VISUALSTATISTICS_CLOSEOVERLAY
 	EN	Close chart overlay
@@ -284,6 +346,76 @@ PLUGIN_VISUALSTATISTICS_TRACKS_BY_DATE_LASTMODIFIED
 	EN	Tracks by date last modified
 	FR	Morceaux par date de dernière modification
 	NL	Nummers per laatst gewijzigde datum
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_HISTORICALLIBRARYSIZE
+	EN	Historical library size
+	FR	Taille historique de la bibliothèque
+	NL	Historische bibliotheekgrootte
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_HISTORICALLIBRARYSIZE_SUBTITLE
+	EN	Cumulative track count over time - shows how your library has grown
+	FR	Nombre cumulé de morceaux dans le temps - montre la croissance de votre bibliothèque
+	NL	Cumulatief aantal nummers over tijd - toont hoe uw bibliotheek is gegroeid
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_DURATIONDISTRIBUTION
+	EN	Track duration distribution
+	FR	Distribution de la durée des morceaux
+	NL	Verdeling van de trackduur
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPMTRACKS
+	EN	Tracks by BPM
+	FR	Morceaux par BPM
+	NL	Nummers per BPM
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPMPLAYS
+	EN	Plays by BPM
+	FR	Lectures par BPM
+	NL	Weergaven per BPM
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPMPLAYS_APC
+	EN	Plays by BPM (APC)
+	FR	Lectures par BPM (APC)
+	NL	Weergaven per BPM (APC)
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNTDISTRIBUTION
+	EN	Play count distribution
+	FR	Distribution du nombre de lectures
+	NL	Verdeling van het aantal weergaven
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_DURATION
+	EN	Duration (min:sec)
+	FR	Durée (min:sec)
+	NL	Duur (min:sec)
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPM
+	EN	BPM
+	FR	BPM
+	NL	BPM
+
+PLUGIN_VISUALSTATISTICS_TRACKS_LISTENING_TIMES
+	EN	Listening times
+	FR	Heures d’écoute
+	NL	Luistertijden
+
+PLUGIN_VISUALSTATISTICS_TRACKS_LISTENING_TIMES_APC
+	EN	Listening times (APC)
+	FR	Heures d’écoute (APC)
+	NL	Luistertijden (APC)
+
+PLUGIN_VISUALSTATISTICS_TRACKTITLE_WORDCLOUD
+	EN	Word cloud: track titles
+	FR	Nuage de mots: titres des chansons
+	NL	Woordwolk: namen van nummers
+
+PLUGIN_VISUALSTATISTICS_TRACKLYRICS_WORDCLOUD
+	EN	Word cloud: track lyrics
+	FR	Nuage de mots: paroles des chansons
+	NL	Woordwolk: songteksten
+
+PLUGIN_VISUALSTATISTICS_WORDCLOUD_REFRESH
+	EN	Redraw cloud
+	FR	Redessiner le nuage
+	NL	Wolk opnieuw tekenen
 
 
 
@@ -522,6 +654,11 @@ PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_HIGHESTAVG_APC
 PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_LOWESTAVG_APC
 	EN	Albums with lowest avg. dynamic played/skipped value (APC)
 	FR	Albums avec la plus petite valeur dynamique joués/sautés (DPSV) (APC)
+
+PLUGIN_VISUALSTATISTICS_ALBUMTITLE_WORDCLOUD
+	EN	Word cloud: album titles
+	FR	Nuage de mots: titres des albums
+	NL	Woordwolk: albumnamen
 
 
 
@@ -889,26 +1026,10 @@ PLUGIN_VISUALSTATISTICS_DECADES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT
 	FR	Décennies avec le nombre de sauts moyen le plus élevé (APC)
 	NL	Decennia met het hoogste gemiddelde aantal overgeslagen nummers (APC)
 
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES
-	EN	Listening times
-	FR	Heures d’écoute
-	NL	Luistertijden
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKS_LISTENING_TIMES_APC
-	EN	Listening times (APC)
-	FR	Heures d’écoute (APC)
-	NL	Luistertijden (APC)
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TRACKTITLE_MOSTFREQUENTWORDS
-	EN	Most frequently used words in track titles
-	FR	Mots les plus utilisés dans les titres des chansons
-	NL	Meest gebruikte woorden in namen van nummers
-
-PLUGIN_VISUALSTATISTICS_MISCSTATS_LYRICS_MOSTFREQUENTWORDS
-	EN	Most frequently used words in track lyrics
-	FR	Mots les plus utilisés dans les paroles des chansons
-	NL	Meest gebruikte woorden in songteksten
+PLUGIN_VISUALSTATISTICS_DECADES_LIBRARY_STRUCTURE_SANKEY
+	EN	Library Structure: Decade → Genre → Artist
+	FR	Structure de la bibliothèque : décennie → genre → artiste
+	NL	Bibliotheekstructuur: decennium → genre → artiest
 
 
 
@@ -928,9 +1049,9 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT
 	NL	Aantal overgeslagen nummers
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE
-	EN	Average bit rate
-	FR	Débit moyen
-	NL	Gemiddelde bitsnelheid
+	EN	Average bit rate (kbps)
+	FR	Débit moyen (kbps)
+	NL	Gemiddelde bitsnelheid (kbps)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT
 	EN	Play count
@@ -1082,9 +1203,9 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORDCOUNT
 	NL	Aantal woorden
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_BITRATE
-	EN	Bit rate
-	FR	Débit
-	NL	Bitsnelheid
+	EN	Bit rate (kbps)
+	FR	Débit (kbps)
+	NL	Bitsnelheid (kbps)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE
 	EN	No bit rate
@@ -1092,14 +1213,14 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_NOBITRATE
 	NL	Geen bitsnelheid
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_FILESIZE
-	EN	File size
-	FR	Taille de fichier
-	NL	Bestandsgrootte
+	EN	File size (MB)
+	FR	Taille de fichier (MB)
+	NL	Bestandsgrootte (MB)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME
-	EN	Listening Time
-	FR	Temps d’écoute
-	NL	Luistertijd
+	EN	Listening Time (h)
+	FR	Temps d'écoute (h)
+	NL	Luistertijd (h)
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE_LASTADDED
 	EN	Date added
@@ -1125,7 +1246,7 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_COMPOSERNAME
 	EN	Composer
 	FR	Compositeur
 
-PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMNAME
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE
 	EN	Album
 	FR	Album
 	NL	Album
@@ -1148,6 +1269,16 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE
 	EN	Decade
 	FR	Décennie
 	NL	Decennium
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVGRATING
+	EN	Average rating
+	FR	Note moyenne
+	NL	Gemiddelde beoordeling
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATING_AT_PLAY
+	EN	Rating at time of play
+	FR	Note au moment de la lecture
+	NL	Beoordeling op moment van afspelen
 
 
 PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_HOUR
@@ -1190,324 +1321,728 @@ PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_TRACKS
 	FR	morceaux
 	NL	nummers
 
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE
+	EN	Date
+	FR	Date
+	NL	Datum
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_WEEKDAY
+	EN	Weekday
+	FR	Jour de la semaine
+	NL	Weekdag
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_HOUR
+	EN	Hour
+	FR	Heure
+	NL	Uur
+
+PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYER
+	EN	Player
+	FR	Lecteur
+	NL	Speler
 
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_INFOMOUSEOVERTITLE
-	EN	Show detailed statistical information (text) about this library
-	FR	Afficher les statistiques détaillées (texte) à propos de cette bibliothèque
-	NL	Toon gedetailleerde statistische informatie (tekst) over deze bibliotheek
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_HEADER
+PLUGIN_VISUALSTATISTICS_TEXT_INFOMOUSEOVERTITLE
+	EN	Click to show detailed text statistics for this library
+	FR	Cliquez pour afficher les statistiques textuelles détaillées de cette bibliothèque
+	NL	Klik om gedetailleerde tekststatistieken voor deze bibliotheek te tonen
+
+PLUGIN_VISUALSTATISTICS_LIBRARY_STATS_TEXT_HEADER
 	EN	LIBRARY STATISTICS
 	FR	STATISTIQUES DE LA BIBLIOTHEQUE MUSICALE
 	NL	MEDIABIBLIOTHEEK STATISTIEKEN
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_LIBRARY_STATS_TEXT_REFRESH
+PLUGIN_VISUALSTATISTICS_LIBRARY_STATS_TEXT_REFRESH
 	EN	Refresh
 	FR	Actualiser
 	NL	Vernieuwen
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS
+PLUGIN_VISUALSTATISTICS_TEXT_TOTALTRACKS
 	EN	Total tracks
 	FR	Total de morceaux
 	NL	Totaal aantal nummers
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSLOCAL
+PLUGIN_VISUALSTATISTICS_TEXT_TOTALTRACKSLOCAL
 	EN	Total local tracks
 	FR	Total de morceaux locaux
 	NL	Totaal aantal lokale nummers
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSREMOTE
+PLUGIN_VISUALSTATISTICS_TEXT_TOTALTRACKSREMOTE
 	EN	Total remote tracks
 	FR	Total de morceaux distants
 	NL	Totaal aantal niet lokale nummers
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALPLAYINGTIME
+PLUGIN_VISUALSTATISTICS_TEXT_TOTALPLAYINGTIME
 	EN	Total playing time
 	FR	Temps total de lecture
 	NL	Totale speeltijd
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEAR
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEYEAR
 	EN	year
 	FR	année
 	NL	jaar
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEARS
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEYEARS
 	EN	years
 	FR	années
 	NL	jaren
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEK
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEWEEK
 	EN	week
 	FR	semaine
 	NL	week
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEKS
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEWEEKS
 	EN	weeks
 	FR	semaines
 	NL	weken
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAY
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEDAY
 	EN	day
 	FR	jour
 	NL	dag
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAYS
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEDAYS
 	EN	days
 	FR	jours
 	NL	dagen
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOUR
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEHOUR
 	EN	hour
 	FR	heure
 	NL	uur
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOURS
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEHOURS
 	EN	hours
 	FR	heures
 	NL	uren
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMIN
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEMIN
 	EN	minute
 	FR	minute
 	NL	minuut
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS
+PLUGIN_VISUALSTATISTICS_TEXT_TIMEMINS
 	EN	minutes
 	FR	minutes
 	NL	minuten
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESEC
+PLUGIN_VISUALSTATISTICS_TEXT_TIMESEC
 	EN	second
 	FR	seconde
 	NL	seconde
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESECS
+PLUGIN_VISUALSTATISTICS_TEXT_TIMESECS
 	EN	seconds
 	FR	secondes
 	NL	seconden
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALLIBSIZE
+PLUGIN_VISUALSTATISTICS_TEXT_TOTALLIBSIZE
 	EN	Total library size
 	FR	Taille totale de la bibliothèque musicale
 	NL	Totale mediabibliotheek grootte
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALIBAGE
+PLUGIN_VISUALSTATISTICS_TEXT_TOTALIBAGE
 	EN	Library age
 	FR	Age de la bibliothèque musicale
 	NL	Mediabibliotheek leeftijd
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS
+PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS
 	EN	Artists
 	FR	Artistes
 	NL	Artiesten
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AARTISTS
+PLUGIN_VISUALSTATISTICS_TEXT_AARTISTS
 	EN	Album artists
 	FR	Artistes d’album
 	NL	Albumartiesten
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPOSERS
+PLUGIN_VISUALSTATISTICS_TEXT_COMPOSERS
 	EN	Composers
 	FR	Compositeurs
 	NL	Componisten
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_CONDUCTORS
+PLUGIN_VISUALSTATISTICS_TEXT_CONDUCTORS
 	EN	Conductors
 	FR	Chefs d’orchestre
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_BANDS
+PLUGIN_VISUALSTATISTICS_TEXT_BANDS
 	EN	Bands
 	FR	Groupes
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTSPLAYED
+PLUGIN_VISUALSTATISTICS_TEXT_ARTISTSPLAYED
 	EN	Artists played
 	FR	Artistes joués
 	NL	Artiesten afgespeeld
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS
 	EN	Albums
 	FR	Albums
 	NL	Albums
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS
+PLUGIN_VISUALSTATISTICS_TEXT_WORKS
 	EN	Works
 	FR	Œuvres
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS_MULTIPLE_PERFORMANCES
+PLUGIN_VISUALSTATISTICS_TEXT_WORKS_MULTIPLE_PERFORMANCES
 	EN	Works with multiple performances
 	FR	Œuvres avec plusieurs enregistrements
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPIS
+PLUGIN_VISUALSTATISTICS_TEXT_COMPIS
 	EN	Compilations
 	FR	Compilations
 	NL	Verzamelingen
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AALBUMS
+PLUGIN_VISUALSTATISTICS_TEXT_AALBUMS
 	EN	Artist albums
 	FR	Albums d’artistes
 	NL	Artiest albums
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSPLAYED
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSPLAYED
 	EN	Albums played
 	FR	Albums joués
 	NL	Albums afgespeeld
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSNOARTWORK
 	EN	Albums without artwork
 	FR	Albums sans couverture
 	NL	Albums zonder albumhoes
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOYEAR
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSNOYEAR
 	EN	Albums without year
 	FR	Albums sans année
 	NL	Albums zonder jaar
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYGAIN
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSWITHREPLAYGAIN
 	EN	Albums with replay gain
 	FR	Albums avec replay gain
 	NL	Albums met replay gain
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYPEAK
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSWITHREPLAYPEAK
 	EN	Albums with replay peak
 	FR	Albums avec replay peak
 	NL	Albums met replay peak
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES
+PLUGIN_VISUALSTATISTICS_TEXT_GENRES
 	EN	Genres
 	FR	Genres
 	NL	Genres
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_LOSSLESS
+PLUGIN_VISUALSTATISTICS_TEXT_LOSSLESS
 	EN	Lossless tracks
 	FR	Morceaux sans pertes
 	NL	Lossless nummers
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_RATEDTRACKS
+PLUGIN_VISUALSTATISTICS_TEXT_RATEDTRACKS
 	EN	Rated tracks
 	FR	Morceaux notés
 	NL	Beoordeelde nummers
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYED
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKSPLAYED
 	EN	Tracks played at least once
 	FR	Morceaux joués au moins une fois
 	NL	Aantal nummers dat minstens één keer is afgespeeld
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYCOUNTTOTAL
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKSPLAYCOUNTTOTAL
 	EN	Total play count (incl. repeated)
 	FR	Nombre total d’écoutes (incl. répétitions)
 	NL	Totaal aantal keren afgespeeld (incl. herhaald)
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSAVGLENGTH
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKSAVGLENGTH
 	EN	Average track length
 	FR	Longeur moyenne des morceaux
 	NL	Gemiddelde duur van nummer
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGBITRATE
+PLUGIN_VISUALSTATISTICS_TEXT_AVGBITRATE
 	EN	Average bit rate
 	FR	Débit moyen
 	NL	Gemiddelde bitsnelheid
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGFILESIZE
+PLUGIN_VISUALSTATISTICS_TEXT_AVGFILESIZE
 	EN	Average file size
 	FR	Taille moyenne des fichiers
 	NL	Gemiddelde bestandsgrootte
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHLYRICS
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKSWITHLYRICS
 	EN	Tracks with lyrics
 	FR	Morceaux avec paroles
 	NL	Nummers met songteksten
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOYEAR
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOYEAR
 	EN	Tracks without year
 	FR	Morceaux sans année
 	NL	Nummers zonder jaar
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOREPLAYGAIN
 	EN	Tracks without replay gain
 	FR	Morceaux sans replay gain
 	NL	Nummers zonder replay gain
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHREPLAYPEAK
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKSWITHREPLAYPEAK
 	EN	Tracks with replay peak
 	FR	Morceaux avec replay peak
 	NL	Nummers met replay peak
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS
+PLUGIN_VISUALSTATISTICS_TEXT_MP3TRACKSTAGS
 	EN	MP3 tracks with
 	FR	Morceaux MP3 avec
 	NL	MP3 nummers met
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS
+PLUGIN_VISUALSTATISTICS_TEXT_TAGS
 	EN	tags
 	FR	tags
 	NL	tags
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_MUSICBRAINZID
 	EN	Tracks with Musicbrainz ID
 	FR	Morceaux avec un ID Musicbrainz
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID_DUPES
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_MUSICBRAINZID_DUPES
 	EN	Tracks with identical LMS Musicbrainz IDs
 	FR	Morceaux avec un ID Musicbrainz identique dans LMS
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID
+PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_MUSICBRAINZID
 	EN	Artists with Musicbrainz ID
 	FR	Artistes avec un ID Musicbrainz
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_VA
+PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_MUSICBRAINZID_VA
 	EN	Various Artists has Musicbrainz ID
 	FR	Artistes divers a ID Musicbrainz
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_DUPES
+PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_MUSICBRAINZID_DUPES
 	EN	Artists with identical LMS Musicbrainz IDs
 	FR	Artistes avec un ID Musicbrainz identique dans LMS
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS_MUSICBRAINZID
 	EN	Albums with Musicbrainz ID
 	FR	Albums avec un ID Musicbrainz
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID_DUPES
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS_MUSICBRAINZID_DUPES
 	EN	Albums with identical LMS Musicbrainz IDs
 	FR	Albums avec un ID Musicbrainz identique dans LMS
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_NOTRACKS
+PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_NOTRACKS
 	EN	Artists without tracks
 	FR	Artistes sans morceaux
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_NOTRACKS
+PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS_NOTRACKS
 	EN	Albums without tracks
 	FR	Albums sans morceaux
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES_NOTRACKS
+PLUGIN_VISUALSTATISTICS_TEXT_GENRES_NOTRACKS
 	EN	Genres without tracks
 	FR	Genres sans morceaux
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_YEARS_NOTRACKS
+PLUGIN_VISUALSTATISTICS_TEXT_YEARS_NOTRACKS
 	EN	Years without tracks
 	FR	Années sans morceaux
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_LONGURLS
+PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_LONGURLS
 	EN	Tracks with long urls (> 2048 characters)
 	FR	Morceaux avec url longue (> 2048 caractères)
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_DEADTRACKSPERSISTENT
+PLUGIN_VISUALSTATISTICS_TEXT_DEADTRACKSPERSISTENT
 	EN	Possibly dead tracks in tracks_persistent table
 	FR	Possibles morceaux morts dans la table tracks_persistent
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_SAVETOPLAYLIST
+PLUGIN_VISUALSTATISTICS_TEXT_SAVETOPLAYLIST
 	EN	Save the result to a playlist. This may take a while...
 	FR	Enregistrer le résultat dans une liste de lecture. Cela peut prendre un certain temps...
 
-PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_SAVETOTEXTFILE
+PLUGIN_VISUALSTATISTICS_TEXT_SAVETOTEXTFILE
 	EN	Save the result to a text file in the LMS preferences folder. This may take a while...
 	FR	Enregistrer le résultat dans un fichier texte dans le dossier des préférences du LMS. Cela peut prendre un certain temps...
+
+
+PLUGIN_VISUALSTATISTICS_SECTION_PLAYHISTORY
+	EN	PLAY HISTORY
+	FR	HISTORIQUE DE LECTURE
+	NL	AFSPEELGESCHIEDENIS
+
+PLUGIN_VISUALSTATISTICS_SECTION_PLAYHISTORY_INACTIVE
+	EN	This section requires the Alternative Play Count plugin with its Play History feature enabled. Please enable it in the APC plugin settings.
+	FR	Cette section nécessite le plugin Alternative Play Count avec la fonction Historique de lecture activée. Veuillez l'activer dans les paramètres du plugin APC.
+	NL	Deze sectie vereist de Alternative Play Count plugin met de afspeelgeschiedenis functie ingeschakeld. Schakel dit in via de APC plugin instellingen.
+
+PLUGIN_VISUALSTATISTICS_SECTION_PLAYHISTORY_LINK_APCSETTINGS
+	EN	Open Alternative Play Count settings
+	FR	Ouvrir les paramètres d'Alternative Play Count
+	NL	Alternative Play Count instellingen openen
+
+PLUGIN_VISUALSTATISTICS_SECTION_PLAYHISTORY_INSUFFICIENT
+	EN	Play History is active but only %s plays have been recorded so far. Charts will appear from %s plays onwards.
+	FR	L'historique de lecture est actif, mais seulement %s lectures ont été enregistrées. Les graphiques apparaîtront à partir de %s lectures.
+	NL	Afspeelgeschiedenis is actief maar er zijn nog maar %s nummers afgespeeld. Grafieken verschijnen vanaf %s weergaven.
+
+PLUGIN_VISUALSTATISTICS_PH_ACTIVITY_TIMELINE
+	EN	Plays per time unit (activity timeline)
+	FR	Lectures par unité de temps (chronologie d'activité)
+	NL	Weergaven per tijdseenheid (activiteitstijdlijn)
+
+PLUGIN_VISUALSTATISTICS_PH_PLAYS_PER_WEEKDAY
+	EN	Plays per weekday
+	FR	Lectures par jour de la semaine
+	NL	Weergaven per weekdag
+
+PLUGIN_VISUALSTATISTICS_PH_PLAYS_PER_HOUR
+	EN	Plays per hour of day (true listening times)
+	FR	Lectures par heure de la journée (temps d'écoute réels)
+	NL	Weergaven per uur van de dag (werkelijke luistertijden)
+
+PLUGIN_VISUALSTATISTICS_PH_TRACKS_MOSTPLAYED
+	EN	Most played tracks (play history)
+	FR	Morceaux les plus joués (historique de lecture)
+	NL	Meest afgespeelde nummers (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_ARTISTS_TOTALPLAYCOUNT
+	EN	Artists with top total play count (play history)
+	FR	Artistes avec le nombre d'écoutes total le plus élevé (historique de lecture)
+	NL	Artiesten met de meeste keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_ARTISTS_AVGPLAYCOUNT
+	EN	Artists with top average play count (play history)
+	FR	Artistes avec le nombre d'écoutes moyen le plus élevé (historique de lecture)
+	NL	Artiesten met de meeste gemiddelde keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_ALBUMS_TOTALPLAYCOUNT
+	EN	Albums with top total play count (play history)
+	FR	Albums avec le nombre d'écoutes total le plus élevé (historique de lecture)
+	NL	Albums met de meeste keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_ALBUMS_AVGPLAYCOUNT
+	EN	Albums with top average play count (play history)
+	FR	Albums avec le nombre d'écoutes moyen le plus élevé (historique de lecture)
+	NL	Albums met de meeste gemiddelde keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_GENRES_TOTALPLAYCOUNT
+	EN	Genres with top total play count (play history)
+	FR	Genres avec le nombre d'écoutes total le plus élevé (historique de lecture)
+	NL	Genres met de meeste keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_GENRES_AVGPLAYCOUNT
+	EN	Genres with top average play count (play history)
+	FR	Genres avec le nombre d'écoutes moyen le plus élevé (historique de lecture)
+	NL	Genres met de meeste gemiddelde keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_YEARS_TOTALPLAYCOUNT
+	EN	Years with top total play count (play history)
+	FR	Années avec le nombre d'écoutes total le plus élevé (historique de lecture)
+	NL	Jaren met de meeste keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_YEARS_AVGPLAYCOUNT
+	EN	Years with top average play count (play history)
+	FR	Années avec le nombre d'écoutes moyen le plus élevé (historique de lecture)
+	NL	Jaren met de meeste gemiddelde keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_DECADES_TOTALPLAYCOUNT
+	EN	Decades with top total play count (play history)
+	FR	Décennies avec le nombre d'écoutes total le plus élevé (historique de lecture)
+	NL	Decennia met de meeste keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_DECADES_AVGPLAYCOUNT
+	EN	Decades with top average play count (play history)
+	FR	Décennies avec le nombre d'écoutes moyen le plus élevé (historique de lecture)
+	NL	Decennia met de meeste gemiddelde keren afgespeeld (afspeelgeschiedenis)
+
+PLUGIN_VISUALSTATISTICS_PH_PLAYERUSAGE
+	EN	Play history by player
+	FR	Historique de lecture par lecteur
+	NL	Afspeelgeschiedenis per speler
+
+PLUGIN_VISUALSTATISTICS_PH_RATINGTREND
+	EN	Average rating of played tracks over time
+	FR	Note moyenne des morceaux joués au fil du temps
+	NL	Gemiddelde beoordeling van afgespeelde nummers over tijd
+
+PLUGIN_VISUALSTATISTICS_PH_RATINGDISTRIBUTION
+	EN	Distribution of plays by rating
+	FR	Distribution des lectures par note
+	NL	Verdeling van weergaven per beoordeling
+
+PLUGIN_VISUALSTATISTICS_PH_GENREPREFERENCES
+	EN	Genre preferences over time
+	FR	Préférences de genre au fil du temps
+	NL	Genrevoorkeuren over tijd
+
+PLUGIN_VISUALSTATISTICS_PH_DECADEGENRE
+	EN	Plays by decade and genre
+	FR	Lectures par décennie et genre
+	NL	Weergaven per decennium en genre
+
+PLUGIN_VISUALSTATISTICS_PH_ARTISTSLISTENINGTIME
+	EN	Most listened time by artist
+	FR	Temps d'écoute le plus long par artiste
+	NL	Meest beluisterde tijd per artiest
+
+PLUGIN_VISUALSTATISTICS_PH_ALBUMSLISTENINGTIME
+	EN	Most listened time by album
+	FR	Temps d'écoute le plus long par album
+	NL	Meest beluisterde tijd per album
+
+PLUGIN_VISUALSTATISTICS_PH_GENRESLISTENINGTIME
+	EN	Most listened time by genre
+	FR	Temps d'écoute le plus long par genre
+	NL	Meest beluisterde tijd per genre
+
+
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_TIMERANGE_LABEL
+	EN	Time range
+	FR	Période
+	NL	Tijdsperiode
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_TIMERANGE_1M
+	EN	Last month
+	FR	Dernier mois
+	NL	Afgelopen maand
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_TIMERANGE_3M
+	EN	Last 3 months
+	FR	3 derniers mois
+	NL	Afgelopen 3 maanden
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_TIMERANGE_6M
+	EN	Last 6 months
+	FR	6 derniers mois
+	NL	Afgelopen 6 maanden
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_TIMERANGE_1Y
+	EN	Last year
+	FR	Dernière année
+	NL	Afgelopen jaar
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_TIMERANGE_2Y
+	EN	Last 2 years
+	FR	2 dernières années
+	NL	Afgelopen 2 jaar
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_TIMERANGE_5Y
+	EN	Last 5 years
+	FR	5 dernières années
+	NL	Afgelopen 5 jaar
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_TIMERANGE_ALL
+	EN	All time
+	FR	Toute la période
+	NL	Alle tijd
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_GRANULARITY
+	EN	Granularity
+	FR	Granularité
+	NL	Granulariteit
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_GRANULARITY_DAY
+	EN	Per day
+	FR	Par jour
+	NL	Per dag
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_GRANULARITY_WEEK
+	EN	Per week
+	FR	Par semaine
+	NL	Per week
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_GRANULARITY_MONTH
+	EN	Per month
+	FR	Par mois
+	NL	Per maand
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_DECADE
+	EN	Release decade
+	FR	Décennie de parution
+	NL	Uitgavedecennium
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_PLAYER
+	EN	Player
+	FR	Lecteur
+	NL	Speler
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_ALL_PLAYERS
+	EN	All players
+	FR	Tous les lecteurs
+	NL	Alle spelers
+
+PLUGIN_VISUALSTATISTICS_PH_UNKNOWNPLAYER
+	EN	Unknown player
+	FR	Lecteur inconnu
+	NL	Onbekende speler
+
+PLUGIN_VISUALSTATISTICS_PH_UNNAMEDPLAYER
+	EN	Unnamed player
+	FR	Lecteur sans nom
+	NL	Speler zonder naam
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_MON
+	EN	Mon
+	FR	Lun
+	NL	Ma
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_TUE
+	EN	Tue
+	FR	Mar
+	NL	Di
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_WED
+	EN	Wed
+	FR	Mer
+	NL	Wo
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_THU
+	EN	Thu
+	FR	Jeu
+	NL	Do
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_FRI
+	EN	Fri
+	FR	Ven
+	NL	Vr
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_SAT
+	EN	Sat
+	FR	Sam
+	NL	Za
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_SUN
+	EN	Sun
+	FR	Dim
+	NL	Zo
+
+PLUGIN_VISUALSTATISTICS_PH_GENREPREFERENCES_SUBTITLE
+	EN	Plays per genre per month. Multi-genre tracks are assigned to their highest-ranked genre only.
+	FR	Lectures par genre par mois. Les morceaux multi-genres sont assignés uniquement à leur genre le mieux classé.
+	NL	Weergaven per genre per maand. Nummers met meerdere genres worden alleen toegewezen aan het hoogst gerangschikte genre.
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENREMULTI
+	EN	Multi-genre track handling<br>in genre-based play history charts
+	FR	Gestion des morceaux multi-genres dans les graphiques de genres basés sur l'historique
+	NL	Verwerking van nummers met meerdere genres in op genres gebaseerde afspeelgeschiedenisgrafieken
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENREMULTI_DESC
+	EN	Determines how tracks with multiple genres are counted in play history genre charts (e.g. <i>Genre preferences over time</i>, <i>Plays by decade and genre</i>, <i>Most listened time by genre</i>).<br><br><i>Assign to highest-ranked genre only</i>: each play is counted exactly once, assigned to whichever of its genres has the most total plays. The Y-axis then reflects the true play count.<br><br><i>Count in all genres</i>: a track with genres Pop and Rock is counted once in Pop and once in Rock — the total shown on the Y-axis may exceed the actual number of plays. Note: for listening time charts, this inflates total hours since the same playtime is counted multiple times. That's why highest-ranked is the default option.
+	FR	Détermine comment les morceaux assignés à plusieurs genres sont comptés dans les graphiques de genres basés sur l'historique (ex. <i>Préférences de genre au fil du temps</i>, <i>Lectures par décennie et genre</i>, <i>Temps d'écoute le plus long par genre</i>).<br><br><i>Assigner au genre le mieux classé uniquement</i>: chaque lecture est comptée exactement une fois, assignée au genre ayant le plus de lectures au total.<br><br><i>Compter dans tous les genres</i>: un morceau avec les genres Pop et Rock est compté une fois dans Pop et une fois dans Rock. Remarque: pour les graphiques de temps d'écoute, cela gonfle le total des heures car le même temps de lecture est compté plusieurs fois.
+	NL	Bepaalt hoe nummers met meerdere genres worden geteld in afspeelgeschiedenis-genregrafieken (bijv. <i>Genrevoorkeuren over tijd</i>, <i>Weergaven per decennium en genre</i>, <i>Meest beluisterde tijd per genre</i>).<br><br><i>Alleen toewijzen aan het hoogst gerangschikte genre</i>: elke weergave wordt precies één keer geteld, toegewezen aan het genre met de meeste weergaven.<br><br><i>Tellen in alle genres</i>: een nummer met genres Pop en Rock wordt eenmaal in Pop en eenmaal in Rock geteld. Opmerking: voor luistertijdgrafieken vergroot dit het totale aantal uren omdat dezelfde afspeeltijd meerdere keren wordt geteld.
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENREMULTI_ALL
+	EN	Count in all genres
+	FR	Compter dans tous les genres
+	NL	Tellen in alle genres
+
+PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENREMULTI_HIGHEST
+	EN	Assign to highest-ranked genre only
+	FR	Assigner au genre le mieux classé uniquement
+	NL	Alleen toewijzen aan het hoogst gerangschikte genre
+
+PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES
+	EN	Forgotten favorites
+	FR	Favoris oubliés
+	NL	Vergeten favorieten
+
+PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES_SUBTITLE
+	EN	Tracks you used to play a lot — but haven't played in a while. Only shows tracks played frequently before, with a clear drop-off in recent listening.
+	FR	Des morceaux que vous écoutiez souvent — mais plus depuis longtemps. N'affiche que les morceaux souvent joués avant, avec une baisse notable des écoutes récentes.
+	NL	Nummers die je vroeger veel speelde — maar al een tijdje niet meer. Toont alleen nummers die vroeger vaak werden gespeeld, met een duidelijke afname in recente weergaven.
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_NOTPLAYEDSINCE_LABEL
+	EN	Not played since
+	FR	Pas joué depuis
+	NL	Niet gespeeld sinds
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_NOTPLAYEDSINCE_1M
+	EN	Not played for > 1 month
+	FR	Pas joué depuis > 1 mois
+	NL	Niet gespeeld > 1 maand
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_NOTPLAYEDSINCE_3M
+	EN	Not played for > 3 months
+	FR	Pas joué depuis > 3 mois
+	NL	Niet gespeeld > 3 maanden
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_NOTPLAYEDSINCE_6M
+	EN	Not played for > 6 months
+	FR	Pas joué depuis > 6 mois
+	NL	Niet gespeeld > 6 maanden
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_NOTPLAYEDSINCE_1Y
+	EN	Not played for > 1 year
+	FR	Pas joué depuis > 1 an
+	NL	Niet gespeeld > 1 jaar
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_NOTPLAYEDSINCE_2Y
+	EN	Not played for > 2 years
+	FR	Pas joué depuis > 2 ans
+	NL	Niet gespeeld > 2 jaar
+
+PLUGIN_VISUALSTATISTICS_PH_FILTER_NOTPLAYEDSINCE_5Y
+	EN	Not played for > 5 years
+	FR	Pas joué depuis > 5 ans
+	NL	Niet gespeeld > 5 jaar
+
+PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES_TOOLTIP_BEFORE
+	EN	plays before
+	FR	lectures avant
+	NL	weergaven voor
+
+PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES_TOOLTIP_RECENT_ONE
+	EN	play recently
+	FR	lecture récemment
+	NL	weergave recent
+
+PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES_TOOLTIP_RECENT_MANY
+	EN	plays recently
+	FR	lectures récemment
+	NL	weergaven recent
+
+PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES_YLABEL
+	EN	Plays before
+	FR	Lectures avant
+	NL	Weergaven voor
+
+PLUGIN_VISUALSTATISTICS_PH_ARTISTSLISTENINGTIME
+	EN	Most listened time by artist
+	FR	Temps d'écoute le plus long par artiste
+	NL	Meest beluisterde tijd per artiest
+
+PLUGIN_VISUALSTATISTICS_PH_ALBUMSLISTENINGTIME
+	EN	Most listened time by album
+	FR	Temps d'écoute le plus long par album
+	NL	Meest beluisterde tijd per album
+
+PLUGIN_VISUALSTATISTICS_PH_GENRESLISTENINGTIME
+	EN	Most listened time by genre
+	FR	Temps d'écoute le plus long par genre
+	NL	Meest beluisterde tijd per genre
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAYHOURHEATMAP
+	EN	Play Activity: Weekday × Hour (Heatmap)
+	FR	Activité de lecture: jour × heure (carte thermique)
+	NL	Afspeelactiviteit: weekdag × uur (heatmap)
+
+PLUGIN_VISUALSTATISTICS_PH_WEEKDAYHOURHEATMAP_SUBTITLE
+	EN	Each cell shows the number of plays for that weekday/hour combination
+	FR	Chaque cellule indique le nombre de lectures pour cette combinaison jour/heure
+	NL	Elke cel toont het aantal afspeelingen voor die combinatie van weekdag en uur
+
+PLUGIN_VISUALSTATISTICS_PH_ACTIVITYHEATMAP
+	EN	Play Activity: Days (Heatmap)
+	FR	Activité de lecture: jours (carte thermique)
+	NL	Afspeelactiviteit: dagen (heatmap)
+
+PLUGIN_VISUALSTATISTICS_PH_ACTIVITYHEATMAP_SUBTITLE
+	EN	Each cell represents one day. Color intensity indicates number of plays.
+	FR	Chaque cellule représente un jour. L'intensité de la couleur indique le nombre de lectures.
+	NL	Elke cel vertegenwoordigt één dag. De kleurintensiteit geeft het aantal afspeelingen aan.
+
 
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS
 	EN	Hover over bars for more information.
 	FR	Survolez les barres pour plus d’informations.
 	NL	Ga met de cursor over de grafiek voor meer informatie.
+
+PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS_PERCENTILE
+	EN	Hover over bars for more information. Values above the set percentile are hidden.
+	FR	Survolez les barres pour plus d'informations. Les valeurs au-dessus du percentile défini sont masquées.
+	NL	Ga met de cursor over de grafiek voor meer informatie. Waarden boven het ingestelde percentiel worden verborgen.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS
 	EN	Click on legend items to hide them, hover over segments for more information.
@@ -1523,6 +2058,16 @@ PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SCATTER_FILEFORMATS
 	EN	Click on file formats in legend to hide them, hover over points for more information.
 	FR	Cliquez sur le format de fichier dans la légende pour les cacher, survolez les points pour plus d’informations.
 	NL	Klik op bestandsformaten in de legenda om ze te verbergen, ga met de cursor over de grafiek voor meer informatie.
+
+PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_WORDCLOUD
+	EN	Word cloud based on word frequency.
+	FR	Nuage de mots basé sur la fréquence des mots.
+	NL	Woordwolk op basis van woordfrequentie.
+
+PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SANKEY
+	EN	Flow width represents track count. Top 5 decades, top 5 genres per decade, top 3 artists per genre.
+	FR	La largeur du flux représente le nombre de morceaux. Top 5 décennies, top 5 genres par décennie, top 3 artistes par genre.
+	NL	De breedte van de stroom geeft het aantal nummers weer. Top 5 decennia, top 5 genres per decennium, top 3 artiesten per genre.
 
 PLUGIN_VISUALSTATISTICS_CHARTS_BUTTON_LAYOUT_HORIZONTAL
 	EN	Switch to <span class="button-font-strong">horizontal</span> layout

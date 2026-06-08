@@ -31,8 +31,11 @@ my $log = Slim::Utils::Log->addLogCategory({
 });
 my $serverPrefs = preferences('server');
 my $prefs = preferences('plugin.visualstatistics');
-my %ignoreCommonWords;
+my (%vsStrings, %CHART_REGISTRY, %ignoreCommonWords);
 my $rowLimit = 50;
+my $apc_enabled;
+my $apc_attached_to_lms = 0;
+my $hasTracksWithBPM = 0;
 
 sub initPlugin {
 	my $class = shift;
@@ -49,6 +52,13 @@ sub initPlugin {
 
 	Slim::Control::Request::addDispatch(['visualstatistics', 'savetopl', '_pltype'], [0, 1, 1, \&saveResultsToPL]);
 	Slim::Control::Request::addDispatch(['visualstatistics', 'savetotextfile', '_pltype'], [0, 1, 1, \&saveResultsToTextFile]);
+	Slim::Control::Request::subscribe(\&_resetApcAttachState, [['rescan'],['done']]);
+}
+
+sub postinitPlugin {
+	my $class = shift;
+	$apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
+	main::DEBUGLOG && $log->is_debug && $log->debug('Plugin "Alternative Play Count" is enabled') if $apc_enabled;
 }
 
 sub initPrefs {
@@ -59,53 +69,1151 @@ sub initPrefs {
 		clickablebars => 1,
 		savetoploverwrite => 1,
 		savetoplmaxtracks => 3000,
+		minphcount => 500,
+		ph_filter_timerange => '',
+		ph_filter_player => '',
+		ph_filter_granularity => 'month',
+		histogrampercentile => '99',
+		phgenrelimit => '20',
+		phgenremulti => '1',
+		phforgottenminplays => 5,
 	});
 	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
 	if (!$apc_enabled && $prefs->get('displayapcdupes') == 2) {
 		$prefs->set('displayapcdupes', 1);
 	}
 	$prefs->setValidate({'validator' => 'intlimit', 'low' => 500, 'high' => 5000}, 'savetoplmaxtracks');
+	$prefs->setValidate({'validator' => 'intlimit', 'low' => 10, 'high' => 60}, 'phgenrelimit');
+	$prefs->setValidate({'validator' => 'intlimit', 'low' => 3, 'high' => 20}, 'phforgottenminplays');
+
 	$prefs->set('selectedvirtuallibrary', '');
 	$prefs->set('status_savingtopl', 0);
 	$prefs->set('status_savingtotextfile', 0);
 	%ignoreCommonWords = map {
 		$_ => 1
 	} ("able", "about", "above", "acoustic", "act", "adagio", "after", "again", "against", "ago", "ain", "air", "akt", "album", "all", "allegretto", "allegro", "alone", "also", "alt", "alternate", "always", "among", "and", "andante", "another", "any", "are", "aria", "around", "atto", "autre", "away", "baby", "back", "bad", "beat", "because", "been", "before", "behind", "believe", "better", "big", "black", "blue", "bonus", "boy", "bring", "but", "bwv", "call", "can", "cause", "came", "chanson", "che", "chorus", "club", "come", "comes", "comme", "con", "concerto", "cosa", "could", "couldn", "dans", "das", "day", "days", "deezer", "dein", "del", "demo", "den", "der", "des", "did", "didn", "die", "does", "doesn", "don", "done", "down", "dub", "dur", "each", "edit", "ein", "either", "else", "end", "est", "even", "ever", "every", "everybody", "everything", "extended", "feat", "featuring", "feel", "find", "first", "flat", "for", "from", "fur", "get", "girl", "give", "going", "gone", "gonna", "good", "got", "gotta", "had", "hard", "has", "have", "hear", "heart", "her", "here", "hey", "him", "his", "hit", "hold", "home", "how", "ich", "iii", "inside", "instrumental", "interlude", "into", "intro", "isn", "ist", "just", "keep", "know", "las", "last", "leave", "left", "les", "let", "life", "like", "little", "live", "long", "look", "los", "love", "made", "major", "make", "man", "master", "may", "medley", "mein", "meu", "might", "mind", "mine", "minor", "miss", "mix", "moderato", "moi", "moll", "molto", "mon", "mono", "more", "most", "move", "much", "music", "must", "myself", "name", "nao", "near", "need", "never", "new", "nicht", "nobody", "non", "not", "nothing", "now", "off", "old", "once", "one", "only", "ooh", "orchestra", "original", "other", "ouh", "our", "ours", "out", "over", "own", "part", "pas", "people", "piano", "place", "play", "please", "plus", "por", "pour", "prelude", "presto", "put", "quartet", "que", "qui", "quite", "radio", "rather", "real", "really", "recitativo", "recorded", "remix", "right", "rock", "roll", "run", "said", "same", "sao", "say", "scene", "see", "seem", "session", "she", "should", "shouldn", "side", "single", "skit", "solo", "some", "something", "somos", "son", "sonata", "song", "sous", "spotify", "start", "stay", "stereo", "still", "stop", "street", "such", "suite", "symphony", "szene", "take", "talk", "teil", "tel", "tell", "tempo", "than", "that", "the", "their", "them", "then", "there", "these", "they", "thing", "things", "think", "this", "those", "though", "thought", "three", "through", "thus", "till", "time", "titel", "together", "told", "tonight", "too", "track", "trio", "true", "try", "turn", "two", "una", "und", "under", "une", "until", "use", "version", "very", "vivace", "vocal", "walk", "wanna", "want", "was", "way", "well", "went", "were", "what", "when", "where", "whether", "which", "while", "who", "whose", "why", "will", "with", "without", "woman", "won", "woo", "world", "would", "wrong", "yeah", "yes", "yet", "you", "your");
+
+	%CHART_REGISTRY = (
+		tracks => [
+			{ type => 'getDataTracksByAudioFileFormat',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILE_FORMAT',
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT', yLabelSpace => 1 },
+			{ type => 'getDataTracksByBitrate',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE',
+				chartType => 'Line', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_BITRATE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_KBPS'] },
+			{ type => 'getDataTracksByBitrateAudioFileFormat',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE_FILE_FORMATS',
+				chartType => 'BarStacked', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_BITRATE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_KBPS'], customValue => 'BitRate' },
+			{ type => 'getDataTracksByBitrateAudioFileFormatScatter',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_BITRATE_FILE_FORMATS_SCATTER',
+				chartType => 'Scatter', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT' },
+			{ type => 'getDataTracksBySampleRate',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_SAMPLE_RATE',
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT', yLabelSpace => 1 },
+			{ type => 'getDataTracksByFileSize',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE',
+				chartType => 'Line', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_FILESIZE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_MB'] },
+			{ type => 'getDataTracksByFileSizeAudioFileFormat',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_FILESIZE_FILE_FORMATS',
+				chartType => 'BarStacked', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_FILESIZE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_MB'] },
+			{ type => 'getDataTracksByGenre',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_GENRE',
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				yLabelSpace => 1, IDtarget => 'genre', customValue => 'longtooltips',
+				filters => { genre => 0 } },
+			{ type => 'getDataTracksMostPlayed',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				IDtarget => 'track' },
+			{ type => 'getDataTracksMostPlayedAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_MOSTPLAYED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				IDtarget => 'track' },
+			{ type => 'getDataTracksMostSkippedAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_MOSTSKIPPED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPCOUNT',
+				IDtarget => 'track' },
+			{ type => 'getDataTracksByDPSV',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_DPSV_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Line', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				IDtarget => 'track' },
+			{ type => 'getDataTracksByRating',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_RATING',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT', yLabelSpace => 1 },
+			{ type => 'getDataTracksByYear',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_YEAR',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				IDtarget => 'year', customValue => 'vertical', filters => { decade => 0 } },
+			{ type => 'getDataTracksByDateAdded',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_DATE_ADDED',
+				chartType => 'Line', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE_LASTADDED', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				filters => { genre => 1, decade => 1 } },
+			{ type => 'getDataTracksByDateLastModified',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_BY_DATE_LASTMODIFIED',
+				chartType => 'Line', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE_LASTMODIFIED', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				filters => { genre => 1, decade => 1 } },
+			{ type => 'getDataHistoricalLibrarySize',
+				string => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_HISTORICALLIBRARYSIZE',
+				chartType => 'LineTime', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_HISTORICALLIBRARYSIZE_SUBTITLE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				ph => 1, phFilters => { granularity => 1, decade => 0, player => 0, genre => 0 },
+				excludeTimeranges => ['', '-1 month', '-3 months', '-6 months', '-1 year', '-2 years', '-5 years'] },
+			{ type => 'getDataDurationDistribution',
+				string => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DURATIONDISTRIBUTION',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS_PERCENTILE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DURATION', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				customValue => 'Duration' },
+			{ type => 'getDataPlayCountDistribution',
+				string => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNTDISTRIBUTION',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS_PERCENTILE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				customValue => 'vertical' },
+			{ type => 'getDataBpmTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPMTRACKS',
+				conditions => { hasbpm => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS_PERCENTILE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPM', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				customValue => 'vertical' },
+			{ type => 'getDataBpmPlays',
+				string => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPMPLAYS',
+				conditions => { hasbpm => 1, show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS_PERCENTILE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPM', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				customValue => 'vertical' },
+			{ type => 'getDataBpmPlaysAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPMPLAYS_APC',
+				conditions => { hasbpm => 1, apc_enabled => 1, show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS_PERCENTILE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_BPM', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				customValue => 'vertical' },
+			{ type => 'getDataListeningTimes',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_LISTENING_TIMES',
+				conditions => { show_lms => 1 },
+				chartType => 'Line', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_HOUR'], filters => { decade => 0 } },
+			{ type => 'getDataListeningTimesAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKS_LISTENING_TIMES_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Line', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_HOUR'], filters => { decade => 0 } },
+			{ type => 'getDataTrackTitleWordCloud',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKTITLE_WORDCLOUD',
+				chartType => 'WordCloud', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_WORDCLOUD' },
+			{ type => 'getDataLyricsWordCloud',
+				string => 'PLUGIN_VISUALSTATISTICS_TRACKLYRICS_WORDCLOUD',
+				chartType => 'WordCloud', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_WORDCLOUD' },
+		],
+		artists => [
+			{ type => 'getDataArtistWithMostTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_TRACKS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				IDtarget => 'artist' },
+			{ type => 'getDataArtistWithMostAlbums',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_ALBUMS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT',
+				IDtarget => 'artist' },
+			{ type => 'getDataArtistWithMostRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_RATED_TRACKS',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT',
+				IDtarget => 'artist' },
+			{ type => 'getDataArtistsHighestPercentageRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_RATED',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED',
+				IDtarget => 'artist', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataArtistsWithTopRatedTracksAvg',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_AVG',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING',
+				IDtarget => 'artist', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'] },
+			{ type => 'getDataArtistsWithTopRatedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_RATED_TRACKS_TOTAL',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALTRACKRATING',
+				IDtarget => 'artist', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'] },
+			{ type => 'getDataArtistsWithMostPlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'artist' },
+			{ type => 'getDataArtistsWithMostPlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'artist' },
+			{ type => 'getDataArtistsWithTracksCompletelyPartlyNonePlayed',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE',
+				conditions => { show_lms => 1 },
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTCOUNT', yLabelSpace => 1, customValue => 'longtooltips' },
+			{ type => 'getDataArtistsWithTracksCompletelyPartlyNonePlayedAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTCOUNT', yLabelSpace => 1, customValue => 'longtooltips' },
+			{ type => 'getDataArtistsHighestPercentagePlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'artist', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataArtistsHighestPercentagePlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'artist', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataArtistsWithMostPlayedTracksAverage',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'artist', valdecimals => 2 },
+			{ type => 'getDataArtistsWithMostPlayedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'artist', valdecimals => 2 },
+			{ type => 'getDataArtistsWithMostPlayedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'artist', valdecimals => 2 },
+			{ type => 'getDataArtistsWithMostPlayedTracksTotalAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'artist', valdecimals => 2 },
+			{ type => 'getDataArtistsWithMostSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_MOST_SKIPPED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT',
+				IDtarget => 'artist' },
+			{ type => 'getDataArtistsWithTopTotalSkipCountAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALSKIPCOUNT',
+				IDtarget => 'artist' },
+			{ type => 'getDataArtistsHighestPercentageSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED',
+				IDtarget => 'artist', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataArtistsWithMostSkippedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT',
+				IDtarget => 'artist', valdecimals => 3 },
+			{ type => 'getDataArtistsRatingPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT',
+				conditions => { hasratedtracks => 1, show_lms => 1 },
+				chartType => 'ScatterExtra1', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST' },
+			{ type => 'getDataArtistsRatingPlaycountTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOTALRATING_TOTALPLAYCOUNT',
+				conditions => { hasratedtracks => 1, show_lms => 1 },
+				chartType => 'ScatterExtra2', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALRATINGPLAYCOUNTFORARTIST' },
+			{ type => 'getDataArtistsRatingPlaycountAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_AVGRATING_AVGPLAYCOUNT_APC',
+				conditions => { hasratedtracks => 1, show_apc => 1 },
+				chartType => 'ScatterExtra1', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGERATINGPLAYCOUNTFORARTIST' },
+			{ type => 'getDataArtistsRatingPlaycountTotalAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_TOTALRATING_TOTALPLAYCOUNT_APC',
+				conditions => { hasratedtracks => 1, show_apc => 1 },
+				chartType => 'ScatterExtra2', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALRATINGPLAYCOUNTFORARTIST' },
+			{ type => 'getDataArtistsHighestAvgDpsvAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_DPSV_HIGHESTAVG_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV',
+				IDtarget => 'artist', valdecimals => 2 },
+			{ type => 'getDataArtistsLowestAvgDpsvAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ARTISTS_DPSV_LOWESTAVG_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV',
+				IDtarget => 'artist', valdecimals => 2 },
+		],
+		albums => [
+			{ type => 'getDataAlbumsByYear',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_YEARS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT',
+				IDtarget => 'year', customValue => 'vertical' },
+			{ type => 'getDataAlbumsWithMostTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_TRACKS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				IDtarget => 'album' },
+			{ type => 'getDataAlbumsByReleaseType',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_RELEASETYPE',
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT', yLabelSpace => 1, customValue => 'longtooltips' },
+			{ type => 'getDataAlbumsWithMostRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_RATED_TRACKS',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT',
+				IDtarget => 'album' },
+			{ type => 'getDataAlbumsHighestPercentageRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_RATED',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED',
+				IDtarget => 'album', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataAlbumsWithTopRatedTracksAvg',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_AVG',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING',
+				IDtarget => 'album', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'] },
+			{ type => 'getDataAlbumsWithTopRatedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_RATED_TRACKS_TOTAL',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALTRACKRATING',
+				IDtarget => 'album', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'] },
+			{ type => 'getDataAlbumsWithMostPlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'album' },
+			{ type => 'getDataAlbumsWithMostPlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'album' },
+			{ type => 'getDataAlbumsWithTracksCompletelyPartlyNonePlayed',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE',
+				conditions => { show_lms => 1 },
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT', yLabelSpace => 1, customValue => 'longtooltips' },
+			{ type => 'getDataAlbumsWithTracksCompletelyPartlyNonePlayedAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT', yLabelSpace => 1, customValue => 'longtooltips' },
+			{ type => 'getDataAlbumsHighestPercentagePlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'album', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataAlbumsHighestPercentagePlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'album', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataAlbumsWithMostPlayedTracksAverage',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'album', valdecimals => 2 },
+			{ type => 'getDataAlbumsWithMostPlayedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'album', valdecimals => 2 },
+			{ type => 'getDataAlbumsWithMostPlayedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'album', valdecimals => 2 },
+			{ type => 'getDataAlbumsWithMostPlayedTracksTotalAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'album', valdecimals => 2 },
+			{ type => 'getDataAlbumsWithMostSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_MOST_SKIPPED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT',
+				IDtarget => 'album' },
+			{ type => 'getDataAlbumsWithTopTotalSkipCountAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALSKIPCOUNT',
+				IDtarget => 'album' },
+			{ type => 'getDataAlbumsHighestPercentageSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED',
+				IDtarget => 'album', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataAlbumsWithMostSkippedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT',
+				IDtarget => 'album', valdecimals => 2 },
+			{ type => 'getDataAlbumsHighestAvgDpsvAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_HIGHESTAVG_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV',
+				IDtarget => 'album', valdecimals => 2 },
+			{ type => 'getDataAlbumsLowestAvgDpsvAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMS_DPSV_LOWESTAVG_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV',
+				IDtarget => 'album', valdecimals => 3 },
+			{ type => 'getDataAlbumTitleWordCloud',
+				string => 'PLUGIN_VISUALSTATISTICS_ALBUMTITLE_WORDCLOUD',
+				chartType => 'WordCloud', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_WORDCLOUD' },
+		],
+		works => [
+			{ type => 'getDataWorksByYear',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_YEARS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKCOUNT',
+				IDtarget => 'year', customValue => 'vertical' },
+			{ type => 'getDataComposersWithMostWorks',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_COMPOSERS_MOST_WORKS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_COMPOSERNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKCOUNT' },
+			{ type => 'getDataWorksWithMostRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_RATED_TRACKS',
+				conditions => { hasratedworktracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT',
+				IDtarget => 'work' },
+			{ type => 'getDataWorksHighestPercentageRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_RATED',
+				conditions => { hasratedworktracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED',
+				IDtarget => 'work', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataWorksWithTopRatedTracksAvg',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_TOP_RATED_TRACKS_AVG',
+				conditions => { hasratedworktracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING',
+				IDtarget => 'work', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'] },
+			{ type => 'getDataWorksWithTopRatedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_TOP_RATED_TRACKS_TOTAL',
+				conditions => { hasratedworktracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALTRACKRATING',
+				IDtarget => 'work', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'] },
+			{ type => 'getDataWorksWithMostPerformances',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PERFORMANCES',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERFORMANCECOUNT',
+				IDtarget => 'work' },
+			{ type => 'getDataWorksWithMostPlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'work' },
+			{ type => 'getDataWorksWithMostPlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'work' },
+			{ type => 'getDataWorksWithTracksCompletelyPartlyNonePlayed',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE',
+				conditions => { show_lms => 1 },
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKCOUNT', yLabelSpace => 1, customValue => 'longtooltips' },
+			{ type => 'getDataWorksWithTracksCompletelyPartlyNonePlayedAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_TRACKS_PLAYED_COMPLETELYPARTIALLYNONE_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKCOUNT', yLabelSpace => 1, customValue => 'longtooltips' },
+			{ type => 'getDataWorksHighestPercentagePlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_PLAYED',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'work', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataWorksHighestPercentagePlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'work', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataWorksWithMostPlayedTracksAverage',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'work', valdecimals => 2 },
+			{ type => 'getDataWorksWithMostPlayedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'work', valdecimals => 2 },
+			{ type => 'getDataWorksWithMostPlayedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'work', valdecimals => 2 },
+			{ type => 'getDataWorksWithMostPlayedTracksTotalAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'work', valdecimals => 2 },
+			{ type => 'getDataWorksWithMostSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_MOST_SKIPPED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT',
+				IDtarget => 'work' },
+			{ type => 'getDataWorksWithTopTotalSkipCountAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALSKIPCOUNT',
+				IDtarget => 'work' },
+			{ type => 'getDataWorksHighestPercentageSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED',
+				IDtarget => 'work', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'] },
+			{ type => 'getDataWorksWithMostSkippedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT',
+				IDtarget => 'work', valdecimals => 2 },
+			{ type => 'getDataWorksHighestAvgDpsvAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_DPSV_HIGHESTAVG_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV',
+				IDtarget => 'work', valdecimals => 2 },
+			{ type => 'getDataWorksLowestAvgDpsvAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_WORKS_DPSV_LOWESTAVG_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WORKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DPSV',
+				IDtarget => 'work', valdecimals => 3 },
+		],
+		genres => [
+			{ type => 'getDataGenresWithMostTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_TRACKS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				IDtarget => 'genre', filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostAlbums',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_ALBUMS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT',
+				IDtarget => 'genre', filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_RATED_TRACKS',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT',
+				IDtarget => 'genre', filters => { genre => 0 } },
+			{ type => 'getDataGenresHighestPercentageRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_RATED',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED',
+				IDtarget => 'genre', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { genre => 0 } },
+			{ type => 'getDataGenresWithTopRatedTracksAvg',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_AVG',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING',
+				IDtarget => 'genre', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'], filters => { genre => 0 } },
+			{ type => 'getDataGenresWithTopRatedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_RATED_TRACKS_TOTAL',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALTRACKRATING',
+				IDtarget => 'genre', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'], filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostPlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'genre', filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostPlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'genre', filters => { genre => 0 } },
+			{ type => 'getDataGenresHighestPercentagePlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_PLAYED',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'genre', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { genre => 0 } },
+			{ type => 'getDataGenresHighestPercentagePlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'genre', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostPlayedTracksAverage',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'genre', valdecimals => 2, filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostPlayedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'genre', valdecimals => 2, filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostPlayedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'genre', valdecimals => 2, filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostPlayedTracksTotalAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'genre', valdecimals => 2, filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_MOST_SKIPPED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT',
+				IDtarget => 'genre', filters => { genre => 0 } },
+			{ type => 'getDataGenresWithTopTotalSkipCountAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_TOTAL_SKIPCOUNT_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALSKIPCOUNT',
+				IDtarget => 'genre', filters => { genre => 0 } },
+			{ type => 'getDataGenresHighestPercentageSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED',
+				IDtarget => 'genre', valdecimals => 2, unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { genre => 0 } },
+			{ type => 'getDataGenresWithMostSkippedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT',
+				IDtarget => 'genre', valdecimals => 3, filters => { genre => 0 } },
+			{ type => 'getDataGenresWithTopAverageBitrate',
+				string => 'PLUGIN_VISUALSTATISTICS_GENRES_TOP_AVERAGE_BITRATE',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEBITRATE',
+				IDtarget => 'genre', valdecimals => 0, unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_KBPS'], filters => { genre => 0 } },
+		],
+		years => [
+			{ type => 'getDataYearsWithMostTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_TRACKS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				IDtarget => 'year', filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostAlbums',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_ALBUMS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT',
+				IDtarget => 'year', filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_RATED_TRACKS',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT',
+				IDtarget => 'year', filters => { decade => 0 } },
+			{ type => 'getDataYearsHighestPercentageRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_RATED',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED',
+				IDtarget => 'year', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { decade => 0 } },
+			{ type => 'getDataYearsWithTopRatedTracksAvg',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_AVG',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING',
+				IDtarget => 'year', valdecimals => 3, unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'], filters => { decade => 0 } },
+			{ type => 'getDataYearsWithTopRatedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_TOP_RATED_TRACKS_TOTAL',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALTRACKRATING',
+				IDtarget => 'year', valdecimals => 3, unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'], filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostPlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'year', filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostPlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				IDtarget => 'year', filters => { decade => 0 } },
+			{ type => 'getDataYearsHighestPercentagePlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_PLAYED',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'year', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { decade => 0 } },
+			{ type => 'getDataYearsHighestPercentagePlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				IDtarget => 'year', unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostPlayedTracksAverage',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'year', valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostPlayedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'year', valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostPlayedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'year', valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostPlayedTracksTotalAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				IDtarget => 'year', valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_MOST_SKIPPED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT',
+				IDtarget => 'year', filters => { decade => 0 } },
+			{ type => 'getDataYearsWithTopTotalSkipCountAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_TOP_TOTAL_SKIPCOUNT_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALSKIPCOUNT',
+				IDtarget => 'year', filters => { decade => 0 } },
+			{ type => 'getDataYearsHighestPercentageSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED',
+				IDtarget => 'year', valdecimals => 3, unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { decade => 0 } },
+			{ type => 'getDataYearsWithMostSkippedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_YEARS_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT',
+				IDtarget => 'year', valdecimals => 3, filters => { decade => 0 } },
+		],
+		decades => [
+			{ type => 'getDataDecadesWithMostTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_TRACKS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKCOUNT',
+				filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostAlbums',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_ALBUMS',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMCOUNT',
+				filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_RATED_TRACKS',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATEDTRACKCOUNT',
+				filters => { decade => 0 } },
+			{ type => 'getDataDecadesHighestPercentageRatedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_RATED',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGERATED',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithTopRatedTracksAvg',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_AVG',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGETRACKRATING',
+				valdecimals => 3, unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'], filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithTopRatedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_TOP_RATED_TRACKS_TOTAL',
+				conditions => { hasratedtracks => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALTRACKRATING',
+				valdecimals => 3, unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR', 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS'], filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostPlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostPlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYEDTRACKCOUNT',
+				filters => { decade => 0 } },
+			{ type => 'getDataDecadesHighestPercentagePlayedTracks',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_PLAYED',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { decade => 0 } },
+			{ type => 'getDataDecadesHighestPercentagePlayedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_PLAYED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGEPLAYED',
+				unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostPlayedTracksAverage',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostPlayedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOP_AVERAGE_PLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostPlayedTracksTotal',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT',
+				conditions => { show_lms => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostPlayedTracksTotalAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_PLAYED_TRACKS_TOTALPLAYCOUNT_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALPLAYCOUNT',
+				valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_MOST_SKIPPED_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_SKIPPEDTRACKCOUNT',
+				filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithTopTotalSkipCountAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_TOP_TOTAL_SKIPCOUNT_TRACKS_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TOTALSKIPCOUNT',
+				filters => { decade => 0 } },
+			{ type => 'getDataDecadesHighestPercentageSkippedTracksAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_HIGHESTPERCENTAGE_TRACKS_SKIPPED_APC',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PERCENTAGESKIPPED',
+				valdecimals => 3, unit => ['PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_PERCENTAGE'], filters => { decade => 0 } },
+			{ type => 'getDataDecadesWithMostSkippedTracksAverageAPC',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_SKIPPED_TRACKS_TOP_AVERAGE_SKIPCOUNT',
+				conditions => { show_apc => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGESKIPCOUNT',
+				valdecimals => 3, filters => { decade => 0 } },
+			{ type => 'getDataSankeyDecadeGenreArtist',
+				string => 'PLUGIN_VISUALSTATISTICS_DECADES_LIBRARY_STRUCTURE_SANKEY',
+				chartType => 'Sankey', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SANKEY',
+				filters => { genre => 0, decade => 0 } },
+		],
+		playhistory => [
+			{ type => 'getDataPhActivityTimeline',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_ACTIVITY_TIMELINE',
+				chartType => 'LineTime', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				ph => 1, phFilters => { granularity => 1, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhPlaysPerWeekday',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_PLAYS_PER_WEEKDAY',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WEEKDAY', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhPlaysPerHour',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_PLAYS_PER_HOUR',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_HOUR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				customValue => 'PHvertical', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhTracksMostPlayed',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_TRACKS_MOSTPLAYED',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				IDtarget => 'track', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhArtistsTotalPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_ARTISTS_TOTALPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				IDtarget => 'artist', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhArtistsAvgPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_ARTISTS_AVGPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'artist', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhAlbumsTotalPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_ALBUMS_TOTALPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				IDtarget => 'album', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhAlbumsAvgPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_ALBUMS_AVGPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'album', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhGenresTotalPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_GENRES_TOTALPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				IDtarget => 'genre', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 0 } },
+			{ type => 'getDataPhGenresAvgPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_GENRES_AVGPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'genre', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 0 } },
+			{ type => 'getDataPhYearsTotalPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_YEARS_TOTALPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				IDtarget => 'year', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhYearsAvgPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_YEARS_AVGPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_YEAR', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				IDtarget => 'year', ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhDecadesTotalPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_DECADES_TOTALPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				ph => 1, phFilters => { granularity => 0, decade => 0, player => 1, genre => 1 } },
+			{ type => 'getDataPhDecadesAvgPlaycount',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_DECADES_AVGPLAYCOUNT',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVERAGEPLAYCOUNT',
+				ph => 1, phFilters => { granularity => 0, decade => 0, player => 1, genre => 1 } },
+			{ type => 'getDataPhPlayerUsage',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_PLAYERUSAGE',
+				chartType => 'Doughnut', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_SEGMENTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYER', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				customValue => 'longtooltips', yLabelSpace => 1, ph => 1, phFilters => { granularity => 0, decade => 0, player => 0, genre => 1 } },
+			{ type => 'getDataPhRatingTrend',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_RATINGTREND',
+				conditions => { ph_rating => 1 },
+				chartType => 'LineTime', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_DATAPOINTS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_AVGRATING',
+				valdecimals => 3, ph => 1, phFilters => { granularity => 1, decade => 0, player => 1, genre => 1 } },
+			{ type => 'getDataPhRatingDistribution',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_RATINGDISTRIBUTION',
+				conditions => { ph_rating => 1 },
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_RATING_AT_PLAY', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				ph => 1, phFilters => { granularity => 0, decade => 0, player => 1, genre => 1 } },
+			{ type => 'getDataPhGenrePreferencesOverTime',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_GENREPREFERENCES',
+				chartType => 'LineTimeAreaStacked', subtitle => 'PLUGIN_VISUALSTATISTICS_PH_GENREPREFERENCES_SUBTITLE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DATE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				ph => 1, phFilters => { granularity => 0, decade => 0, player => 1, genre => 0 },
+				excludeTimeranges => ['-1 month'] },
+			{ type => 'getDataPhDecadeGenreBreakdown',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_DECADEGENRE',
+				chartType => 'BarStacked', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_DECADE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_PLAYCOUNT',
+				ph => 1, phFilters => { granularity => 0, decade => 0, player => 1, genre => 0 } },
+			{ type => 'getDataPhForgottenFavorites',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES_SUBTITLE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_TRACKTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_PH_FORGOTTENFAVORITES_YLABEL',
+				IDtarget => 'track', customValue => 'ForgottenFavorites',
+				ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 },
+				excludeTimeranges => [''], defaultTimerange => '-6 months' },
+			{ type => 'getDataPhArtistsListeningTime',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_ARTISTSLISTENINGTIME',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ARTISTNAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME',
+				IDtarget => 'artist', customValue => 'ListeningTime',
+				ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhAlbumsListeningTime',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_ALBUMSLISTENINGTIME',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_ALBUMTITLE', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME',
+				IDtarget => 'album', customValue => 'ListeningTime',
+				ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 } },
+			{ type => 'getDataPhGenresListeningTime',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_GENRESLISTENINGTIME',
+				chartType => 'Bar', subtitle => 'PLUGIN_VISUALSTATISTICS_CHARTS_LEGEND_SUBTITLE_BARS',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_GENRENAME', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_LISTENINGTIME',
+				IDtarget => 'genre', customValue => 'ListeningTime',
+				ph => 1, phFilters => { granularity => 0, decade => 1, player => 0, genre => 0 } },
+			{ type => 'getDataPhWeekdayHourHeatmap',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_WEEKDAYHOURHEATMAP',
+				chartType => 'Heatmap', subtitle => 'PLUGIN_VISUALSTATISTICS_PH_WEEKDAYHOURHEATMAP_SUBTITLE',
+				xLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_WEEKDAY', yLabel => 'PLUGIN_VISUALSTATISTICS_CHARTLABEL_HOUR',
+				ph => 1, phFilters => { granularity => 0, decade => 1, player => 1, genre => 1 },
+				excludeTimeranges => ['-1 month'] },
+			{ type => 'getDataPhActivityHeatmap',
+				string => 'PLUGIN_VISUALSTATISTICS_PH_ACTIVITYHEATMAP',
+				chartType => 'ActivityHeatmap', subtitle => 'PLUGIN_VISUALSTATISTICS_PH_ACTIVITYHEATMAP_SUBTITLE',
+				ph => 1, phFilters => { granularity => 0, decade => 0, player => 1, genre => 1 },
+				excludeTimeranges => ['-1 month', '-2 years', '-5 years', ''], defaultTimerange => '-3 months' },
+		],
+	);
 }
 
 sub handleWeb {
 	my ($client, $params, $callback, $httpClient, $httpResponse, $request) = @_;
+	my $dbh = Slim::Schema->dbh;
 	$prefs->set('genrefilterid', '');
 	$prefs->set('decadefilterval', '');
 	$prefs->set('selectedvirtuallibrary', '');
+	$prefs->set('ph_filter_timerange', '');
+	$prefs->set('ph_filter_player', '');
+	$prefs->set('ph_filter_granularity', 'month');
 	$params->{'genreselect'} = '';
 	$params->{'decadeselect'} = '';
 	$params->{'vlselect'} = '';
 	$params->{'squeezebox_server_jsondatareq'} = '/jsonrpc.js';
 
-	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks_persistent.rating > 0";
-	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL) || 0;
-	$params->{'ratedtrackcount'} = $ratedTrackCount;
-
 	$params->{'virtuallibraries'} = getVirtualLibraries();
 	$params->{'librarygenres'} = getGenres();
+	$params->{'librarydecades'} = getDecades();
 
-	my $apc_enabled = Slim::Utils::PluginManager->isEnabled('Plugins::AlternativePlayCount::Plugin');
-	$params->{'apcenabled'} = 1 if $apc_enabled;
-	$params->{'displayapcdupes'} = $prefs->get('displayapcdupes');
 	$params->{'clickablebars'} = $prefs->get('clickablebars') || 'noclick';
 	$params->{'usefullscreen'} = $prefs->get('usefullscreen') ? 1 : 0;
 	$params->{'txtrefreshbtn'} = $prefs->get('txtrefreshbtn');
 
-	if (Slim::Utils::Versions->compareVersions($::VERSION, '9.0') >= 0) {
-		my $workTrackCountSQL = "select count(distinct tracks.id) from tracks where tracks.audio = 1 and tracks.work is not null";
-		my $workTrackCount = quickSQLcount($workTrackCountSQL) || 0;
-		$params->{'lmsminversion_works'} = 1 if $workTrackCount;
-
-		my $ratedWorkTrackCountSQL = "select count(distinct tracks.id) from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks.work is not null and tracks_persistent.rating > 0";
-		my $ratedWorkTrackCount = quickSQLcount($ratedWorkTrackCountSQL) || 0;
-		$params->{'ratedworktrackcount'} = $ratedWorkTrackCount;
+	my %jsChartConfig;
+	for my $section (values %CHART_REGISTRY) {
+		for my $chart (@{$section}) {
+			my %cfg = %{$chart};
+			delete $cfg{$_} for qw(conditions);
+			$cfg{title} = delete $cfg{string};
+			$jsChartConfig{$chart->{type}} = \%cfg;
+		}
 	}
+	getLanguageStrings();
+	$params->{'JSlanguageStrings'} = JSON::XS->new->utf8(0)->encode(\%vsStrings);
+	$params->{'JSchartConfig'} = JSON::XS->new->utf8(0)->encode(\%jsChartConfig);
+
+	if (Slim::Utils::Versions->compareVersions($::VERSION, '9.0') >= 0) {
+		$params->{'hasworks'} = int( $dbh->selectrow_array("select exists(select 1 from tracks where tracks.audio = 1 and tracks.work is not null)") );
+		$params->{'hasratedworktracks'} = int( $dbh->selectrow_array("select exists(select 1 from tracks,tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and tracks.work is not null and tracks_persistent.rating > 0)") );
+	}
+
+	my $lmsv9 = Slim::Utils::Versions->compareVersions($::VERSION, '9.0') >= 0;
+	my ($hasworks, $hasratedworktracks) = (0, 0);
+	if ($lmsv9) {
+		$hasworks = int( $dbh->selectrow_array("select exists(select 1 from tracks where audio = 1 and work is not null)") );
+		$hasratedworktracks = int( $dbh->selectrow_array("select exists(select 1 from tracks, tracks_persistent where tracks_persistent.urlmd5 = tracks.urlmd5 and tracks.audio = 1 and work is not null and tracks_persistent.rating > 0)") ) if $hasworks;
+	}
+	$params->{'hasworks'} = $hasworks;
+
+	my $ctx = {
+		apc_enabled => $apc_enabled ? 1 : 0,
+		displayapcdupes => $prefs->get('displayapcdupes'),
+		hasratedtracks => int( $dbh->selectrow_array("select exists(select 1 from tracks_persistent where rating > 0)") ),
+		hasworks => $hasworks,
+		hasratedworktracks => $hasratedworktracks,
+		hasbpm => int( $dbh->selectrow_array("select exists(select 1 from tracks where audio = 1 and ifnull(bpm, 0) > 0)") ),
+		ph_rating_available => 0,
+	};
+
+	my %visibleCharts;
+	for my $section (grep { $_ ne 'playhistory' } keys %CHART_REGISTRY) {
+		$visibleCharts{$section} = [
+			map { { type => $_->{type}, label => $_->{string} } }
+			grep { _isChartVisible($_, $ctx) }
+			@{$CHART_REGISTRY{$section}}
+		];
+	}
+
+	my $playhistory_available = ($apc_enabled && preferences('plugin.alternativeplaycount')->get('playhistory')) ? 1 : 0;
+	$params->{'playhistory_available'} = $playhistory_available;
+	if ($playhistory_available) {
+		if (_attachApcDb()) {
+			my $minPHcount = $prefs->get('minphcount') || 500;
+			my $rows = $dbh->selectall_arrayref("select 1 from apc.play_history limit ?", undef, $minPHcount);
+			my $ph_count = $rows ? scalar @{$rows} : 0;
+			my $playHistoryThresholdReached = ($ph_count >= $minPHcount) ? 1 : 0;
+			$params->{'playhistory_thresholdreached'} = $playHistoryThresholdReached;
+			$params->{'playhistory_insufficient_msg'} = sprintf(Slim::Utils::Strings::string('PLUGIN_VISUALSTATISTICS_SECTION_PLAYHISTORY_INSUFFICIENT'), $ph_count, $minPHcount) unless $ph_count >= $minPHcount;
+			my $ph_rating_available = int( $dbh->selectrow_array("select exists(select 1 from apc.play_history where rating > 0)") );
+			$params->{'playhistory_rating_available'} = $ph_rating_available;
+			if ($playHistoryThresholdReached) {
+				$ctx->{ph_rating_available} = $ph_rating_available;
+				$visibleCharts{playhistory} = [
+					map { { type => $_->{type}, label => $_->{string} } }
+					grep { _isChartVisible($_, $ctx) }
+					@{$CHART_REGISTRY{playhistory}}
+				];
+			}
+		}
+	}
+
+	$params->{'chartregistry'} = \%visibleCharts;
 
 	# Do not store page to ensure that all filters are reset.
 	$httpResponse->header('Cache-Control' => 'no-store');
@@ -133,6 +1241,10 @@ sub handleJSON {
 		} elsif ($querytype eq 'genrelist') {
 			$response = {
 				results => getGenres(),
+			};
+		} elsif ($querytype eq 'phplayerlist') {
+			$response = {
+				results => getPhPlayerList(),
 			};
 		} else {
 			my $sub = Plugins::VisualStatistics::Plugin->can($querytype);
@@ -166,36 +1278,36 @@ sub getDataLibStatsText {
 	if ($selectedVL && $selectedVL ne '') {
 		$trackCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
-	$trackCountSQL .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$trackCountSQL .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir')";
 	my $trackCount = quickSQLcount($trackCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKS").':', 'value' => $trackCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TOTALTRACKS").':', 'value' => $trackCount});
 
 	# number of local tracks/files
 	my $trackCountLocalSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
 		$trackCountLocalSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
-	$trackCountLocalSQL .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$trackCountLocalSQL .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.content_type not in ('cpl','src','ssp','dir')";
 	my $trackCountLocal = quickSQLcount($trackCountLocalSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSLOCAL").':', 'value' => $trackCountLocal});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TOTALTRACKSLOCAL").':', 'value' => $trackCountLocal});
 
 	# number of remote tracks
 	my $trackCountRemoteSQL = "select count(distinct tracks.id) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
 		$trackCountRemoteSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
-	$trackCountRemoteSQL .= " where tracks.audio = 1 and tracks.remote = 1 and tracks.extid is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$trackCountRemoteSQL .= " where tracks.audio = 1 and tracks.remote = 1 and tracks.extid is not null and tracks.content_type not in ('cpl','src','ssp','dir')";
 	my $trackCountRemote = quickSQLcount($trackCountRemoteSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALTRACKSREMOTE").':', 'value' => $trackCountRemote});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TOTALTRACKSREMOTE").':', 'value' => $trackCountRemote});
 
 	# total playing time
 	my $totalTimeSQL = "select sum(secs) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
 		$totalTimeSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
-	$totalTimeSQL .=" where tracks.audio = 1 and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$totalTimeSQL .=" where tracks.audio = 1 and tracks.content_type not in ('cpl','src','ssp','dir')";
 	my $totalTime = prettifyTime(quickSQLcount($totalTimeSQL));
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALPLAYINGTIME").':', 'value' => $totalTime});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TOTALPLAYINGTIME").':', 'value' => $totalTime});
 
 	# total library size
 	my $totalLibrarySizeSQL = "select round((sum(filesize)/1024/1024/1024),2)||' GB' from tracks";
@@ -204,7 +1316,7 @@ sub getDataLibStatsText {
 	}
 	$totalLibrarySizeSQL .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.filesize is not null";
 	my $totalLibrarySize = quickSQLcount($totalLibrarySizeSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALLIBSIZE").':', 'value' => $totalLibrarySize});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TOTALLIBSIZE").':', 'value' => $totalLibrarySize});
 
 	# library age
 	my $libraryAgeinSecsSQL = "select (strftime('%s', 'now', 'localtime') - min(tracks_persistent.added)) from tracks";
@@ -213,7 +1325,7 @@ sub getDataLibStatsText {
 	}
 	$libraryAgeinSecsSQL .= " join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.audio = 1";
 	my $libraryAge = prettifyTime(quickSQLcount($libraryAgeinSecsSQL));
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TOTALIBAGE").':', 'value' => $libraryAge});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TOTALIBAGE").':', 'value' => $libraryAge});
 
 	# number of artists (artists, album artists + track artists)
 	my $artistCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
@@ -222,7 +1334,7 @@ sub getDataLibStatsText {
 	}
 	$artistCountSQL .= " where contributor_track.role in (1,5,6)";
 	my $artistCount = quickSQLcount($artistCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS").':', 'value' => $artistCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS").':', 'value' => $artistCount});
 
 	# number of album artists
 	my $albumArtistCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
@@ -231,7 +1343,7 @@ sub getDataLibStatsText {
 	}
 	$albumArtistCountSQL .= " where contributor_track.role = 5";
 	my $albumArtistCount = quickSQLcount($albumArtistCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AARTISTS").':', 'value' => $albumArtistCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_AARTISTS").':', 'value' => $albumArtistCount});
 
 	# number of composers
 	my $composerCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
@@ -240,7 +1352,7 @@ sub getDataLibStatsText {
 	}
 	$composerCountSQL .= " where contributor_track.role = 2";
 	my $composerCount = quickSQLcount($composerCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPOSERS").':', 'value' => $composerCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_COMPOSERS").':', 'value' => $composerCount});
 
 	# number of conductors
 	my $conductorCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
@@ -249,7 +1361,7 @@ sub getDataLibStatsText {
 	}
 	$conductorCountSQL .= " where contributor_track.role = 3";
 	my $conductorCount = quickSQLcount($conductorCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_CONDUCTORS").':', 'value' => $conductorCount}) if $conductorCount > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_CONDUCTORS").':', 'value' => $conductorCount}) if $conductorCount > 0;
 
 	# number of bands
 	my $bandCountSQL = "select count(distinct contributor_track.contributor) from contributor_track";
@@ -258,7 +1370,7 @@ sub getDataLibStatsText {
 	}
 	$bandCountSQL .= " where contributor_track.role = 4";
 	my $bandCount = quickSQLcount($bandCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_BANDS").':', 'value' => $bandCount}) if $bandCount > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_BANDS").':', 'value' => $bandCount}) if $bandCount > 0;
 
 	# number of artists played
 	my $artistsPlayedSQL = "select count(distinct contributor_track.contributor) from contributor_track
@@ -274,7 +1386,7 @@ sub getDataLibStatsText {
 			and contributor_track.role in (1,5,6)";
 	my $artistsPlayedFloat = $artistCount > 0 ? quickSQLcount($artistsPlayedSQL)/$artistCount * 100 : 0;
 	my $artistsPlayedPercentage = sprintf("%.1f", $artistsPlayedFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTSPLAYED").':', 'value' => $artistsPlayedPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ARTISTSPLAYED").':', 'value' => $artistsPlayedPercentage});
 
 	# number of albums
 	my $albumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
@@ -283,7 +1395,7 @@ sub getDataLibStatsText {
 	}
 	$albumsCountSQL .= " where tracks.audio = 1";
 	my $albumsCount = quickSQLcount($albumsCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS").':', 'value' => $albumsCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS").':', 'value' => $albumsCount});
 
 	if (Slim::Utils::Versions->compareVersions($::VERSION, '9.0') >= 0) {
 		# number of works
@@ -293,18 +1405,18 @@ sub getDataLibStatsText {
 		}
 		$worksCountSQL .= " where tracks.audio = 1";
 		my $worksCount = quickSQLcount($worksCountSQL);
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS").':', 'value' => $worksCount});
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_WORKS").':', 'value' => $worksCount});
 
 		# number of works with > 1 performance
 		my $worksMultiplePerformancesCountSQL = "select works.id, (select count(distinct t2.album||t2.work||coalesce(t2.performance,1)) from tracks t2";
 		if ($selectedVL && $selectedVL ne '') {
 			$worksMultiplePerformancesCountSQL .= " join library_track lt2 on lt2.track = t2.id and lt2.library = '$selectedVL'";
 		}
-		$worksMultiplePerformancesCountSQL .= " where t2.work = works.id and (t2.audio = 1 or t2.extid is not null) and t2.content_type != 'cpl' and t2.content_type != 'src' and t2.content_type != 'ssp' and t2.content_type != 'dir') as noofperformances from works join tracks on tracks.work = works.id";
+		$worksMultiplePerformancesCountSQL .= " where t2.work = works.id and (t2.audio = 1 or t2.extid is not null) and t2.content_type not in ('cpl','src','ssp','dir')) as noofperformances from works join tracks on tracks.work = works.id";
 		if ($selectedVL && $selectedVL ne '') {
 			$worksMultiplePerformancesCountSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 		}
-		$worksMultiplePerformancesCountSQL .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having noofperformances > 1";
+		$worksMultiplePerformancesCountSQL .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id having noofperformances > 1";
 		my $dbh = Slim::Schema->dbh;
 		my $sth = $dbh->prepare($worksMultiplePerformancesCountSQL);
 		$sth->execute();
@@ -312,7 +1424,7 @@ sub getDataLibStatsText {
 		$sth->finish();
 		if (scalar @{$worksMultiplePerformancesArr} > 0) {
 			my $worksMultiplePerformancesCountPercentage = $worksCount > 0 ? sprintf("%.1f", (scalar @{$worksMultiplePerformancesArr}/$worksCount * 100)).'%' : '0.0%';
-			push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_WORKS_MULTIPLE_PERFORMANCES").':', 'value' => $worksMultiplePerformancesCountPercentage});
+			push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_WORKS_MULTIPLE_PERFORMANCES").':', 'value' => $worksMultiplePerformancesCountPercentage});
 		}
 	}
 
@@ -324,7 +1436,7 @@ sub getDataLibStatsText {
 	$compilationsCountSQL .= " where tracks.audio = 1 and albums.compilation = 1";
 	my $compilationsCountFloat = $albumsCount > 0 ? quickSQLcount($compilationsCountSQL)/$albumsCount * 100 : 0;
 	my $compilationsCountPercentage = sprintf("%.1f", $compilationsCountFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_COMPIS").':', 'value' => $compilationsCountPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_COMPIS").':', 'value' => $compilationsCountPercentage});
 
 	# number of artist albums
 	my $artistAlbumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
@@ -333,7 +1445,7 @@ sub getDataLibStatsText {
 	}
 	$artistAlbumsCountSQL .= " where tracks.audio = 1 and (albums.compilation is null or albums.compilation = 0)";
 	my $artistAlbumsCount = quickSQLcount($artistAlbumsCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AALBUMS").':', 'value' => $artistAlbumsCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_AALBUMS").':', 'value' => $artistAlbumsCount});
 
 	# number of albums played
 	my $albumsPlayedSQL = "select count(distinct albums.id) from albums
@@ -349,7 +1461,7 @@ sub getDataLibStatsText {
 			and tracks_persistent.playcount > 0";
 	my $albumsPlayedFloat = $albumsCount > 0 ? quickSQLcount($albumsPlayedSQL)/$albumsCount * 100 : 0;
 	my $albumsPlayedPercentage = sprintf("%.1f", $albumsPlayedFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSPLAYED").':', 'value' => $albumsPlayedPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSPLAYED").':', 'value' => $albumsPlayedPercentage});
 
 	# number of albums without artwork
 	my $albumsNoArtworkSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
@@ -358,7 +1470,7 @@ sub getDataLibStatsText {
 	}
 	$albumsNoArtworkSQL .= " where tracks.audio = 1 and albums.artwork is null";
 	my $albumsNoArtwork = quickSQLcount($albumsNoArtworkSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK").':', 'value' => $albumsNoArtwork, 'savetopl' => 'albumswithoutartwork'}) if $albumsNoArtwork > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSNOARTWORK").':', 'value' => $albumsNoArtwork, 'savetopl' => 'albumswithoutartwork'}) if $albumsNoArtwork > 0;
 
 	# number of albums without year
 	my $albumsNoYearSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
@@ -367,7 +1479,7 @@ sub getDataLibStatsText {
 	}
 	$albumsNoYearSQL .= " where tracks.audio = 1 and ifnull(albums.year, 0) = 0";
 	my $albumsNoYear = quickSQLcount($albumsNoYearSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOYEAR").':', 'value' => $albumsNoYear, 'savetopl' => 'albumswithoutyear'}) if $albumsNoYear > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSNOYEAR").':', 'value' => $albumsNoYear, 'savetopl' => 'albumswithoutyear'}) if $albumsNoYear > 0;
 
 	# number of albums with album replay gain
 	my $albumsWithReplayGainSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
@@ -376,7 +1488,7 @@ sub getDataLibStatsText {
 	}
 	$albumsWithReplayGainSQL .= " where tracks.audio = 1 and albums.replay_gain is not null";
 	my $albumsWithReplayGain = quickSQLcount($albumsWithReplayGainSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYGAIN").':', 'value' => $albumsWithReplayGain, 'savetopl' => 'albumswithreplaygain'}) if $albumsWithReplayGain > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSWITHREPLAYGAIN").':', 'value' => $albumsWithReplayGain, 'savetopl' => 'albumswithreplaygain'}) if $albumsWithReplayGain > 0;
 
 	# number of albums with album replay peak
 	my $albumsWithReplayPeakSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
@@ -385,7 +1497,7 @@ sub getDataLibStatsText {
 	}
 	$albumsWithReplayPeakSQL .= " where tracks.audio = 1 and albums.replay_peak is not null";
 	my $albumsWithReplayPeak = quickSQLcount($albumsWithReplayPeakSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYPEAK").':', 'value' => $albumsWithReplayPeak, 'savetopl' => 'albumswithreplaypeak'}) if $albumsWithReplayPeak > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSWITHREPLAYPEAK").':', 'value' => $albumsWithReplayPeak, 'savetopl' => 'albumswithreplaypeak'}) if $albumsWithReplayPeak > 0;
 
 	# number of genres
 	my $genreCountSQL = "select count(distinct genre_track.genre) from genre_track";
@@ -393,7 +1505,7 @@ sub getDataLibStatsText {
 		$genreCountSQL .= " join library_genre on genre_track.genre = library_genre.genre and library_genre.library = '$selectedVL'";
 	}
 	my $genreCount = quickSQLcount($genreCountSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES").':', 'value' => $genreCount});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_GENRES").':', 'value' => $genreCount});
 
 	# number of lossless tracks
 	my $losslessTrackCountSQL = "select count(distinct tracks.id) from tracks";
@@ -403,7 +1515,7 @@ sub getDataLibStatsText {
 	$losslessTrackCountSQL .= " where tracks.audio = 1 and tracks.lossless = 1";
 	my $losslessTrackCountFloat = $trackCount > 0 ? quickSQLcount($losslessTrackCountSQL)/$trackCount * 100 : 0;
 	my $losslessTrackCountPercentage = sprintf("%.1f", $losslessTrackCountFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_LOSSLESS").':', 'value' => $losslessTrackCountPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_LOSSLESS").':', 'value' => $losslessTrackCountPercentage});
 
 	# number of rated tracks
 	my $ratedTrackCountSQL = "select count(distinct tracks.id) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
@@ -413,7 +1525,7 @@ sub getDataLibStatsText {
 	$ratedTrackCountSQL .= " where tracks.audio = 1 and tracks_persistent.rating > 0";
 	my $ratedTrackCount = quickSQLcount($ratedTrackCountSQL);
 	my $ratedTrackCountPercentage = $trackCount > 0 ? sprintf("%.1f", ($ratedTrackCount/$trackCount * 100)).'%' : '0.0%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_RATEDTRACKS").':', 'value' => $ratedTrackCountPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_RATEDTRACKS").':', 'value' => $ratedTrackCountPercentage});
 
 	# number of tracks played at least once
 	my $songsPlayedOnceSQL = "select count(distinct tracks.id) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
@@ -423,7 +1535,7 @@ sub getDataLibStatsText {
 	$songsPlayedOnceSQL .= " where tracks.audio = 1 and tracks_persistent.playcount > 0";
 	my $songsPlayedOnceFloat = $trackCount > 0 ? quickSQLcount($songsPlayedOnceSQL)/$trackCount * 100 : 0;
 	my $songsPlayedOncePercentage = sprintf("%.1f", $songsPlayedOnceFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYED").':', 'value' => $songsPlayedOncePercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSPLAYED").':', 'value' => $songsPlayedOncePercentage});
 
 	# total play count
 	my $songsPlayedTotalSQL = "select sum(tracks_persistent.playcount) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
@@ -432,7 +1544,7 @@ sub getDataLibStatsText {
 	}
 	$songsPlayedTotalSQL .= " where tracks.audio = 1 and tracks_persistent.playcount > 0";
 	my $songsPlayedTotal = quickSQLcount($songsPlayedTotalSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSPLAYCOUNTTOTAL").':', 'value' => $songsPlayedTotal});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSPLAYCOUNTTOTAL").':', 'value' => $songsPlayedTotal});
 
 	# average track length
 	my $avgTrackLengthSQL = "select strftime('%M:%S', avg(secs)/86400.0) from tracks";
@@ -441,7 +1553,7 @@ sub getDataLibStatsText {
 	}
 	$avgTrackLengthSQL .= " where tracks.audio = 1";
 	my $avgTrackLength = quickSQLcount($avgTrackLengthSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSAVGLENGTH").':', 'value' => $avgTrackLength.' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS")});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSAVGLENGTH").':', 'value' => $avgTrackLength.' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEMINS")});
 
 	# average bit rate
 	my $avgBitrateSQL = "select round((avg(bitrate)/10000)*10) from tracks";
@@ -450,7 +1562,7 @@ sub getDataLibStatsText {
 	}
 	$avgBitrateSQL .= " where tracks.audio = 1 and tracks.bitrate is not null";
 	my $avgBitrate = quickSQLcount($avgBitrateSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGBITRATE").':', 'value' => $avgBitrate.' kbps'});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_AVGBITRATE").':', 'value' => $avgBitrate.' kbps'});
 
 	# average file size
 	my $avgFileSizeSQL = "select round((avg(filesize)/(1024*1024)), 2)||' MB' from tracks";
@@ -459,7 +1571,7 @@ sub getDataLibStatsText {
 	}
 	$avgFileSizeSQL .= " where tracks.audio = 1 and tracks.remote=0 and tracks.filesize is not null";
 	my $avgFileSize = quickSQLcount($avgFileSizeSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_AVGFILESIZE").':', 'value' => $avgFileSize});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_AVGFILESIZE").':', 'value' => $avgFileSize});
 
 	# number of tracks with lyrics
 	my $tracksWithLyricsSQL = "select count(distinct tracks.id) from tracks";
@@ -469,7 +1581,7 @@ sub getDataLibStatsText {
 	$tracksWithLyricsSQL .= " where tracks.audio = 1 and tracks.lyrics is not null";
 	my $tracksWithLyricsFloat = $trackCount > 0 ? quickSQLcount($tracksWithLyricsSQL)/$trackCount * 100 : 0;
 	my $tracksWithLyricsPercentage = sprintf("%.1f", $tracksWithLyricsFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHLYRICS").':', 'value' => $tracksWithLyricsPercentage});
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSWITHLYRICS").':', 'value' => $tracksWithLyricsPercentage});
 
 	# number of tracks without year
 	my $tracksNoYearSQL = "select count(distinct tracks.id) from tracks";
@@ -478,7 +1590,7 @@ sub getDataLibStatsText {
 	}
 	$tracksNoYearSQL .= " where tracks.audio = 1 and tracks.filesize is not null and ifnull(tracks.year, 0) = 0";
 	my $tracksNoYear = quickSQLcount($tracksNoYearSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOYEAR").':', 'value' => $tracksNoYear, 'savetopl' => 'trackswithoutyear'}) if $tracksNoYear > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOYEAR").':', 'value' => $tracksNoYear, 'savetopl' => 'trackswithoutyear'}) if $tracksNoYear > 0;
 
 	# number of tracks without replay gain
 	my $tracksNoReplayGainSQL = "select count(distinct tracks.id) from tracks";
@@ -487,7 +1599,7 @@ sub getDataLibStatsText {
 	}
 	$tracksNoReplayGainSQL .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_gain is null";
 	my $tracksNoReplayGain = quickSQLcount($tracksNoReplayGainSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN").':', 'value' => $tracksNoReplayGain, 'savetopl' => 'trackswithoutreplaygain'}) if $tracksNoReplayGain > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOREPLAYGAIN").':', 'value' => $tracksNoReplayGain, 'savetopl' => 'trackswithoutreplaygain'}) if $tracksNoReplayGain > 0;
 
 	# number of tracks with replay peak
 	my $tracksWithReplayPeakSQL = "select count(distinct tracks.id) from tracks";
@@ -496,7 +1608,7 @@ sub getDataLibStatsText {
 	}
 	$tracksWithReplayPeakSQL .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_peak is not null";
 	my $tracksWithReplayPeak = quickSQLcount($tracksWithReplayPeakSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHREPLAYPEAK").':', 'value' => $tracksWithReplayPeak, 'savetopl' => 'trackswithreplaypeak'}) if $tracksWithReplayPeak > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSWITHREPLAYPEAK").':', 'value' => $tracksWithReplayPeak, 'savetopl' => 'trackswithreplaypeak'}) if $tracksWithReplayPeak > 0;
 
 	# number of tracks for each mp3 tag version
 	my $mp3tagversionsSQL = "select tracks.tagversion as thistagversion, count(distinct tracks.id) from tracks";
@@ -508,7 +1620,7 @@ sub getDataLibStatsText {
 	my @sortedmp3tagversions = sort { $a->{'xAxis'} cmp $b->{'xAxis'} } @{$mp3tagversions};
 	if (scalar(@sortedmp3tagversions) > 0) {
 		foreach my $thismp3tagversion (@sortedmp3tagversions) {
-			push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS").' '.$thismp3tagversion->{'xAxis'}.' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS").':', 'value' => $thismp3tagversion->{'yAxis'}, 'savetopl' => $thismp3tagversion->{'xAxis'}});
+			push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_MP3TRACKSTAGS").' '.$thismp3tagversion->{'xAxis'}.' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TAGS").':', 'value' => $thismp3tagversion->{'yAxis'}, 'savetopl' => $thismp3tagversion->{'xAxis'}});
 		}
 	}
 
@@ -519,7 +1631,7 @@ sub getDataLibStatsText {
 	}
 	$tracksMusicbrainzIdSQL .= " where tracks.audio = 1 and tracks.musicbrainz_id is not null";
 	my $tracksMusicbrainzId = quickSQLcount($tracksMusicbrainzIdSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID").':', 'value' => $tracksMusicbrainzId, 'savetopl' => 'trackswithmusicbrainzid'}) if $tracksMusicbrainzId > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_MUSICBRAINZID").':', 'value' => $tracksMusicbrainzId, 'savetopl' => 'trackswithmusicbrainzid'}) if $tracksMusicbrainzId > 0;
 
 	# number of tracks with identical musicbrainz ids in the LMS tracks table
 	if ($tracksMusicbrainzId > 0) {
@@ -529,7 +1641,7 @@ sub getDataLibStatsText {
 		}
 		$tracksMusicbrainzIdDupeSQL .= " where tracks.musicbrainz_id is not null group by tracks.musicbrainz_id having count(tracks.musicbrainz_id) > 1)";
 		my $tracksMusicbrainzIDdupeCount = quickSQLcount($tracksMusicbrainzIdDupeSQL);
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID_DUPES").':', 'value' => $tracksMusicbrainzIDdupeCount, 'savetopl' => 'trackswithidenticalmusicbrainzid'}) if $tracksMusicbrainzIDdupeCount > 0;
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_MUSICBRAINZID_DUPES").':', 'value' => $tracksMusicbrainzIDdupeCount, 'savetopl' => 'trackswithidenticalmusicbrainzid'}) if $tracksMusicbrainzIDdupeCount > 0;
 	}
 
 	# number of artists with artist musicbrainz id
@@ -539,13 +1651,13 @@ sub getDataLibStatsText {
 	}
 	$artistsMusicbrainzIdSQL .= " where contributors.musicbrainz_id is not null";
 	my $artistsMusicbrainzId = quickSQLcount($artistsMusicbrainzIdSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID").':', 'value' => $artistsMusicbrainzId, 'savetopl' => 'artistswithmusicbrainzid'}) if $artistsMusicbrainzId > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_MUSICBRAINZID").':', 'value' => $artistsMusicbrainzId, 'savetopl' => 'artistswithmusicbrainzid'}) if $artistsMusicbrainzId > 0;
 
 	# Various Artists has musicbrainz id ?
 	my $VAid = Slim::Schema->variousArtistsObject->id;
 	my $VAMusicbrainzIdSQL = "select count(distinct contributors.id) from contributors where contributors.musicbrainz_id is not null and contributors.id = $VAid";
 	my $VAMusicbrainzId = quickSQLcount($VAMusicbrainzIdSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_VA").':', 'value' => string('YES')}) if $VAMusicbrainzId > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_MUSICBRAINZID_VA").':', 'value' => string('YES')}) if $VAMusicbrainzId > 0;
 
 	# number of artists with identical musicbrainz ids in the LMS contributors table
 	if ($artistsMusicbrainzId > 0) {
@@ -555,7 +1667,7 @@ sub getDataLibStatsText {
 		}
 		$artistsMusicbrainzIdDupeSQL .= " where contributors.musicbrainz_id is not null group by contributors.musicbrainz_id having count(contributors.musicbrainz_id) > 1)";
 		my $artistsMusicbrainzIDdupeCount = quickSQLcount($artistsMusicbrainzIdDupeSQL);
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_DUPES").':', 'value' => $artistsMusicbrainzIDdupeCount, 'savetopl' => 'artistswithidenticalmusicbrainzid'}) if $artistsMusicbrainzIDdupeCount > 0;
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_MUSICBRAINZID_DUPES").':', 'value' => $artistsMusicbrainzIDdupeCount, 'savetopl' => 'artistswithidenticalmusicbrainzid'}) if $artistsMusicbrainzIDdupeCount > 0;
 	}
 
 	# number of albums with album musicbrainz id
@@ -565,7 +1677,7 @@ sub getDataLibStatsText {
 	}
 	$albumsMusicbrainzIdSQL .= " where albums.musicbrainz_id is not null";
 	my $albumsMusicbrainzId = quickSQLcount($albumsMusicbrainzIdSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID").':', 'value' => $albumsMusicbrainzId, 'savetopl' => 'albumswithmusicbrainzid'}) if $albumsMusicbrainzId > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS_MUSICBRAINZID").':', 'value' => $albumsMusicbrainzId, 'savetopl' => 'albumswithmusicbrainzid'}) if $albumsMusicbrainzId > 0;
 
 	# number of albums with identical musicbrainz ids in the LMS albums table
 	if ($albumsMusicbrainzId > 0) {
@@ -575,7 +1687,7 @@ sub getDataLibStatsText {
 		}
 		$albumsMusicbrainzIdDupeSQL .= " where albums.musicbrainz_id is not null group by albums.musicbrainz_id having count(albums.musicbrainz_id) > 1)";
 		my $albumsMusicbrainzIDdupeCount = quickSQLcount($albumsMusicbrainzIdDupeSQL);
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID_DUPES").':', 'value' => $albumsMusicbrainzIDdupeCount, 'savetopl' => 'albumswithidenticalmusicbrainzid'}) if $albumsMusicbrainzIDdupeCount > 0;
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS_MUSICBRAINZID_DUPES").':', 'value' => $albumsMusicbrainzIDdupeCount, 'savetopl' => 'albumswithidenticalmusicbrainzid'}) if $albumsMusicbrainzIDdupeCount > 0;
 	}
 
 	# number of contributors without tracks
@@ -585,7 +1697,7 @@ sub getDataLibStatsText {
 	}
 	$artistsWithoutTracksSQL .= " left join contributor_track on contributor_track.contributor = contributors.id left join tracks on contributor_track.track = tracks.id where tracks.id is null)";
 	my $artistsWithoutTracks = quickSQLcount($artistsWithoutTracksSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_NOTRACKS").':', 'value' => $artistsWithoutTracks}) if $artistsWithoutTracks > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_NOTRACKS").':', 'value' => $artistsWithoutTracks}) if $artistsWithoutTracks > 0;
 
 	# number of albums without tracks
 	my $albumsWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from albums";
@@ -594,7 +1706,7 @@ sub getDataLibStatsText {
 	}
 	$albumsWithoutTracksSQL .= " left join tracks on albums.id = tracks.album where tracks.id is null)";
 	my $albumsWithoutTracks = quickSQLcount($albumsWithoutTracksSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_NOTRACKS").':', 'value' => $albumsWithoutTracks}) if $albumsWithoutTracks > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS_NOTRACKS").':', 'value' => $albumsWithoutTracks}) if $albumsWithoutTracks > 0;
 
 	# number of genres without tracks
 	my $genresWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from genres";
@@ -603,7 +1715,7 @@ sub getDataLibStatsText {
 	}
 	$genresWithoutTracksSQL .= " left join genre_track on genre_track.genre = genres.id left join tracks on genre_track.track = tracks.id where tracks.id is null)";
 	my $genresWithoutTracks = quickSQLcount($genresWithoutTracksSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_GENRES_NOTRACKS").':', 'value' => $genresWithoutTracks}) if $genresWithoutTracks > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_GENRES_NOTRACKS").':', 'value' => $genresWithoutTracks}) if $genresWithoutTracks > 0;
 
 	# number of years without tracks
 	my $yearsWithoutTracksSQL = "select ifnull(sum(cnt),0) from (select count(*) as cnt from years left join tracks on years.id = tracks.year";
@@ -614,7 +1726,7 @@ sub getDataLibStatsText {
 	my $yearsWithoutTracks = quickSQLcount($yearsWithoutTracksSQL);
 	if ($yearsWithoutTracks > 0) {
 		my $yearCount = quickSQLcount("select count(*) from years where years.id is not null");
-		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_YEARS_NOTRACKS").':', 'value' => $yearsWithoutTracks}) if $yearCount > 0;
+		push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_YEARS_NOTRACKS").':', 'value' => $yearsWithoutTracks}) if $yearCount > 0;
 	}
 
 	# tracks with long urls (> 2048 characters)
@@ -624,12 +1736,12 @@ sub getDataLibStatsText {
 	}
 	$tracksWithLongUrlSQL .= " where tracks.audio = 1 and length(tracks.url) > 2048";
 	my $tracksWithLongURL = quickSQLcount($tracksWithLongUrlSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_LONGURLS").':', 'value' => $tracksWithLongURL, 'savetopl' => 'trackswithlongurl'}) if $tracksWithLongURL > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_LONGURLS").':', 'value' => $tracksWithLongURL, 'savetopl' => 'trackswithlongurl'}) if $tracksWithLongURL > 0;
 
 	# possibly dead tracks in tracks_persistent table
 	my $deadTracksPersistentSQL = "select count(*) from tracks_persistent where urlmd5 not in (select urlmd5 from tracks where tracks.urlmd5 = tracks_persistent.urlmd5)";
 	my $deadTracksPersistent = quickSQLcount($deadTracksPersistentSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_DEADTRACKSPERSISTENT").':', 'value' => $deadTracksPersistent, 'savetotextfile' => 'deadtracks'}) if $deadTracksPersistent > 0;
+	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_DEADTRACKSPERSISTENT").':', 'value' => $deadTracksPersistent, 'savetotextfile' => 'deadtracks'}) if $deadTracksPersistent > 0;
 
 	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
 	return \@result;
@@ -663,7 +1775,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and albums.artwork is null group by albums.id";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOARTWORK');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSNOARTWORK');
 	}
 
 	# albums without year
@@ -675,7 +1787,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and ifnull(albums.year, 0) = 0 group by albums.id";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSNOYEAR');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSNOYEAR');
 	}
 
 	# albums with album replay gain
@@ -686,7 +1798,7 @@ sub saveResultsToPL {
 		}
 		$sqlstatement .= " where tracks.audio = 1 and albums.replay_gain is not null group by albums.id";
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYGAIN');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSWITHREPLAYGAIN');
 	}
 
 	# albums with album replay peak
@@ -697,7 +1809,7 @@ sub saveResultsToPL {
 		}
 		$sqlstatement .= " where tracks.audio = 1 and albums.replay_peak is not null group by albums.id";
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMSWITHREPLAYPEAK');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSWITHREPLAYPEAK');
 	}
 
 	# tracks without year
@@ -709,7 +1821,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and ifnull(tracks.year, 0) = 0 group by tracks.id";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOYEAR');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOYEAR');
 	}
 
 	# tracks without replay gain
@@ -721,7 +1833,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_gain is null group by tracks.id";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSNOREPLAYGAIN');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOREPLAYGAIN');
 	}
 
 	# tracks with replay peak
@@ -733,7 +1845,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and tracks.filesize is not null and tracks.replay_peak is not null group by tracks.id";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKSWITHREPLAYPEAK');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_TRACKSWITHREPLAYPEAK');
 	}
 
 	# tracks for mp3 tag version
@@ -745,7 +1857,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and tracks.content_type = 'mp3' and tracks.tagversion = '$playlistType' group by tracks.id";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_MP3TRACKSTAGS').' '.$playlistType.' '.string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TAGS');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_MP3TRACKSTAGS').' '.$playlistType.' '.string('PLUGIN_VISUALSTATISTICS_TEXT_TAGS');
 	}
 
 	# tracks with Musicbrainz ID
@@ -757,7 +1869,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and tracks.musicbrainz_id is not null group by tracks.id";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_MUSICBRAINZID');
 	}
 
 	# tracks with identical Musicbrainz IDs in the LMS tracks table
@@ -769,7 +1881,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and tracks.musicbrainz_id is not null and tracks.musicbrainz_id in (select othertracks.musicbrainz_id from tracks othertracks where othertracks.musicbrainz_id is not null group by othertracks.musicbrainz_id having count(othertracks.musicbrainz_id) > 1))";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_MUSICBRAINZID_DUPES');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_MUSICBRAINZID_DUPES');
 	}
 
 	# artists with Musicbrainz ID
@@ -781,7 +1893,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where contributors.musicbrainz_id is not null group by contributors.id";
 
 		$sortOrder = 2;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_MUSICBRAINZID');
 	}
 
 	# artists with identical Musicbrainz IDs
@@ -793,7 +1905,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where contributors.musicbrainz_id is not null and contributors.musicbrainz_id in (select othercontributors.musicbrainz_id from contributors othercontributors where othercontributors.musicbrainz_id is not null group by othercontributors.musicbrainz_id having count(othercontributors.musicbrainz_id) > 1) group by contributors.id)";
 
 		$sortOrder = 2;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ARTISTS_MUSICBRAINZID_DUPES');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ARTISTS_MUSICBRAINZID_DUPES');
 	}
 
 	# albums with Musicbrainz ID
@@ -805,7 +1917,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where albums.musicbrainz_id is not null group by albums.id";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS_MUSICBRAINZID');
 	}
 
 	# albums with identical Musicbrainz IDs
@@ -817,7 +1929,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where albums.musicbrainz_id is not null and albums.musicbrainz_id in (select otheralbums.musicbrainz_id from albums otheralbums where otheralbums.musicbrainz_id is not null group by otheralbums.musicbrainz_id having count(otheralbums.musicbrainz_id) > 1) group by albums.id)";
 
 		$sortOrder = 3;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_ALBUMS_MUSICBRAINZID_DUPES');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ALBUMS_MUSICBRAINZID_DUPES');
 	}
 
 	# tracks with long urls (> 2048 characters)
@@ -829,7 +1941,7 @@ sub saveResultsToPL {
 		$sqlstatement .= " where tracks.audio = 1 and length(tracks.url) > 2048 group by tracks.id";
 
 		$sortOrder = 4;
-		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TRACKS_LONGURLS');
+		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_TRACKS_LONGURLS');
 	}
 
 	my $staticPLmaxTrackLimit = $prefs->get('savetoplmaxtracks');
@@ -944,7 +2056,7 @@ sub saveResultsToTextFile {
 	# dead tracks
 	if ($playlistType eq 'deadtracks') {
 		$sqlstatement = "select tracks_persistent.url from tracks_persistent where tracks_persistent.urlmd5 not in (select urlmd5 from tracks where tracks.urlmd5 = tracks_persistent.urlmd5)";
-		$statName = string('PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_DEADTRACKSPERSISTENT');
+		$statName = string('PLUGIN_VISUALSTATISTICS_TEXT_DEADTRACKSPERSISTENT');
 	}
 
 	## get data
@@ -1020,7 +2132,7 @@ sub getDataTracksByAudioFileFormat {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.content_type order by nooftypes desc";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.content_type order by nooftypes desc";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -1081,7 +2193,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 		if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 			$sqlbitrate .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 		}
-		$sqlbitrate .= " and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir') group by tracks.content_type order by tracks.content_type asc";
+		$sqlbitrate .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.content_type order by tracks.content_type asc";
 		my $sth = $dbh->prepare($sqlbitrate);
 		eval {
 			$sth->execute();
@@ -1115,7 +2227,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlfileformats .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlfileformats .= " and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir') group by tracks.content_type order by tracks.content_type asc";
+	$sqlfileformats .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.content_type order by tracks.content_type asc";
 	my @fileFormatsComplete = ();
 	my @fileFormatsNoBitrate = ();
 	my $fileFormatName;
@@ -1178,7 +2290,7 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlfileformats .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlfileformats .= " and (tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir') group by tracks.content_type order by tracks.content_type asc";
+	$sqlfileformats .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.content_type order by tracks.content_type asc";
 	my @fileFormatsComplete = ();
 	my @bitRates = ();
 	my $fileFormatName;
@@ -1384,7 +2496,7 @@ sub getDataTracksByGenre {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by nooftracks desc, genres.namesort asc limit ($rowLimit-1);";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by nooftracks desc, genres.namesort asc limit ($rowLimit-1);";
 	my $sqlResult = executeSQLstatement($sqlstatement, 3, 1);
 
 	my $sum = 0;
@@ -1400,7 +2512,7 @@ sub getDataTracksByGenre {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$trackCountSQL .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$trackCountSQL .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$trackCountSQL .= " and tracks.content_type not in ('cpl','src','ssp','dir')";
 	my $trackCount = quickSQLcount($trackCountSQL);
 	my $othersCount = $trackCount - $sum;
 	push @{$sqlResult}, {'xAxis' => string('PLUGIN_VISUALSTATISTICS_OTHERS'), 'yAxis' => $othersCount} unless ($othersCount <= 0);
@@ -1419,7 +2531,7 @@ sub getDataTracksMostPlayed {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and $dbTable.playCount > 0";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and $dbTable.playCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1442,7 +2554,7 @@ sub getDataTracksMostSkippedAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and alternativeplaycount.skipCount > 0";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and alternativeplaycount.skipCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1487,7 +2599,7 @@ sub getDataTracksByRating {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir')";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1507,34 +2619,432 @@ sub getDataTracksByYear {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by tracks.year asc;";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by tracks.year asc;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
 sub getDataTracksByDateAdded {
-	my $sqlstatement = "select strftime('%d-%m-%Y',tracks_persistent.added, 'unixepoch', 'localtime') as dateadded, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select strftime('%Y-%m-%d',tracks_persistent.added, 'unixepoch', 'localtime') as dateadded, count(distinct tracks.id) as nooftracks from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks_persistent.added > 0 and tracks_persistent.added is not null group by strftime('%d-%m-%Y',tracks_persistent.added, 'unixepoch', 'localtime')
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks_persistent.added > 0 and tracks_persistent.added is not null group by strftime('%Y-%m-%d',tracks_persistent.added, 'unixepoch', 'localtime')
 		order by strftime ('%Y',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%m',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%d',tracks_persistent.added, 'unixepoch', 'localtime') asc;";
 	return executeSQLstatement($sqlstatement);
 }
 
 sub getDataTracksByDateLastModified {
-	my $sqlstatement = "select case when ifnull(tracks.timestamp, 0) < 315532800 then 'Unknown' else strftime('%d-%m-%Y',tracks.timestamp, 'unixepoch', 'localtime') end, count(distinct tracks.id) as nooftracks from tracks";
+	my $sqlstatement = "select case when ifnull(tracks.timestamp, 0) < 315532800 then 'Unknown' else strftime('%Y-%m-%d',tracks.timestamp, 'unixepoch', 'localtime') end, count(distinct tracks.id) as nooftracks from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
 	$sqlstatement .= " where tracks.timestamp > 0 and tracks.timestamp is not null
-		group by strftime('%d-%m-%Y',tracks.timestamp, 'unixepoch', 'localtime')
+		group by strftime('%Y-%m-%d',tracks.timestamp, 'unixepoch', 'localtime')
 		order by strftime ('%Y',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%m',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%d',tracks.timestamp, 'unixepoch', 'localtime') asc;";
 	return executeSQLstatement($sqlstatement);
 }
 
-# ---- artists ---- #
+sub getDataHistoricalLibrarySize {
+	my $dbh = Slim::Schema->dbh;
+	my $granularity = $prefs->get('ph_filter_granularity') || 'month';
+	my $timeFmt = $granularity eq 'day' ? '%Y-%m-%d'
+		: $granularity eq 'week' ? '%Y-%W'
+		: '%Y-%m';
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	my $sql = "select strftime('$timeFmt', tracks_persistent.added, 'unixepoch', 'localtime') as period, min(tracks_persistent.added) * 1000 as period_ts, count(distinct tracks.id) as trackcount from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = " . $dbh->quote($selectedVL);
+	}
+	$sql .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and tracks_persistent.added > 0 group by period order by period asc";
+
+	my @result = ();
+	my $cumulative = 0;
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($period, $period_ts, $trackcount);
+		$sth->bind_columns(undef, \$period, \$period_ts, \$trackcount);
+		while ($sth->fetch()) {
+			$cumulative += $trackcount;
+			push @result, {'x' => $period_ts + 0, 'y' => $cumulative + 0};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataHistoricalLibrarySize: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataDurationDistribution {
+	my $dbh = Slim::Schema->dbh;
+	my $percentile = $prefs->get('histogrampercentile');
+
+	my $sql = "select cast(ifnull(tracks.secs, 0) / 30 as integer) * 30 as bucket, count(*) as trackcount from tracks";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	$sql .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and ifnull(tracks.secs, 0) > 0";
+
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sql .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sql .= " group by bucket order by bucket asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($bucket, $trackcount);
+		$sth->bind_columns(undef, \$bucket, \$trackcount);
+		my @rows = ();
+		while ($sth->fetch()) {
+			push @rows, {bucket => $bucket + 0, count => $trackcount + 0};
+		}
+		$sth->finish();
+
+		if ($percentile && $percentile > 0) {
+			my $cutoff = _percentileCutoff([map { ($_->{bucket}) x $_->{count} } @rows], $percentile);
+			@rows = grep { $_->{bucket} <= $cutoff } @rows;
+		}
+
+		my $totalSecs = $prefs->get('ph_filter_granularity') || '';
+		for my $row (@rows) {
+			my $b = $row->{bucket};
+			my $label = int($b / 60) . ':' . sprintf('%02d', $b % 60);
+			push @result, {xAxis => $label, yAxis => $row->{count}};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataDurationDistribution: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataBpmTracks {
+	my $dbh = Slim::Schema->dbh;
+	my $percentile = $prefs->get('histogrampercentile');
+
+	my $sql = "select cast(ifnull(tracks.bpm, 0) / 10 as integer) * 10 as bucket, count(*) as trackcount from tracks";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	$sql .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and ifnull(tracks.bpm, 0) > 0";
+
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sql .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sql .= " group by bucket order by bucket asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($bucket, $trackcount);
+		$sth->bind_columns(undef, \$bucket, \$trackcount);
+		my @rows = ();
+		while ($sth->fetch()) {
+			push @rows, {bucket => $bucket + 0, count => $trackcount + 0};
+		}
+		$sth->finish();
+
+		if ($percentile && $percentile > 0) {
+			my $cutoff = _percentileCutoff([map { ($_->{bucket}) x $_->{count} } @rows], $percentile);
+			@rows = grep { $_->{bucket} <= $cutoff } @rows;
+		}
+
+		for my $row (@rows) {
+			push @result, {xAxis => $row->{bucket} . '–' . ($row->{bucket} + 9), yAxis => $row->{count}};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataBpmTracks: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataBpmPlays {
+	my $dbh = Slim::Schema->dbh;
+	my $percentile = $prefs->get('histogrampercentile');
+
+	my $sql = "select cast(ifnull(tracks.bpm, 0) / 10 as integer) * 10 as bucket, sum(ifnull(tracks_persistent.playCount, 0)) as plays from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	$sql .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and ifnull(tracks.bpm, 0) > 0";
+
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sql .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sql .= " group by bucket order by bucket asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($bucket, $plays);
+		$sth->bind_columns(undef, \$bucket, \$plays);
+		my @rows = ();
+		while ($sth->fetch()) {
+			push @rows, {bucket => $bucket + 0, count => $plays + 0};
+		}
+		$sth->finish();
+
+		if ($percentile && $percentile > 0) {
+			my $cutoff = _percentileCutoff([map { ($_->{bucket}) x $_->{count} } @rows], $percentile);
+			@rows = grep { $_->{bucket} <= $cutoff } @rows;
+		}
+
+		for my $row (@rows) {
+			push @result, {xAxis => $row->{bucket} . '–' . ($row->{bucket} + 9), yAxis => $row->{count}};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataBpmPlays: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataBpmPlaysAPC {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+	my $percentile = $prefs->get('histogrampercentile');
+
+	my $sql = "select cast(ifnull(tracks.bpm, 0) / 10 as integer) * 10 as bucket, sum(ifnull(alternativeplaycount.playCount, 0)) as plays from tracks join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	$sql .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and ifnull(tracks.bpm, 0) > 0";
+
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sql .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sql .= " group by bucket order by bucket asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($bucket, $plays);
+		$sth->bind_columns(undef, \$bucket, \$plays);
+		my @rows = ();
+		while ($sth->fetch()) {
+			push @rows, {bucket => $bucket + 0, count => $plays + 0};
+		}
+		$sth->finish();
+
+		if ($percentile && $percentile > 0) {
+			my $cutoff = _percentileCutoff([map { ($_->{bucket}) x $_->{count} } @rows], $percentile);
+			@rows = grep { $_->{bucket} <= $cutoff } @rows;
+		}
+
+		for my $row (@rows) {
+			push @result, {xAxis => $row->{bucket} . '–' . ($row->{bucket} + 9), yAxis => $row->{count}};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataBpmPlaysAPC: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataPlayCountDistribution {
+	my $dbh = Slim::Schema->dbh;
+	my $percentile = $prefs->get('histogrampercentile');
+
+	my $sql = "select ifnull(tracks_persistent.playCount, 0) as bucket, count(*) as trackcount from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	$sql .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir')";
+
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sql .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sql .= " group by bucket order by bucket asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($bucket, $trackcount);
+		$sth->bind_columns(undef, \$bucket, \$trackcount);
+		my @rows = ();
+		while ($sth->fetch()) {
+			push @rows, {bucket => $bucket + 0, count => $trackcount + 0};
+		}
+		$sth->finish();
+
+		if ($percentile && $percentile > 0) {
+			my $cutoff = _percentileCutoff([map { ($_->{bucket}) x $_->{count} } @rows], $percentile);
+			@rows = grep { $_->{bucket} <= $cutoff } @rows;
+		}
+
+		for my $row (@rows) {
+			push @result, {xAxis => $row->{bucket}, yAxis => $row->{count}};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataPlayCountDistribution: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataListeningTimes {
+	my $useAPC = shift;
+	my $dbTable = $useAPC ? 'alternativeplaycount' : 'tracks_persistent';
+	my $sqlstatement = "select strftime('%H:%M',$dbTable.lastPlayed, 'unixepoch', 'localtime') as timelastplayed, count(distinct tracks.id) as nooftracks from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and $dbTable.lastPlayed > 0 and $dbTable.lastPlayed is not null group by strftime('%H:%M',$dbTable.lastPlayed, 'unixepoch', 'localtime') order by strftime ('%H',$dbTable.lastPlayed, 'unixepoch', 'localtime') asc, strftime('%M',$dbTable.lastPlayed, 'unixepoch', 'localtime') asc;";
+	return executeSQLstatement($sqlstatement);
+}
+
+sub getDataListeningTimesAPC {
+	return getDataListeningTimes(1);
+}
+
+sub getDataTrackTitleWordCloud {
+	my $dbh = Slim::Schema->dbh;
+	my $sqlstatement = "select tracks.title from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where length(tracks.title) > 2 and (tracks.audio = 1 or tracks.extid is not null)";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by tracks.id";
+	my $thisTitle;
+	my %frequentwords;
+	my $sth = $dbh->prepare($sqlstatement);
+	$sth->execute();
+	$sth->bind_columns(undef, \$thisTitle);
+	while ($sth->fetch()) {
+		next unless $thisTitle;
+		utf8::decode($thisTitle);
+		my @words = split /\W+/, $thisTitle;
+		foreach my $word (@words) {
+			$word = lc $word;
+			$word =~ s/^\s+|\s+$//g;
+			next if (length $word < 3 || $ignoreCommonWords{$word});
+			$frequentwords{$word}++;
+		}
+	}
+	my @result;
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b } keys %frequentwords) {
+		push(@result, [$word, $frequentwords{$word}]);
+		last if scalar @result >= 150;
+	}
+	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
+	return \@result;
+}
+
+sub getDataLyricsWordCloud {
+	my $dbh = Slim::Schema->dbh;
+	my $sqlstatement = "select tracks.lyrics from tracks";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where length(tracks.lyrics) > 15 and tracks.audio = 1";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by tracks.id";
+	my $lyrics;
+	my %frequentwords;
+	my $sth = $dbh->prepare($sqlstatement);
+	$sth->execute();
+	$sth->bind_columns(undef, \$lyrics);
+
+	while ($sth->fetch()) {
+		next unless $lyrics;
+		(my $clean = lc $lyrics) =~ tr/a-z/ /cs;
+		for my $word (split ' ', $clean) {
+			next if length($word) < 4 || $ignoreCommonWords{$word};
+			$frequentwords{$word}++;
+		}
+	}
+	# alt. version with correct Unicode but ~30% slower compared to tr:
+	#	while ($sth->fetch()) {
+	#		next unless $lyrics;
+	#		for my $word (split /\W+/, lc $lyrics) {
+	#			next if length($word) < 4 || $ignoreCommonWords{$word};
+	#			$frequentwords{$word}++;
+	#		}
+	#	}
+
+	my @result;
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b } keys %frequentwords) {
+		push(@result, [$word, $frequentwords{$word}]);
+		last if scalar @result >= 150;
+	}
+	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
+	return \@result;
+}
+
+## ---- artists ---- ##
 
 sub getDataArtistWithMostTracks {
 	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
@@ -1552,7 +3062,7 @@ sub getDataArtistWithMostTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and contributors.id != $VAid and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by contributors.name order by nooftracks desc, contributors.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and contributors.id != $VAid and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by contributors.name order by nooftracks desc, contributors.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -1587,7 +3097,7 @@ sub getDataArtistWithMostRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid and tracks_persistent.rating > 0";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid and tracks_persistent.rating > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1608,7 +3118,7 @@ sub getDataArtistsHighestPercentageRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1631,7 +3141,7 @@ sub getDataArtistsWithTopRatedTracksAvg {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1657,7 +3167,7 @@ sub getDataArtistsWithMostPlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid and $dbTable.playCount > 0";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid and $dbTable.playCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1685,7 +3195,7 @@ sub getDataArtistsWithTracksCompletelyPartlyNonePlayed {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement_shared .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement_shared .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement_shared .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement_shared .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1724,7 +3234,7 @@ sub getDataArtistsHighestPercentagePlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1751,7 +3261,7 @@ sub getDataArtistsWithMostPlayedTracksAverage {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1786,7 +3296,7 @@ sub getDataArtistsWithMostSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid and alternativeplaycount.skipCount > 0";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid and alternativeplaycount.skipCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1813,7 +3323,7 @@ sub getDataArtistsHighestPercentageSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1833,7 +3343,7 @@ sub getDataArtistsWithMostSkippedTracksAverageAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1860,7 +3370,7 @@ sub getDataArtistsRatingPlaycount {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1892,7 +3402,7 @@ sub getDataArtistsHighestAvgDpsvAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and alternativeplaycount.dynPSval is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and alternativeplaycount.dynPSval is not null and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1912,7 +3422,7 @@ sub getDataArtistsLowestAvgDpsvAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and alternativeplaycount.dynPSval is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and contributors.id != $VAid";
+	$sqlstatement .= " where (tracks.audio = 1 or tracks.extid is not null) and alternativeplaycount.dynPSval is not null and tracks.content_type not in ('cpl','src','ssp','dir') and contributors.id != $VAid";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -1922,7 +3432,7 @@ sub getDataArtistsLowestAvgDpsvAPC {
 
 }
 
-# ---- albums ---- #
+## ---- albums ---- ##
 
 sub getDataAlbumsByYear {
 	my $sqlstatement = "select case when albums.year > 0 then albums.year else 'Unknown' end, count(distinct albums.id) as noofalbums, ifnull(albums.year, 0) from albums join tracks on tracks.album = albums.id";
@@ -1939,7 +3449,7 @@ sub getDataAlbumsByYear {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.year order by albums.year asc";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.year order by albums.year asc";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -1958,7 +3468,7 @@ sub getDataAlbumsWithMostTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title order by nooftracks desc, albums.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title order by nooftracks desc, albums.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -1997,7 +3507,7 @@ sub getDataAlbumsWithMostRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " join contributors on contributors.id = albums.contributor left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where albums.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and tracks_persistent.rating > 0";
+	$sqlstatement .= " join contributors on contributors.id = albums.contributor left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where albums.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and tracks_persistent.rating > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
@@ -2022,7 +3532,7 @@ sub getDataAlbumsHighestPercentageRatedTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title having count(distinct tracks.id) >= $minAlbumTracks order by ratedpercentage desc, albums.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title having count(distinct tracks.id) >= $minAlbumTracks order by ratedpercentage desc, albums.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2044,7 +3554,7 @@ sub getDataAlbumsWithTopRatedTracksAvg {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title having count(distinct tracks.id) >= $minAlbumTracks order by procrating desc, contributors.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title having count(distinct tracks.id) >= $minAlbumTracks order by procrating desc, contributors.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2064,7 +3574,7 @@ sub getDataAlbumsWithMostPlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " join contributors on contributors.id = albums.contributor left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where albums.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and $dbTable.playCount > 0";
+	$sqlstatement .= " join contributors on contributors.id = albums.contributor left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where albums.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and $dbTable.playCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
@@ -2090,7 +3600,7 @@ sub getDataAlbumsWithTracksCompletelyPartlyNonePlayed {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement_shared .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement_shared .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$sqlstatement_shared .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir')";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement_shared .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
@@ -2134,7 +3644,7 @@ sub getDataAlbumsHighestPercentagePlayedTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title having count(distinct tracks.id) >= $minAlbumTracks and playedpercentage < 100 order by playedpercentage desc, albums.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title having count(distinct tracks.id) >= $minAlbumTracks and playedpercentage < 100 order by playedpercentage desc, albums.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2160,7 +3670,7 @@ sub getDataAlbumsWithMostPlayedTracksAverage {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title order by procplaycount desc, albums.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title order by procplaycount desc, albums.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2189,7 +3699,7 @@ sub getDataAlbumsWithMostSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " join contributors on contributors.id = albums.contributor left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where albums.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and alternativeplaycount.skipCount > 0";
+	$sqlstatement .= " join contributors on contributors.id = albums.contributor left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where albums.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and alternativeplaycount.skipCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
@@ -2220,7 +3730,7 @@ sub getDataAlbumsHighestPercentageSkippedTracksAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title having count(distinct tracks.id) >= $minAlbumTracks order by skippedpercentage desc, albums.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title having count(distinct tracks.id) >= $minAlbumTracks order by skippedpercentage desc, albums.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2239,7 +3749,7 @@ sub getDataAlbumsWithMostSkippedTracksAverageAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title order by avgskipcount desc, albums.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title order by avgskipcount desc, albums.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2258,7 +3768,7 @@ sub getDataAlbumsHighestAvgDpsvAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title order by avgdpsv desc, albums.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title order by avgdpsv desc, albums.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2277,11 +3787,53 @@ sub getDataAlbumsLowestAvgDpsvAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by albums.title order by avgdpsv asc, albums.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by albums.title order by avgdpsv asc, albums.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
-# ---- works ---- #
+sub getDataAlbumTitleWordCloud {
+	my $dbh = Slim::Schema->dbh;
+	my $sqlstatement = "select albums.title from albums join tracks on tracks.album = albums.id";
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	}
+	$sqlstatement .= " where albums.title is not null and (tracks.audio = 1 or tracks.extid is not null)";
+	my $decadeFilterVal = $prefs->get('decadefilterval');
+	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
+		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+	}
+	$sqlstatement .= " group by albums.id";
+	my $thisTitle;
+	my %frequentwords;
+	my $sth = $dbh->prepare($sqlstatement);
+	$sth->execute();
+	$sth->bind_columns(undef, \$thisTitle);
+	while ($sth->fetch()) {
+		next unless $thisTitle;
+		utf8::decode($thisTitle);
+		my @words = split /\W+/, $thisTitle;
+		foreach my $word (@words) {
+			$word = lc $word;
+			$word =~ s/^\s+|\s+$//g;
+			next if (length $word < 3 || $ignoreCommonWords{$word});
+			$frequentwords{$word}++;
+		}
+	}
+	my @result;
+	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b } keys %frequentwords) {
+		push(@result, [$word, $frequentwords{$word}]);
+		last if scalar @result >= 150;
+	}
+	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@result));
+	return \@result;
+}
+
+## ---- works ---- ##
 
 sub getDataWorksByYear {
 	my $sqlstatement = "select case when tracks.year > 0 then tracks.year else 'Unknown' end, count(distinct tracks.work), ifnull(tracks.year, 0) from tracks";
@@ -2298,7 +3850,7 @@ sub getDataWorksByYear {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by tracks.year asc";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by tracks.year asc";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2317,7 +3869,7 @@ sub getDataComposersWithMostWorks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by contributors.name order by noofworks desc, contributors.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by contributors.name order by noofworks desc, contributors.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2331,7 +3883,7 @@ sub getDataWorksWithMostRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " join contributors on contributors.id = works.composer left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where works.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and contributors.name is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and tracks_persistent.rating > 0";
+	$sqlstatement .= " join contributors on contributors.id = works.composer left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where works.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and contributors.name is not null and tracks.content_type not in ('cpl','src','ssp','dir') and tracks_persistent.rating > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2358,7 +3910,7 @@ sub getDataWorksHighestPercentageRatedTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having count(distinct tracks.id) >= $minAlbumTracks order by ratedpercentage desc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id having count(distinct tracks.id) >= $minAlbumTracks order by ratedpercentage desc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2380,7 +3932,7 @@ sub getDataWorksWithTopRatedTracksAvg {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having count(distinct tracks.id) >= $minAlbumTracks order by procrating desc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id having count(distinct tracks.id) >= $minAlbumTracks order by procrating desc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2401,7 +3953,7 @@ sub getDataWorksWithMostPerformances {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$subquery .= " join genre_track gt2 on gt2.track = t2.id and gt2.genre == $genreFilter";
 	}
-	$subquery .= " where t2.work = works.id and (t2.audio = 1 or t2.extid is not null) and t2.content_type != 'cpl' and t2.content_type != 'src' and t2.content_type != 'ssp' and t2.content_type != 'dir'";
+	$subquery .= " where t2.work = works.id and (t2.audio = 1 or t2.extid is not null) and t2.content_type not in ('cpl','src','ssp','dir')";
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$subquery .= " and ifnull(t2.year, 0) >= $decadeFilterVal and ifnull(t2.year, 0) < ($decadeFilterVal + 10)";
 	}
@@ -2413,7 +3965,7 @@ sub getDataWorksWithMostPerformances {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " join contributors on contributors.id = works.composer where works.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and contributors.name is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$sqlstatement .= " join contributors on contributors.id = works.composer where works.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and contributors.name is not null and tracks.content_type not in ('cpl','src','ssp','dir')";
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
@@ -2433,7 +3985,7 @@ sub getDataWorksWithMostPlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " join contributors on contributors.id = works.composer left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where works.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and contributors.name is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and $dbTable.playCount > 0";
+	$sqlstatement .= " join contributors on contributors.id = works.composer left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where works.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and contributors.name is not null and tracks.content_type not in ('cpl','src','ssp','dir') and $dbTable.playCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2459,7 +4011,7 @@ sub getDataWorksWithTracksCompletelyPartlyNonePlayed {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement_shared .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement_shared .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir'";
+	$sqlstatement_shared .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and tracks.content_type not in ('cpl','src','ssp','dir')";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement_shared .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2503,7 +4055,7 @@ sub getDataWorksHighestPercentagePlayedTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having count(distinct tracks.id) >= $minAlbumTracks and playedpercentage < 100 order by playedpercentage desc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id having count(distinct tracks.id) >= $minAlbumTracks and playedpercentage < 100 order by playedpercentage desc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2529,7 +4081,7 @@ sub getDataWorksWithMostPlayedTracksAverage {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id order by procplaycount desc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id order by procplaycount desc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2558,7 +4110,7 @@ sub getDataWorksWithMostSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " join contributors on contributors.id = works.composer left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where works.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and alternativeplaycount.skipCount > 0";
+	$sqlstatement .= " join contributors on contributors.id = works.composer left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where works.title is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.work is not null and tracks.content_type not in ('cpl','src','ssp','dir') and alternativeplaycount.skipCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2589,7 +4141,7 @@ sub getDataWorksHighestPercentageSkippedTracksAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id having count(distinct tracks.id) >= $minAlbumTracks order by skippedpercentage desc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id having count(distinct tracks.id) >= $minAlbumTracks order by skippedpercentage desc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2608,7 +4160,7 @@ sub getDataWorksWithMostSkippedTracksAverageAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id order by avgskipcount desc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id order by avgskipcount desc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2627,7 +4179,7 @@ sub getDataWorksHighestAvgDpsvAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id order by avgdpsv desc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id order by avgdpsv desc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
@@ -2646,11 +4198,11 @@ sub getDataWorksLowestAvgDpsvAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by works.id order by avgdpsv asc, works.titlesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by works.id order by avgdpsv asc, works.titlesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 4);
 }
 
-# ---- genres ---- #
+## ---- genres ---- ##
 
 sub getDataGenresWithMostTracks {
 	my $sqlstatement = "select genres.name, count(distinct tracks.id) as nooftracks, genres.id from tracks";
@@ -2663,7 +4215,7 @@ sub getDataGenresWithMostTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by nooftracks desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by nooftracks desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2678,7 +4230,7 @@ sub getDataGenresWithMostAlbums {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(albums.year, 0) >= $decadeFilterVal and ifnull(albums.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by noofalbums desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by noofalbums desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2688,7 +4240,7 @@ sub getDataGenresWithMostRatedTracks {
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre where genres.name is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and tracks_persistent.rating > 0";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre where genres.name is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and tracks_persistent.rating > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2708,7 +4260,7 @@ sub getDataGenresHighestPercentageRatedTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by ratedpercentage desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by ratedpercentage desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2725,7 +4277,7 @@ sub getDataGenresWithTopRatedTracksAvg {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by procrating desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by procrating desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2741,7 +4293,7 @@ sub getDataGenresWithMostPlayedTracks {
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre where genres.name is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and $dbTable.playCount > 0";
+	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre where genres.name is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and $dbTable.playCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2767,7 +4319,7 @@ sub getDataGenresHighestPercentagePlayedTracks {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by playedpercentage desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by playedpercentage desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2789,7 +4341,7 @@ sub getDataGenresWithMostPlayedTracksAverage {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by procplaycount desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by procplaycount desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2814,7 +4366,7 @@ sub getDataGenresWithMostSkippedTracksAPC {
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre where genres.name is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and alternativeplaycount.skipCount > 0";
+	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre where genres.name is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and alternativeplaycount.skipCount > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2840,7 +4392,7 @@ sub getDataGenresHighestPercentageSkippedTracksAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by skippedpercentage desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by skippedpercentage desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2855,7 +4407,7 @@ sub getDataGenresWithMostSkippedTracksAverageAPC {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by avgskipcount desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by avgskipcount desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2870,11 +4422,11 @@ sub getDataGenresWithTopAverageBitrate {
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
 	}
-	$sqlstatement .= " and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by genres.name order by avgbitrate desc, genres.namesort asc limit $rowLimit;";
+	$sqlstatement .= " and tracks.content_type not in ('cpl','src','ssp','dir') group by genres.name order by avgbitrate desc, genres.namesort asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
-# ---- years ---- #
+## ---- years ---- ##
 
 sub getDataYearsWithMostTracks {
 	my $sqlstatement = "select tracks.year, count(distinct tracks.id) as nooftracks, tracks.year from tracks";
@@ -2886,7 +4438,7 @@ sub getDataYearsWithMostTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by nooftracks desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by nooftracks desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2900,7 +4452,7 @@ sub getDataYearsWithMostAlbums {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where tracks.year > 0 and tracks.year is not null and tracks.album is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and (tracks.audio = 1 or tracks.extid is not null) group by tracks.year order by noofalbums desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " where tracks.year > 0 and tracks.year is not null and tracks.album is not null and tracks.content_type not in ('cpl','src','ssp','dir') and (tracks.audio = 1 or tracks.extid is not null) group by tracks.year order by noofalbums desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2914,7 +4466,7 @@ sub getDataYearsWithMostRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and tracks_persistent.rating > 0 group by tracks.year order by nooftracks desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and tracks_persistent.rating > 0 group by tracks.year order by nooftracks desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2928,7 +4480,7 @@ sub getDataYearsHighestPercentageRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by ratedpercentage desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by ratedpercentage desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2944,7 +4496,7 @@ sub getDataYearsWithTopRatedTracksAvg {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by procrating desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by procrating desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2964,7 +4516,7 @@ sub getDataYearsWithMostPlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and $dbTable.playCount > 0 group by tracks.year order by nooftracks desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and $dbTable.playCount > 0 group by tracks.year order by nooftracks desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -2984,7 +4536,7 @@ sub getDataYearsHighestPercentagePlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by playedpercentage desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by playedpercentage desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -3005,7 +4557,7 @@ sub getDataYearsWithMostPlayedTracksAverage {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by procplaycount desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by procplaycount desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -3034,7 +4586,7 @@ sub getDataYearsWithMostSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and alternativeplaycount.skipCount > 0 group by tracks.year order by";
+	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and alternativeplaycount.skipCount > 0 group by tracks.year order by";
 	$sqlstatement .= $totalabs ? " aggskipcount" : " nooftracks";
 	$sqlstatement .= " desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
@@ -3054,7 +4606,7 @@ sub getDataYearsHighestPercentageSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by skippedpercentage desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by skippedpercentage desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
@@ -3068,11 +4620,11 @@ sub getDataYearsWithMostSkippedTracksAverageAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by tracks.year order by avgskipcount desc, tracks.year asc limit $rowLimit;";
+	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by tracks.year order by avgskipcount desc, tracks.year asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement, 3, 1);
 }
 
-# ---- decades ---- #
+## ---- decades ---- ##
 
 sub getDataDecadesWithMostTracks {
 	my $sqlstatement = "select cast(((tracks.year/10)*10) as int)||'s', count(distinct tracks.id) as nooftracks from tracks";
@@ -3084,7 +4636,7 @@ sub getDataDecadesWithMostTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by cast(((tracks.year/10)*10) as int)||'s' order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3098,7 +4650,7 @@ sub getDataDecadesWithMostAlbums {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where tracks.year > 0 and tracks.year is not null and tracks.album is not null and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and (tracks.audio = 1 or tracks.extid is not null) group by cast(((tracks.year/10)*10) as int)||'s' order by noofalbums desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " where tracks.year > 0 and tracks.year is not null and tracks.album is not null and tracks.content_type not in ('cpl','src','ssp','dir') and (tracks.audio = 1 or tracks.extid is not null) group by cast(((tracks.year/10)*10) as int)||'s' order by noofalbums desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3112,7 +4664,7 @@ sub getDataDecadesWithMostRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and tracks_persistent.rating > 0 group by cast(((tracks.year/10)*10) as int)||'s' order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and tracks_persistent.rating > 0 group by cast(((tracks.year/10)*10) as int)||'s' order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3126,7 +4678,7 @@ sub getDataDecadesHighestPercentageRatedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by ratedpercentage desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by cast(((tracks.year/10)*10) as int)||'s' order by ratedpercentage desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3142,7 +4694,7 @@ sub getDataDecadesWithTopRatedTracksAvg {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by procrating desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by cast(((tracks.year/10)*10) as int)||'s' order by procrating desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3162,7 +4714,7 @@ sub getDataDecadesWithMostPlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and $dbTable.playCount > 0 group by cast(((tracks.year/10)*10) as int)||'s' order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and $dbTable.playCount > 0 group by cast(((tracks.year/10)*10) as int)||'s' order by nooftracks desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3182,7 +4734,7 @@ sub getDataDecadesHighestPercentagePlayedTracks {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by playedpercentage desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by cast(((tracks.year/10)*10) as int)||'s' order by playedpercentage desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3203,7 +4755,7 @@ sub getDataDecadesWithMostPlayedTracksAverage {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by procplaycount desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by cast(((tracks.year/10)*10) as int)||'s' order by procplaycount desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3232,7 +4784,7 @@ sub getDataDecadesWithMostSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and alternativeplaycount.skipCount > 0 group by cast(((tracks.year/10)*10) as int)||'s' order by";
+	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and alternativeplaycount.skipCount > 0 group by cast(((tracks.year/10)*10) as int)||'s' order by";
 	$sqlstatement .= $totalabs ? " aggskipcount" : " nooftracks";
 	$sqlstatement .= " desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
@@ -3252,7 +4804,7 @@ sub getDataDecadesHighestPercentageSkippedTracksAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by skippedpercentage desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by cast(((tracks.year/10)*10) as int)||'s' order by skippedpercentage desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -3266,120 +4818,1482 @@ sub getDataDecadesWithMostSkippedTracksAverageAPC {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by cast(((tracks.year/10)*10) as int)||'s' order by avgskipcount desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
+	$sqlstatement .= " left join alternativeplaycount on alternativeplaycount.urlmd5 = tracks.urlmd5 where tracks.year > 0 and tracks.year is not null and (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') group by cast(((tracks.year/10)*10) as int)||'s' order by avgskipcount desc, cast(((tracks.year/10)*10) as int)||'s' asc limit $rowLimit;";
 	return executeSQLstatement($sqlstatement);
 }
 
-# ---- misc. ---- #
-
-sub getDataListeningTimes {
-	my $useAPC = shift;
-	my $dbTable = $useAPC ? 'alternativeplaycount' : 'tracks_persistent';
-	my $sqlstatement = "select strftime('%H:%M',$dbTable.lastPlayed, 'unixepoch', 'localtime') as timelastplayed, count(distinct tracks.id) as nooftracks from tracks";
-	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
-	}
-	my $genreFilter = $prefs->get('genrefilterid');
-	if (defined($genreFilter) && $genreFilter ne '') {
-		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
-	}
-	$sqlstatement .= " left join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' and $dbTable.lastPlayed > 0 and $dbTable.lastPlayed is not null group by strftime('%H:%M',$dbTable.lastPlayed, 'unixepoch', 'localtime') order by strftime ('%H',$dbTable.lastPlayed, 'unixepoch', 'localtime') asc, strftime('%M',$dbTable.lastPlayed, 'unixepoch', 'localtime') asc;";
-	return executeSQLstatement($sqlstatement);
-}
-
-sub getDataListeningTimesAPC {
-	return getDataListeningTimes(1);
-}
-
-sub getDataTrackTitleMostFrequentWords {
+sub getDataSankeyDecadeGenreArtist {
 	my $dbh = Slim::Schema->dbh;
-	my $sqlstatement = "select tracks.titlesearch from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+	my @result = ();
+
+	# shared conditions
+	my $trackCondition = "(tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir') and tracks.year > 0 and tracks.year is not null";
+	my $vlJoin = ($selectedVL && $selectedVL ne '') ? " join library_track on library_track.track = tracks.id and library_track.library = " . $dbh->quote($selectedVL) : '';
+
+	# 1: top 5 decades by track count
+	my @topDecades = ();
+	eval {
+		my $sth = $dbh->prepare("select cast(((tracks.year/10)*10) as int) as decade, count(distinct tracks.id) as cnt from tracks$vlJoin where $trackCondition group by decade order by cnt desc limit 5");
+		$sth->execute();
+		my ($decade, $cnt);
+		$sth->bind_columns(undef, \$decade, \$cnt);
+		while ($sth->fetch()) {
+			push @topDecades, $decade;
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataSankeyDecadeGenreArtist (decades): $DBI::errstr\n$@");
+		return [];
 	}
-	my $genreFilter = $prefs->get('genrefilterid');
-	if (defined($genreFilter) && $genreFilter ne '') {
-		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+	return [] unless @topDecades;
+
+	my $decadeList = join(',', @topDecades);
+
+	# 2: top 5 genres per decade (by track count)
+	my %genreByDecade = (); # decade -> [ {id, name, cnt} ]
+	eval {
+		my $sth = $dbh->prepare("select cast(((tracks.year/10)*10) as int) as decade, genres.id, genres.name, count(distinct tracks.id) as cnt from tracks$vlJoin join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre where $trackCondition and cast(((tracks.year/10)*10) as int) in ($decadeList) group by decade, genres.id order by decade, cnt desc");
+		$sth->execute();
+		my ($decade, $genreId, $genreName, $cnt);
+		$sth->bind_columns(undef, \$decade, \$genreId, \$genreName, \$cnt);
+		while ($sth->fetch()) {
+			utf8::decode($genreName);
+			next if exists $genreByDecade{$decade} && scalar(@{$genreByDecade{$decade}}) >= 3;
+			push @{$genreByDecade{$decade}}, {id => $genreId, name => $genreName, cnt => $cnt};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataSankeyDecadeGenreArtist (genres): $DBI::errstr\n$@");
+		return [];
 	}
-	$sqlstatement .= " where length(tracks.titlesearch) > 2 and (tracks.audio = 1 or tracks.extid is not null)";
-	my $decadeFilterVal = $prefs->get('decadefilterval');
-	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
-		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+
+	## add decade->genre flows and collect unique genre ids
+	my %genreSeen = ();
+	for my $decade (@topDecades) {
+		next unless $genreByDecade{$decade};
+		my $decadeLabel = $decade . 's';
+		for my $g (@{$genreByDecade{$decade}}) {
+			push @result, {from => $decadeLabel, to => $g->{name}, flow => $g->{cnt}};
+			$genreSeen{$g->{id}} = $g->{name};
+		}
 	}
-	$sqlstatement .= " group by tracks.id";
-	my $thisTitle;
-	my %frequentwords;
-	my $sth = $dbh->prepare($sqlstatement);
-	$sth->execute();
-	$sth->bind_columns(undef, \$thisTitle);
-	while ($sth->fetch()) {
-		next unless $thisTitle;
-		my @words = split /\W+/, $thisTitle; #skip non-word characters
-		foreach my $word(@words){
-			chomp $word;
-			$word = lc $word;
-			$word =~ s/^\s+|\s+$//g; #remove beginning/trailing whitespace
-			next if (length $word < 3 || $ignoreCommonWords{$word});
-			$frequentwords{$word} ||= 0;
-			$frequentwords{$word}++;
+	return [] unless %genreSeen;
+
+	my $genreIdList = join(',', keys %genreSeen);
+
+	# 3: top 3 artists per genre (by track count)
+	my %artistByGenre = (); # genre_id -> [ {name, cnt} ]
+	eval {
+		my $sth = $dbh->prepare("select genre_track.genre, contributors.name, count(distinct tracks.id) as cnt from tracks$vlJoin join genre_track on genre_track.track = tracks.id join contributor_track on contributor_track.track = tracks.id and contributor_track.role = 1 join contributors on contributors.id = contributor_track.contributor where $trackCondition and cast(((tracks.year/10)*10) as int) in ($decadeList) and genre_track.genre in ($genreIdList) group by genre_track.genre, contributors.id order by genre_track.genre, cnt desc");
+		$sth->execute();
+		my ($genreId, $artistName, $cnt);
+		$sth->bind_columns(undef, \$genreId, \$artistName, \$cnt);
+		while ($sth->fetch()) {
+			utf8::decode($artistName);
+			next if exists $artistByGenre{$genreId} && scalar(@{$artistByGenre{$genreId}}) >= 2;
+			push @{$artistByGenre{$genreId}}, {name => $artistName, cnt => $cnt};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataSankeyDecadeGenreArtist (artists): $DBI::errstr\n$@");
+		return [];
+	}
+
+	## add genre->artist flows
+	for my $genreId (keys %artistByGenre) {
+		my $genreName = $genreSeen{$genreId};
+		for my $a (@{$artistByGenre{$genreId}}) {
+			push @result, {from => $genreName, to => $a->{name}, flow => $a->{cnt}};
 		}
 	}
 
-	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b} keys %frequentwords) {
-		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
-		last if scalar @keys >= 50;
-	};
-
-	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@keys));
-	return \@keys;
+	main::DEBUGLOG && $log->is_debug && $log->debug('getDataSankeyDecadeGenreArtist result = '.Data::Dump::dump(\@result));
+	return \@result;
 }
 
-sub getDataTrackLyricsMostFrequentWords {
-	my $dbh = Slim::Schema->dbh;
-	my $sqlstatement = "select tracks.lyrics from tracks";
-	my $selectedVL = $prefs->get('selectedvirtuallibrary');
-	if ($selectedVL && $selectedVL ne '') {
-		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+## ---- play history ---- ##
+
+sub _attachApcDb {
+	return 0 unless $apc_enabled;
+	return 1 if $apc_attached_to_lms;
+
+	my $apc_dbfile = File::Spec->catfile(Slim::Utils::Prefs::dir(), 'apc_external.db');
+	unless (-f $apc_dbfile) {
+		$log->warn("APC database not found at '$apc_dbfile'");
+		return 0;
 	}
+
+	my $dbh = Slim::Schema->dbh;
+	eval { $dbh->do("ATTACH DATABASE ? AS apc", undef, $apc_dbfile) };
+	if ($@) {
+		$log->warn("could not attach APC database '$apc_dbfile': $@");
+		return 0;
+	}
+	$apc_attached_to_lms = 1;
+	return 1;
+}
+
+sub getDataPhActivityTimeline {
+	# ActivityTimeline = plays per time unit
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $granularity = $prefs->get('ph_filter_granularity') || 'month';
+	my $timeFmt = $granularity eq 'day' ? '%Y-%m-%d'
+		: $granularity eq 'week' ? '%Y-%W'
+		: '%Y-%m';
+
+	# min(ph.played) * 1000 = ms timestamp for chart time axis
+	# parsing = false & numeric x => enables the decimation plugin for large datasets
+	my $sql = "select strftime('$timeFmt', ph.played, 'unixepoch', 'localtime') as period, min(ph.played) * 1000 as period_ts, count(*) as playcount from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
 	my $genreFilter = $prefs->get('genrefilterid');
 	if (defined($genreFilter) && $genreFilter ne '') {
-		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
 	}
-	$sqlstatement .= " where length(tracks.lyrics) > 15 and tracks.audio = 1";
-	my $decadeFilterVal = $prefs->get('decadefilterval');
-	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
-		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)", "tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by period order by period asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($period, $period_ts, $playcount);
+		$sth->bind_columns(undef, \$period, \$period_ts, \$playcount);
+		while ($sth->fetch()) {
+			push @result, {'x' => $period_ts + 0, 'y' => $playcount + 0};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhActivityTimeline: $DBI::errstr\n$@");
 	}
-	$sqlstatement .= " group by tracks.id";
-	my $lyrics;
-	my %frequentwords;
-	my $sth = $dbh->prepare($sqlstatement);
-	$sth->execute();
-	$sth->bind_columns(undef, \$lyrics);
-	while ($sth->fetch()) {
-		next unless $lyrics;
-		my @words = split /\W+/, $lyrics; #skip non-word characters
-		foreach my $word(@words){
-			chomp $word;
-			$word = lc $word;
-			$word =~ s/^\s+|\s+$//g; #remove beginning/trailing whitespace
-			next if (length $word < 3 || $ignoreCommonWords{$word});
-			$frequentwords{$word} ||= 0;
-			$frequentwords{$word}++;
+	main::DEBUGLOG && $log->is_debug && $log->debug('sql = ' . Data::Dump::dump($sql));
+	main::DEBUGLOG && $log->is_debug && $log->debug('result = ' . Data::Dump::dump(\@result));
+	return \@result;
+}
+
+sub getDataPhPlaysPerWeekday {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select strftime('%w', ph.played, 'unixepoch', 'localtime') as weekday, count(*) as playcount from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)", "tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by weekday order by weekday asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($weekday, $playcount);
+		$sth->bind_columns(undef, \$weekday, \$playcount);
+
+		my %dayCounts = map { $_ => 0 } (0..6);
+		while ($sth->fetch()) {
+			$dayCounts{$weekday + 0} = $playcount + 0;
+		}
+		$sth->finish();
+
+		my @dayNames = (
+			string('PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_SUN'),
+			string('PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_MON'),
+			string('PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_TUE'),
+			string('PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_WED'),
+			string('PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_THU'),
+			string('PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_FRI'),
+			string('PLUGIN_VISUALSTATISTICS_PH_WEEKDAY_SAT'),
+		);
+
+		for my $d (1,2,3,4,5,6,0) {
+			push @result, {xAxis => $dayNames[$d], yAxis => $dayCounts{$d}};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhPlaysPerWeekday: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataPhPlaysPerHour {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select strftime('%H', ph.played, 'unixepoch', 'localtime') as hourofday, count(*) as playcount from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)", "tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by hourofday order by hourofday asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($hour, $playcount);
+		$sth->bind_columns(undef, \$hour, \$playcount);
+
+		my %hourCounts = map { sprintf('%02d', $_) => 0 } (0..23);
+		while ($sth->fetch()) {
+			$hourCounts{$hour} = $playcount + 0;
+		}
+		$sth->finish();
+
+		for my $h (sort keys %hourCounts) {
+			push @result, {xAxis => $h, yAxis => $hourCounts{$h}};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhPlaysPerHour: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataPhTracksMostPlayed {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select tracks.title, count(*) as playcount, tracks.id, contributors.name from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join contributors on contributors.id = tracks.primary_artist";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by tracks.id order by playcount desc, tracks.titlesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 4);
+}
+
+sub getDataPhArtistsTotalPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
+
+	my $sql = "select contributors.name, count(*) as playcount, contributors.id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join contributors on contributors.id = tracks.primary_artist";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')",
+		"contributors.id != $VAid");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by contributors.id order by playcount desc, contributors.namesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhArtistsAvgPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
+
+	my $sql = "select contributors.name, cast(count(*) as float) / count(distinct tracks.id) as avgplaycount, contributors.id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join contributors on contributors.id = tracks.primary_artist";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')",
+		"contributors.id != $VAid");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by contributors.id order by avgplaycount desc, contributors.namesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhAlbumsTotalPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select albums.title, count(*) as playcount, albums.id, contributors.name from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join albums on albums.id = tracks.album join contributors on contributors.id = albums.contributor";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("albums.title is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(albums.year, 0) >= $decadeFilter and ifnull(albums.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by albums.id order by playcount desc, albums.titlesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 4);
+}
+
+sub getDataPhAlbumsAvgPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select albums.title, cast(count(*) as float) / count(distinct tracks.id) as avgplaycount, albums.id, contributors.name from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join albums on albums.id = tracks.album join contributors on contributors.id = albums.contributor";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("albums.title is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(albums.year, 0) >= $decadeFilter and ifnull(albums.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by albums.id order by avgplaycount desc, albums.titlesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 4);
+}
+
+sub getDataPhGenresTotalPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select genres.name, count(*) as playcount, genres.id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my @conditions = ("genres.name is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by genres.id order by playcount desc, genres.namesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhGenresAvgPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select genres.name, cast(count(*) as float) / count(distinct tracks.id) as avgplaycount, genres.id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my @conditions = ("genres.name is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by genres.id order by avgplaycount desc, genres.namesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhYearsTotalPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select tracks.year, count(*) as playcount, tracks.year from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("tracks.year > 0", "tracks.year is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by tracks.year order by playcount desc, tracks.year asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhYearsAvgPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select tracks.year, cast(count(*) as float) / count(distinct tracks.id) as avgplaycount, tracks.year from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("tracks.year > 0", "tracks.year is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by tracks.year order by avgplaycount desc, tracks.year asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhDecadesTotalPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select (tracks.year / 10) * 10 as decade, count(*) as playcount, (tracks.year / 10) * 10 from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("tracks.year > 0", "tracks.year is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by decade order by playcount desc, decade asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhDecadesAvgPlaycount {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select (tracks.year / 10) * 10 as decade, cast(count(*) as float) / count(distinct tracks.id) as avgplaycount, (tracks.year / 10) * 10 from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("tracks.year > 0", "tracks.year is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by decade order by avgplaycount desc, decade asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhPlayerUsage {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my @result = ();
+	eval {
+		my $genreFilter = $prefs->get('genrefilterid');
+		my $timeRange = $prefs->get('ph_filter_timerange');
+
+		my $sql = "select apc.play_history.client_id, count(*) as plays from apc.play_history join tracks on tracks.urlmd5 = apc.play_history.urlmd5";
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter" if defined($genreFilter) && $genreFilter ne '';
+
+		my @conditions = ("apc.play_history.client_id is not null", "apc.play_history.client_id != ''");
+		push @conditions, "apc.play_history.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+		$sql .= ' where ' . join(' and ', @conditions);
+		$sql .= " group by apc.play_history.client_id order by plays desc";
+
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($client_id, $plays);
+		$sth->bind_columns(undef, \$client_id, \$plays);
+
+		my %activeClients;
+		for my $playerClient (Slim::Player::Client::clients()) {
+			my $pname = $playerClient->name();
+			$activeClients{$playerClient->id()} = ($pname && $pname ne '') ? $pname : undef;
+		}
+
+		while ($sth->fetch()) {
+			my $label;
+			if (exists $activeClients{$client_id} && defined $activeClients{$client_id}) {
+				$label = $activeClients{$client_id};
+			} elsif (exists $activeClients{$client_id}) {
+				$label = string('PLUGIN_VISUALSTATISTICS_PH_UNNAMEDPLAYER') . ' (' . $client_id . ')';
+			} else {
+				$label = string('PLUGIN_VISUALSTATISTICS_PH_UNKNOWNPLAYER') . ' (' . $client_id . ')';
+			}
+			utf8::decode($label);
+			push @result, {xAxis => $label, yAxis => $plays + 0};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhPlayerUsage: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataPhRatingTrend {
+	# rating trend over time = average rating_at_play per month
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select strftime('%Y-%m', ph.played, 'unixepoch', 'localtime') as period, min(ph.played) * 1000 as period_ts, avg(ph.rating / 20.0) as avgrating from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("ph.rating is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by period order by period asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($period, $period_ts, $avgrating);
+		$sth->bind_columns(undef, \$period, \$period_ts, \$avgrating);
+		while ($sth->fetch()) {
+			push @result, {'x' => $period_ts + 0, 'y' => $avgrating + 0};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhRatingTrend: $DBI::errstr\n$@");
+	}
+	return \@result;
+}
+
+sub getDataPhRatingDistribution {
+	# distribution of plays by rating at time of play (grouped in 0.5-star steps)
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+	my $starString = string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STAR');
+	my $starsString = string('PLUGIN_VISUALSTATISTICS_CHARTLABEL_UNIT_STARS');
+
+	my $sql = "select case when round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2 = 1.0 then (round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2)||'$starString' when (round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2 = 0.0 or round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2 = 2.0 or round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2 = 3.0 or round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2 = 4.0 or round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2 = 5.0) then (round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2)||'$starsString' else (round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2)||'$starsString' end as ratinglabel, round(round(ifnull(ph.rating,0)/10.0)*10/20.0*2)/2 as ratinggroup, count(*) as plays from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)", "tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by ratinggroup order by ratinggroup asc";
+
+	# Fetch raw data
+	my %rawData = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($ratinglabel, $ratinggroup, $plays);
+		$sth->bind_columns(undef, \$ratinglabel, \$ratinggroup, \$plays);
+		while ($sth->fetch()) {
+			utf8::decode($ratinglabel);
+			$ratinglabel =~ s/\.0(\s)/$1/;
+			$rawData{$ratinggroup} = {label => $ratinglabel, plays => $plays + 0};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhRatingDistribution: $DBI::errstr\n$@");
+		return [];
+	}
+
+	my @result = ();
+	for my $step (0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5) {
+		my $key = sprintf("%.1f", $step);
+		my $found = 0;
+		foreach my $k (keys %rawData) {
+			if (abs($k - $step) < 0.01) {
+				push @result, {xAxis => $rawData{$k}{label}, yAxis => $rawData{$k}{plays}};
+				$found = 1;
+				last;
+			}
+		}
+		unless ($found) {
+			my $stepInt = ($step == int($step)) ? int($step) : $step;
+			my $label = $stepInt == 1 ? "${stepInt}${starString}" : "${stepInt}${starsString}";
+			push @result, {xAxis => $label, yAxis => 0};
 		}
 	}
-	my @keys = ();
-	foreach my $word (sort { $frequentwords{$b} <=> $frequentwords{$a} or $a cmp $b} keys %frequentwords) {
-		push (@keys, {'xAxis' => $word, 'yAxis' => $frequentwords{$word}}) unless ($frequentwords{$word} == 0);
-		last if scalar @keys >= 50;
-	};
-
-	main::DEBUGLOG && $log->is_debug && $log->debug(Data::Dump::dump(\@keys));
-	return \@keys;
+	return \@result;
 }
+
+sub getDataPhGenrePreferencesOverTime {
+	# genre preferences over time = plays per genre per month
+	# multicount problem: assign multi-genre tracks to their highest-ranked genre only
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $genreCount = int($prefs->get('phgenrelimit') || 8);
+
+	# get top genres (user pref) by total play count
+	my $sqlTopGenres = "select genres.id, genres.name from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlTopGenres .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my @conditions = ("genres.name is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sqlTopGenres .= ' where ' . join(' and ', @conditions);
+	$sqlTopGenres .= " group by genres.id order by count(*) desc limit $genreCount";
+
+	my @topGenres = ();
+	eval {
+		my $sth = $dbh->prepare($sqlTopGenres);
+		$sth->execute();
+		my ($genreId, $genreName);
+		$sth->bind_columns(undef, \$genreId, \$genreName);
+		while ($sth->fetch()) {
+			utf8::decode($genreName);
+			push @topGenres, {id => $genreId, name => $genreName};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhGenrePreferencesOverTime (top genres): $DBI::errstr\n$@");
+		return [];
+	}
+	return [] unless @topGenres;
+
+	my $useHighestRanking = $prefs->get('phgenremulti');
+
+	# create genre priority map: genre_id -> rank (higher rank = more dominant)
+	my %genrePriority;
+	my $maxRank = scalar @topGenres;
+	for my $i (0 .. $#topGenres) {
+		$genrePriority{$topGenres[$i]{id}} = $maxRank - $i;
+	}
+
+	my $topGenreIds = join(',', map { $_->{id} } @topGenres);
+	my @playsConditions = ("(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	push @playsConditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	push @playsConditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+
+	my $sqlPlays;
+	if ($useHighestRanking) {
+		# fetch individual plays with track_id and genre_id for priority resolution
+		$sqlPlays = "select strftime('%Y-%m', ph.played, 'unixepoch', 'localtime') as period, ph.played * 1000 as period_ts, ph.played as played_ts, tracks.id as track_id, genre_track.genre as genre_id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id";
+	} else {
+		# count all genre occurrences per play (multi-genre tracks counted multiple times)
+		$sqlPlays = "select strftime('%Y-%m', ph.played, 'unixepoch', 'localtime') as period, ph.played * 1000 as period_ts, case when genre_track.genre in ($topGenreIds) then genre_track.genre else -1 end as genre_bucket, count(*) as plays from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id";
+	}
+
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlPlays .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	$sqlPlays .= ' where ' . join(' and ', @playsConditions);
+
+	if ($useHighestRanking) {
+		$sqlPlays .= " order by period asc, ph.played asc";
+	} else {
+		$sqlPlays .= " group by period, genre_bucket order by period asc";
+	}
+
+	my %byPeriod = ();
+	my @periods = ();
+	eval {
+		my $sth = $dbh->prepare($sqlPlays);
+		$sth->execute();
+
+		if ($useHighestRanking) {
+			my ($period, $period_ts, $played_ts, $track_id, $genre_id);
+			$sth->bind_columns(undef, \$period, \$period_ts, \$played_ts, \$track_id, \$genre_id);
+			my %playBest = ();
+			my @playOrder = ();
+			while ($sth->fetch()) {
+				unless (exists $byPeriod{$period}) {
+					$byPeriod{$period} = {period_ts => $period_ts + 0};
+					push @periods, $period;
+				}
+				my $genre_bucket = exists $genrePriority{$genre_id} ? $genre_id : -1;
+				my $this_rank = $genrePriority{$genre_id} // 0;
+				my $play_key = "$period|$track_id|$played_ts";
+				if (!exists $playBest{$play_key}) {
+					$playBest{$play_key} = {bucket => $genre_bucket, rank => $this_rank, period => $period};
+					push @playOrder, $play_key;
+				} elsif ($this_rank > $playBest{$play_key}{rank}) {
+					$playBest{$play_key} = {bucket => $genre_bucket, rank => $this_rank, period => $period};
+				}
+			}
+			$sth->finish();
+			foreach my $key (@playOrder) {
+				my $best = $playBest{$key};
+				$byPeriod{$best->{period}}{$best->{bucket}} = ($byPeriod{$best->{period}}{$best->{bucket}} || 0) + 1;
+			}
+		} else {
+			my ($period, $period_ts, $genre_bucket, $plays);
+			$sth->bind_columns(undef, \$period, \$period_ts, \$genre_bucket, \$plays);
+			while ($sth->fetch()) {
+				unless (exists $byPeriod{$period}) {
+					$byPeriod{$period} = {period_ts => $period_ts + 0};
+					push @periods, $period;
+				}
+				$byPeriod{$period}{$genre_bucket} = $plays + 0;
+			}
+			$sth->finish();
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhGenrePreferencesOverTime (plays): $DBI::errstr\n$@");
+		return [];
+	}
+	return [] unless @periods;
+
+	my @result = ();
+	my $otherLabel = string('PLUGIN_VISUALSTATISTICS_OTHER');
+
+	# calculate total plays per genre for final sorting
+	my %totalPlays = ();
+	foreach my $genre (@topGenres) {
+		$totalPlays{$genre->{name}} = 0;
+		foreach my $period (@periods) {
+			$totalPlays{$genre->{name}} += $byPeriod{$period}{$genre->{id}} || 0;
+		}
+	}
+	$totalPlays{$otherLabel} = 0;
+	foreach my $period (@periods) {
+		$totalPlays{$otherLabel} += $byPeriod{$period}{-1} || 0;
+	}
+
+	# sort ascending (smallest first = bottom of stack, largest last = top of stack)
+	my @genreNames = sort { $totalPlays{$a} <=> $totalPlays{$b} } keys %totalPlays;
+
+	foreach my $period (@periods) {
+		my $entry = {period_ts => $byPeriod{$period}{period_ts}};
+		foreach my $genreName (@genreNames) {
+			if ($genreName eq $otherLabel) {
+				$entry->{$genreName} = $byPeriod{$period}{-1} || 0;
+			} else {
+				foreach my $genre (@topGenres) {
+					if ($genre->{name} eq $genreName) {
+						$entry->{$genreName} = $byPeriod{$period}{$genre->{id}} || 0;
+						last;
+					}
+				}
+			}
+		}
+		push @result, $entry;
+	}
+
+	return [\@result, \@genreNames];
+}
+
+sub getDataPhDecadeGenreBreakdown {
+	# plays by decade and genre
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $genreCount = int($prefs->get('phgenrelimit') || 8);
+	my $useHighestRanking = $prefs->get('phgenremulti');
+
+	my $sqlTopGenres = "select genres.id, genres.name from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sqlTopGenres .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my @conditions = ("genres.name is not null",
+		"tracks.year > 0", "tracks.year is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sqlTopGenres .= ' where ' . join(' and ', @conditions);
+	$sqlTopGenres .= " group by genres.id order by count(*) desc limit $genreCount";
+
+	my @topGenres = ();
+	eval {
+		my $sth = $dbh->prepare($sqlTopGenres);
+		$sth->execute();
+		my ($genreId, $genreName);
+		$sth->bind_columns(undef, \$genreId, \$genreName);
+		while ($sth->fetch()) {
+			utf8::decode($genreName);
+			push @topGenres, {id => $genreId, name => $genreName};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhDecadeGenreBreakdown (top genres): $DBI::errstr\n$@");
+		return [];
+	}
+	return [] unless @topGenres;
+
+	my $otherLabel = string('PLUGIN_VISUALSTATISTICS_OTHER');
+	my $topGenreIds = join(',', map { $_->{id} } @topGenres);
+
+	# genre priority map: genre_id -> rank (higher = more dominant, sorted desc by total plays)
+	my %genrePriority;
+	my $maxRank = scalar @topGenres;
+	for my $i (0 .. $#topGenres) {
+		$genrePriority{$topGenres[$i]{id}} = $maxRank - $i;
+	}
+
+	my @playsConditions = ("tracks.year > 0", "tracks.year is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	push @playsConditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	push @playsConditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+
+	my %byDecade = ();
+	my @decades = ();
+
+	if ($useHighestRanking) {
+		# fetch individual plays with track_id and genre_id for priority resolution
+		my $sqlPlays = "select (tracks.year / 10) * 10 as decade, ph.played as played_ts, tracks.id as track_id, genre_track.genre as genre_id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlPlays .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlPlays .= ' where ' . join(' and ', @playsConditions);
+		$sqlPlays .= " order by decade asc, ph.played asc";
+
+		eval {
+			my $sth = $dbh->prepare($sqlPlays);
+			$sth->execute();
+			my ($decade, $played_ts, $track_id, $genre_id);
+			$sth->bind_columns(undef, \$decade, \$played_ts, \$track_id, \$genre_id);
+			my %playBest = ();
+			my @playOrder = ();
+			while ($sth->fetch()) {
+				unless (exists $byDecade{$decade}) {
+					$byDecade{$decade} = {};
+					push @decades, $decade;
+				}
+				my $genre_bucket = exists $genrePriority{$genre_id} ? $genre_id : -1;
+				my $this_rank = $genrePriority{$genre_id} // 0;
+				my $play_key = "$decade|$track_id|$played_ts";
+				if (!exists $playBest{$play_key}) {
+					$playBest{$play_key} = {bucket => $genre_bucket, rank => $this_rank, decade => $decade};
+					push @playOrder, $play_key;
+				} elsif ($this_rank > $playBest{$play_key}{rank}) {
+					$playBest{$play_key} = {bucket => $genre_bucket, rank => $this_rank, decade => $decade};
+				}
+			}
+			$sth->finish();
+			foreach my $key (@playOrder) {
+				my $best = $playBest{$key};
+				$byDecade{$best->{decade}}{$best->{bucket}} = ($byDecade{$best->{decade}}{$best->{bucket}} || 0) + 1;
+			}
+		};
+		if ($@) {
+			$log->error("Database error in getDataPhDecadeGenreBreakdown (plays highest): $DBI::errstr\n$@");
+			return [];
+		}
+	} else {
+		# count all genre occurrences per play (multi-genre tracks counted multiple times)
+		my $sqlPlays = "select (tracks.year / 10) * 10 as decade, case when genre_track.genre in ($topGenreIds) then genre_track.genre else -1 end as genre_bucket, count(*) as plays from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id";
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlPlays .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlPlays .= ' where ' . join(' and ', @playsConditions);
+		$sqlPlays .= " group by decade, genre_bucket order by decade asc";
+
+		eval {
+			my $sth = $dbh->prepare($sqlPlays);
+			$sth->execute();
+			my ($decade, $genre_bucket, $plays);
+			$sth->bind_columns(undef, \$decade, \$genre_bucket, \$plays);
+			while ($sth->fetch()) {
+				unless (exists $byDecade{$decade}) {
+					$byDecade{$decade} = {};
+					push @decades, $decade;
+				}
+				$byDecade{$decade}{$genre_bucket} = $plays + 0;
+			}
+			$sth->finish();
+		};
+		if ($@) {
+			$log->error("Database error in getDataPhDecadeGenreBreakdown (plays all): $DBI::errstr\n$@");
+			return [];
+		}
+	}
+
+	return [] unless @decades;
+
+	my @result = ();
+	my @genreNames = (map { $_->{name} } @topGenres);
+	push @genreNames, $otherLabel;
+
+	foreach my $decade (@decades) {
+		my $subData = '"x": "' . $decade . 's"';
+		foreach my $genre (@topGenres) {
+			my $plays = $byDecade{$decade}{$genre->{id}} || 0;
+			$subData .= ', "' . $genre->{name} . '": ' . $plays;
+		}
+		my $otherPlays = $byDecade{$decade}{-1} || 0;
+		$subData .= ', "' . $otherLabel . '": ' . $otherPlays;
+		push @result, '{' . $subData . '}';
+	}
+
+	return [\@result, \@genreNames];
+}
+
+sub getDataPhForgottenFavorites {
+	# tracks with high play rate in the past but low/zero play rate recently
+	# COUNT(ph.id) >= minPlays + max(ph.played) < threshold is too simple
+	# using rate-based scoring instead: old_rate = plays_before_threshold / old_months AND new_rate = plays_after_threshold / new_months
+	# only show tracks where old_rate >= 0.4 AND new_rate < old_rate * 0.5, should give more meaningful results if combined with minplay
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $timeRange = $prefs->get('ph_filter_timerange') || '-6 months';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	my $decadeFilter = $prefs->get('decadefilterval');
+	my $genreFilter = $prefs->get('genrefilterid');
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+
+	my $new_months = 6;
+	if ($timeRange =~ /^-(\d+)\s+month/) { $new_months = $1; }
+	elsif ($timeRange =~ /^-(\d+)\s+year/) { $new_months = $1 * 12; }
+	my $minPlays = int($prefs->get('phforgottenminplays') || 5);
+
+	my $threshold = "CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)";
+
+	my $sql = "select tracks.title, tracks.id, contributors.name,
+		sum(case when ph.played < $threshold then 1 else 0 end) as old_plays,
+		sum(case when ph.played >= $threshold then 1 else 0 end) as new_plays,
+		min(ph.played) as first_play
+		from apc.play_history as ph
+		join tracks on tracks.urlmd5 = ph.urlmd5
+		join contributors on contributors.id = tracks.primary_artist";
+
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = (
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')"
+	);
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+
+	# group by track, then filter by rates in Perl (reason: problems with aliases in HAVING)
+	$sql .= " group by tracks.id";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		$sth->execute();
+		my ($title, $track_id, $artist, $old_plays, $new_plays, $first_play);
+		$sth->bind_columns(undef, \$title, \$track_id, \$artist, \$old_plays, \$new_plays, \$first_play);
+
+		my @rows = ();
+		while ($sth->fetch()) {
+			$old_plays //= 0;
+			$new_plays //= 0;
+			next unless $old_plays > 0 && defined $first_play;
+			next unless $old_plays >= $minPlays;
+
+			# old_months = months between first play and threshold
+			# approximate: (threshold_epoch - first_play) / seconds_per_month
+			my $threshold_epoch = time() - ($new_months * 30.44 * 86400);
+			my $old_months = ($threshold_epoch - $first_play) / (30.44 * 86400);
+			$old_months = 1 if $old_months < 1;
+
+			my $old_rate = $old_plays / $old_months;
+			my $new_rate = $new_plays / $new_months;
+
+			next unless $old_rate >= 0.4; # track must have been played at least once every ~2.5 months in the past
+			next unless $new_rate < $old_rate * 0.5; # recent play frequency must be less than half of what it used to be
+
+			my $drop_rate = $old_rate - $new_rate;
+			utf8::decode($title);
+			utf8::decode($artist) if defined $artist;
+			push @rows, {
+				title => $title,
+				track_id => $track_id,
+				artist => $artist // '',
+				old_plays => $old_plays + 0,
+				drop_rate => $drop_rate,
+			};
+		}
+		$sth->finish();
+
+		@rows = sort { $b->{old_plays} <=> $a->{old_plays} } @rows;
+		@rows = @rows[0 .. ($rowLimit - 1 < $#rows ? $rowLimit - 1 : $#rows)]; # limit to rowLimit
+
+		for my $row (@rows) {
+			push @result, {
+				xAxis => $row->{title},
+				yAxis => $row->{old_plays},
+				labelExtra => $row->{new_plays} . '',
+				IDitem => $row->{track_id},
+				IDlist => 'track',
+			};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhForgottenFavorites: $DBI::errstr\n$@");
+		return [];
+	}
+	return \@result;
+}
+
+sub getDataPhArtistsListeningTime {
+	# most listened time by artist = sum of (play count * track duration) per artist in seconds
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+	my $VAid = Slim::Schema->variousArtistsObject->id || 0;
+
+	my $sql = "select contributors.name, sum(ifnull(tracks.secs, 0)) as listentime, contributors.id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join contributors on contributors.id = tracks.primary_artist";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')",
+		"contributors.id != $VAid");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by contributors.id order by listentime desc, contributors.namesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhAlbumsListeningTime {
+	# most listened time by album = sum of track durations per album in seconds
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $sql = "select albums.title, sum(ifnull(tracks.secs, 0)) as listentime, albums.id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join albums on albums.id = tracks.album";
+
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+
+	my $genreFilter = $prefs->get('genrefilterid');
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+
+	my @conditions = ("(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	$sql .= ' where ' . join(' and ', @conditions);
+	$sql .= " group by albums.id order by listentime desc, albums.titlesort asc limit $rowLimit";
+
+	return executeSQLstatement($sql, 3, 1);
+}
+
+sub getDataPhGenresListeningTime {
+	# most listened time by genre = sum of track durations per genre in seconds
+	# multi-genre tracks: apply useHighestRanking pref (same as genre preferences over time)
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $useHighestRanking = $prefs->get('phgenremulti');
+
+	my @conditions = ("genres.name is not null",
+		"(tracks.audio = 1 or tracks.extid is not null)",
+		"tracks.content_type not in ('cpl','src','ssp','dir')");
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	push @conditions, "ph.played >= CAST(strftime('%s', 'now', '$timeRange') AS INTEGER)" if defined($timeRange) && $timeRange ne '';
+	my $decadeFilter = $prefs->get('decadefilterval');
+	push @conditions, "ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)" if defined($decadeFilter) && $decadeFilter ne '';
+	my $playerFilter = $prefs->get('ph_filter_player');
+	push @conditions, "ph.client_id = " . $dbh->quote($playerFilter) if defined($playerFilter) && $playerFilter ne '';
+	my $whereClause = ' where ' . join(' and ', @conditions);
+
+	my @result = ();
+
+	if ($useHighestRanking) {
+		# get top genres by total play count to establish ranking
+		my $sqlTopGenres = "select genres.id, genres.name from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre";
+		my $selectedVL = $prefs->get('selectedvirtuallibrary');
+		if ($selectedVL && $selectedVL ne '') {
+			$sqlTopGenres .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sqlTopGenres .= $whereClause;
+		$sqlTopGenres .= " group by genres.id order by count(*) desc";
+
+		my @topGenres = ();
+		my %genreRank = ();
+		eval {
+			my $sth = $dbh->prepare($sqlTopGenres);
+			$sth->execute();
+			my ($genreId, $genreName);
+			$sth->bind_columns(undef, \$genreId, \$genreName);
+			while ($sth->fetch()) {
+				utf8::decode($genreName);
+				push @topGenres, {id => $genreId, name => $genreName};
+			}
+			$sth->finish();
+		};
+		if ($@) {
+			$log->error("Database error in getDataPhGenresListeningTime (top genres): $DBI::errstr\n$@");
+			return [];
+		}
+		return [] unless @topGenres;
+
+		my $maxRank = scalar @topGenres;
+		for my $i (0..$#topGenres) {
+			$genreRank{$topGenres[$i]{id}} = $maxRank - $i;
+		}
+
+		# for each play, assign track to its highest-ranked genre only
+		my $sqlPlays = "select ph.urlmd5, ph.played, tracks.secs, genre_track.genre from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre";
+		if ($prefs->get('selectedvirtuallibrary') && $prefs->get('selectedvirtuallibrary') ne '') {
+			$sqlPlays .= " join library_track on library_track.track = tracks.id and library_track.library = '" . $prefs->get('selectedvirtuallibrary') . "'";
+		}
+		$sqlPlays .= $whereClause;
+
+		my %playBest = ();
+		eval {
+			my $sth = $dbh->prepare($sqlPlays);
+			$sth->execute();
+			my ($urlmd5, $played, $secs, $genreId);
+			$sth->bind_columns(undef, \$urlmd5, \$played, \$secs, \$genreId);
+			while ($sth->fetch()) {
+				my $play_key = "$urlmd5|$played";
+				my $rank = $genreRank{$genreId} || 0;
+				if (!exists $playBest{$play_key} || $rank > $playBest{$play_key}{rank}) {
+					$playBest{$play_key} = {genre => $genreId, rank => $rank, secs => $secs || 0};
+				}
+			}
+			$sth->finish();
+		};
+		if ($@) {
+			$log->error("Database error in getDataPhGenresListeningTime (plays): $DBI::errstr\n$@");
+			return [];
+		}
+
+		# aggregate listening time per genre
+		my %genreTime = ();
+		for my $play (values %playBest) {
+			$genreTime{$play->{genre}} += $play->{secs};
+		}
+
+		for my $g (@topGenres) {
+			next unless exists $genreTime{$g->{id}};
+			my $name = $g->{name};
+			utf8::decode($name);
+			push @result, {xAxis => $name, yAxis => $genreTime{$g->{id}} + 0, IDitem => $g->{id}, IDlist => 'genre'};
+		}
+		@result = sort { $b->{yAxis} <=> $a->{yAxis} } @result;
+		@result = @result[0 .. ($rowLimit - 1 < $#result ? $rowLimit - 1 : $#result)];
+
+	} else {
+		# count in all genres
+		my $sql = "select genres.name, sum(ifnull(tracks.secs, 0)) as listentime, genres.id from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5 join genre_track on genre_track.track = tracks.id join genres on genres.id = genre_track.genre";
+		my $selectedVL = $prefs->get('selectedvirtuallibrary');
+		if ($selectedVL && $selectedVL ne '') {
+			$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$sql .= $whereClause;
+		$sql .= " group by genres.id order by listentime desc, genres.namesort asc limit $rowLimit";
+		return executeSQLstatement($sql, 3, 1);
+	}
+
+	return \@result;
+}
+
+sub getDataPhWeekdayHourHeatmap {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $whereClause = " where tracks.audio = 1";
+
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	if (defined($timeRange) && $timeRange ne '') {
+		$whereClause .= " and ph.played >= cast(strftime('%s', 'now', '$timeRange') as integer)";
+	}
+	my $decadeFilter = $prefs->get('decadefilterval');
+	if (defined($decadeFilter) && $decadeFilter ne '') {
+		$whereClause .= " and ifnull(tracks.year, 0) >= $decadeFilter and ifnull(tracks.year, 0) < ($decadeFilter + 10)";
+	}
+	my $playerFilter = $prefs->get('ph_filter_player');
+	if (defined($playerFilter) && $playerFilter ne '') {
+		$whereClause .= " and ph.client_id = ?";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+
+	my $sql = "select cast(strftime('%w', ph.played, 'unixepoch', 'localtime') as integer) as weekday, cast(strftime('%H', ph.played, 'unixepoch', 'localtime') as integer) as hourofday, count(*) as playcount from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+	$sql .= $whereClause;
+	$sql .= " group by weekday, hourofday order by weekday asc, hourofday asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		if (defined($playerFilter) && $playerFilter ne '') {
+			$sth->execute($playerFilter);
+		} else {
+			$sth->execute();
+		}
+		my ($weekday, $hour, $playcount);
+		$sth->bind_columns(undef, \$weekday, \$hour, \$playcount);
+		while ($sth->fetch()) {
+			push @result, {'x' => $weekday + 0, 'y' => $hour + 0, 'v' => $playcount + 0};
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhWeekdayHourHeatmap: $DBI::errstr\n$@");
+		return [];
+	}
+	return \@result;
+}
+
+sub getDataPhActivityHeatmap {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	my $whereClause = " where tracks.audio = 1";
+
+	my $timeRange = $prefs->get('ph_filter_timerange');
+	if (defined($timeRange) && $timeRange ne '') {
+		$whereClause .= " and ph.played >= cast(strftime('%s', 'now', '$timeRange') as integer)";
+	}
+	my $playerFilter = $prefs->get('ph_filter_player');
+	if (defined($playerFilter) && $playerFilter ne '') {
+		$whereClause .= " and ph.client_id = ?";
+	}
+	my $genreFilter = $prefs->get('genrefilterid');
+	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+
+	my $sql = "select cast(ph.played as integer) as played_ts, cast(strftime('%w', ph.played, 'unixepoch', 'localtime') as integer) as weekday, count(*) as playcount from apc.play_history as ph join tracks on tracks.urlmd5 = ph.urlmd5";
+
+	if ($selectedVL && $selectedVL ne '') {
+		$sql .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	}
+	if (defined($genreFilter) && $genreFilter ne '') {
+		$sql .= " join genre_track on genre_track.track = tracks.id and genre_track.genre = $genreFilter";
+	}
+	$sql .= $whereClause;
+	$sql .= " group by strftime('%Y-%m-%d', ph.played, 'unixepoch', 'localtime'), weekday order by played_ts asc";
+
+	my @result = ();
+	eval {
+		my $sth = $dbh->prepare($sql);
+		if (defined($playerFilter) && $playerFilter ne '') {
+			$sth->execute($playerFilter);
+		} else {
+			$sth->execute();
+		}
+		my ($played_ts, $weekday, $playcount);
+		$sth->bind_columns(undef, \$played_ts, \$weekday, \$playcount);
+		my %weekAgg = ();
+		while ($sth->fetch()) {
+			# Compute ISO week number portably without relying on %G/%V
+			my $dow = ($weekday + 6) % 7; # Mon=0 .. Sun=6
+			my $thu = $played_ts + (3 - $dow) * 86400; # Thursday of this week
+			my @tt = localtime($thu);
+			my $iso_year = $tt[5] + 1900;
+			my $jan4 = POSIX::mktime(0, 0, 12, 4, 0, $iso_year - 1900);
+			my $jan4_dow = (localtime($jan4))[6];
+			my $week1_mon = $jan4 - (($jan4_dow + 6) % 7) * 86400;
+			my $iso_week = int(($thu - $week1_mon) / 604800) + 1;
+			my $isoweek = sprintf('%04d-W%02d', $iso_year, $iso_week);
+			my $key = $isoweek . '_' . $weekday;
+			$weekAgg{$key}{isoweek} = $isoweek;
+			$weekAgg{$key}{weekday} = $weekday + 0;
+			$weekAgg{$key}{playcount} = ($weekAgg{$key}{playcount} // 0) + $playcount;
+		}
+		$sth->finish();
+		for my $key (sort keys %weekAgg) {
+			push @result, {'x' => $weekAgg{$key}{isoweek}, 'y' => $weekAgg{$key}{weekday}, 'v' => $weekAgg{$key}{playcount}};
+		}
+	};
+	if ($@) {
+		$log->error("Database error in getDataPhActivityHeatmap: $DBI::errstr\n$@");
+		return [];
+	}
+	return \@result;
+}
+
 
 #####################
 # helpers
@@ -3507,17 +6421,15 @@ sub getDecades {
 	my $dbh = Slim::Schema->dbh;
 	my @decades = ();
 	my $unknownString = string('PLUGIN_VISUALSTATISTICS_CHARTFILTER_UNKNOWN');
-
-	my $sql_decades = "select cast(((ifnull(tracks.year,0)/10)*10) as int) as decade,case when tracks.year>0 then cast(((tracks.year/10)*10) as int)||'s' else '$unknownString' end as decadedisplayed from tracks";
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
+
+	my $vlJoin = '';
 	if ($selectedVL && $selectedVL ne '') {
-		$sql_decades .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
+		$vlJoin = " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
-	my $genreFilter = $prefs->get('genrefilterid');
-	if (defined($genreFilter) && $genreFilter ne '') {
-		$sql_decades .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
-	}
-	$sql_decades .= " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type != 'cpl' and tracks.content_type != 'src' and tracks.content_type != 'ssp' and tracks.content_type != 'dir' group by decade order by decade desc";
+	my $baseWhere = " where (tracks.audio = 1 or tracks.extid is not null) and tracks.content_type not in ('cpl','src','ssp','dir')";
+
+	my $sql_decades = "select cast(((tracks.year/10)*10) as int) as decade, cast(((tracks.year/10)*10) as int)||'s' as decadedisplayed from tracks".$vlJoin.$baseWhere." and tracks.year > 0 group by decade order by decade desc";
 
 	my ($decade, $decadeDisplayName);
 	eval {
@@ -3526,11 +6438,14 @@ sub getDecades {
 			$sql_decades = undef;
 		};
 		$sth->bind_columns(undef, \$decade, \$decadeDisplayName);
-
 		while ($sth->fetch()) {
-			push (@decades, {'name' => $decadeDisplayName, 'val' => $decade});
+			push(@decades, {'name' => $decadeDisplayName, 'val' => $decade});
 		}
 		$sth->finish();
+
+		my $hasUnknown = $dbh->selectrow_array("select exists(select 1 from tracks".$vlJoin.$baseWhere." and ifnull(tracks.year, 0) = 0)");
+		push(@decades, {'name' => $unknownString, 'val' => 0}) if $hasUnknown;
+
 		main::DEBUGLOG && $log->is_debug && $log->debug('decades query result = '.Data::Dump::dump(\@decades));
 	};
 	if ($@) {
@@ -3545,6 +6460,81 @@ sub getDecades {
 	return \@decades;
 }
 
+sub getPhPlayerList {
+	return [] unless _attachApcDb();
+	my $dbh = Slim::Schema->dbh;
+
+	# check if APC players table exists (requires APC v2+ schema)
+	my $hasPlayersTable = 0;
+	eval {
+		my ($count) = $dbh->selectrow_array("select count(*) from apc.sqlite_master where type = 'table' and name = 'players'");
+		$hasPlayersTable = 1 if $count;
+	};
+
+	my @historicIDs = ();
+	eval {
+		my $sth = $dbh->prepare("select distinct client_id from apc.play_history where client_id is not null and client_id != '' order by client_id asc");
+		$sth->execute();
+		my $client_id;
+		$sth->bind_columns(undef, \$client_id);
+		while ($sth->fetch()) {
+			push @historicIDs, $client_id;
+		}
+		$sth->finish();
+	};
+	if ($@) {
+		$log->error("Database error in getPhPlayerList: $DBI::errstr\n$@");
+		return [];
+	}
+
+	my %activeClients;
+	for my $playerClient (Slim::Player::Client::clients()) {
+		my $pname = $playerClient->name();
+		$activeClients{$playerClient->id()} = ($pname && $pname ne '') ? $pname : undef;
+	}
+
+	my (@named, @unnamed, @unknown);
+	for my $id (@historicIDs) {
+		if (exists $activeClients{$id} && defined $activeClients{$id}) {
+			push @named, {id => $id, name => $activeClients{$id}};
+		} elsif (exists $activeClients{$id}) {
+			push @unnamed, {id => $id, name => string('PLUGIN_VISUALSTATISTICS_PH_UNNAMEDPLAYER') . ' (' . $id . ')'};
+		} else {
+			my $storedName;
+			if ($hasPlayersTable) {
+				eval {
+					($storedName) = $dbh->selectrow_array(
+						"select name from apc.players where mac = ?",
+						undef, $id
+					);
+				};
+			}
+			if ($storedName && $storedName ne '') {
+				push @named, {id => $id, name => $storedName};
+			} else {
+				push @unknown, {id => $id, name => string('PLUGIN_VISUALSTATISTICS_PH_UNKNOWNPLAYER') . ' (' . $id . ')'};
+			}
+		}
+	}
+
+	my @sorted = (
+		(sort { $a->{name} cmp $b->{name} } @named),
+		(sort { $a->{id} cmp $b->{id} } @unnamed),
+		(sort { $a->{id} cmp $b->{id} } @unknown),
+	);
+	return \@sorted;
+}
+
+sub _percentileCutoff {
+	my ($values, $percentile) = @_;
+	return undef unless $values && @{$values};
+	my @sorted = sort { $a <=> $b } @{$values};
+	my $idx = int(scalar(@sorted) * $percentile / 100 + 0.5) - 1;
+	$idx = scalar(@sorted) - 1 if $idx >= scalar(@sorted);
+	$idx = 0 if $idx < 0;
+	return $sorted[$idx];
+}
+
 sub prettifyTime {
 	my $timeinseconds = shift;
 	my $seconds = (int($timeinseconds)) % 60;
@@ -3553,7 +6543,7 @@ sub prettifyTime {
 	my $days = (int($timeinseconds / (60*60*24))) % 7;
 	my $weeks = (int($timeinseconds / (60*60*24*7))) % 52;
 	my $years = (int($timeinseconds / (60*60*24*365))) % 10;
-	my $prettyTime = (($years > 0 ? $years.($years == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEAR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEYEARS").'  ') : '').($weeks > 0 ? $weeks.($weeks == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEK").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEWEEKS").'  ') : '').($days > 0 ? $days.($days == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAY").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEDAYS").'  ') : '').($hours > 0 ? $hours.($hours == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOUR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEHOURS").'  ') : '').($minutes > 0 ? $minutes.($minutes == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMIN").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMEMINS").'  ') : '').($seconds > 0 ? $seconds.($seconds == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESEC") : ' '.string("PLUGIN_VISUALSTATISTICS_MISCSTATS_TEXT_TIMESECS")) : ''));
+	my $prettyTime = (($years > 0 ? $years.($years == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEYEAR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEYEARS").'  ') : '').($weeks > 0 ? $weeks.($weeks == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEWEEK").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEWEEKS").'  ') : '').($days > 0 ? $days.($days == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEDAY").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEDAYS").'  ') : '').($hours > 0 ? $hours.($hours == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEHOUR").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEHOURS").'  ') : '').($minutes > 0 ? $minutes.($minutes == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEMIN").'  ' : ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEMINS").'  ') : '').($seconds > 0 ? $seconds.($seconds == 1 ? ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMESEC") : ' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMESECS")) : ''));
 	return $prettyTime;
 }
 
@@ -3568,6 +6558,56 @@ sub _releaseTypeName {
 		last if $name;
 	}
 	return $name || $releaseType;
+}
+
+sub getLanguageStrings {
+	my $strings = Slim::Utils::Strings::defaultStrings();
+
+	%vsStrings = map {
+		my $translated = Slim::Utils::Strings::string($_);
+		$translated =~ s/<[^>]+>//g;
+		utf8::decode($translated) unless utf8::is_utf8($translated);
+		$_ => $translated;
+	} grep { /^PLUGIN_VISUALSTATISTICS_/ } keys %$strings;
+
+	for my $key (qw(ARTIST ALBUM WORKS GENRE YEAR SONG_INFO)) {
+		my $val = Slim::Utils::Strings::string($key);
+		utf8::decode($val) unless utf8::is_utf8($val);
+		$vsStrings{$key} = $val;
+	}
+	return \%vsStrings;
+}
+
+sub _isChartVisible {
+	my ($chart, $ctx) = @_;
+	my $c = $chart->{conditions} or return 1;
+	if ($c->{show_lms}) {
+		return 0 unless $ctx->{displayapcdupes} < 2;
+	}
+	if ($c->{show_apc}) {
+		return 0 unless $ctx->{apc_enabled} && $ctx->{displayapcdupes} > 0;
+	}
+	if ($c->{apc_enabled}) {
+		return 0 unless $ctx->{apc_enabled};
+	}
+	if ($c->{hasratedtracks}) {
+		return 0 unless $ctx->{hasratedtracks};
+	}
+	if ($c->{hasbpm}) {
+		return 0 unless $ctx->{hasbpm};
+	}
+	if ($c->{hasratedworktracks}) {
+		return 0 unless $ctx->{hasratedworktracks};
+	}
+	if ($c->{ph_rating}) {
+		return 0 unless $ctx->{ph_rating_available};
+	}
+	return 1;
+}
+
+sub _resetApcAttachState {
+	main::DEBUGLOG && $log->is_debug && $log->debug('Rescan completed - resetting APC attach state');
+	$apc_attached_to_lms = 0;
 }
 
 1;

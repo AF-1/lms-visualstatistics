@@ -50,6 +50,37 @@
 [% END %]
 <br><br>
 
+[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE_DESC" %]
+	<select class="stdedit" name="pref_histogrampercentile" id="histogrampercentile">
+		[% FOREACH option = {
+			'' => 'PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE_NONE',
+			'95' => 'PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE_95',
+			'99' => 'PLUGIN_VISUALSTATISTICS_SETTINGS_HISTOGRAMPERCENTILE_99',
+		} %]
+			<option [% IF prefs.histogrampercentile == option.key %]selected='selected' [% END %]value="[% option.key %]">[% option.value | string %]</option>
+		[%- END -%]
+	</select>
+[% END %]
+<br>
+
+[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENRELIMIT" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENRELIMIT_DESC" %]
+	<input type="text" class="stdedit sliderInput_10_60_5" name="pref_phgenrelimit" id="phgenrelimit" value="[% prefs.phgenrelimit %]" size="2"> [% 'PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENRELIMIT_GENRES' | string %]
+[% END %]
+<br>
+
+[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENREMULTI" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENREMULTI_DESC" %]
+	<select class="stdedit" name="pref_phgenremulti" id="phgenremulti">
+		<option [% IF prefs.phgenremulti %]selected='selected' [% END %]value="1">[% 'PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENREMULTI_HIGHEST' | string %]</option>
+		<option [% IF !prefs.phgenremulti %]selected='selected' [% END %]value="0">[% 'PLUGIN_VISUALSTATISTICS_SETTINGS_PHGENREMULTI_ALL' | string %]</option>
+	</select>
+[% END %]
+<br>
+
+[% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_PHFORGOTTENMINPLAYS" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_PHFORGOTTENMINPLAYS_DESC" %]
+	<input type="text" class="stdedit sliderInput_5_20_1" name="pref_phforgottenminplays" id="phforgottenminplays" value="[% prefs.phforgottenminplays %]" size="2"> [% 'PLUGIN_VISUALSTATISTICS_SETTINGS_PHFORGOTTENMINPLAYS_PLAYS' | string %]
+[% END %]
+<br><br>
+
 [% WRAPPER setting title="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN" desc="PLUGIN_VISUALSTATISTICS_SETTINGS_BROWSERUSEFULLSCREEN_DESC" %]
 	<select class="stdedit" name="pref_usefullscreen" id="usefullscreen">
 		<option [% IF NOT prefs.usefullscreen %]selected [% END %]value="0">[% 'NO' | getstring %]</option>

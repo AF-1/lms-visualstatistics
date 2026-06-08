@@ -30,11 +30,11 @@ sub name {
 }
 
 sub page {
-	return Slim::Web::HTTP::CSRF->protectURI('plugins/VisualStatistics/settings/basic.html');
+	return Slim::Web::HTTP::CSRF->protectURI('plugins/VisualStatistics/settings/settings.html');
 }
 
 sub prefs {
-	return ($prefs, qw(usefullscreen displayapcdupes minartisttracks minalbumtracks clickablebars savetoplmaxtracks savetoploverwrite));
+	return ($prefs, qw(usefullscreen displayapcdupes minartisttracks minalbumtracks clickablebars savetoplmaxtracks savetoploverwrite histogrampercentile phgenrelimit phgenremulti phforgottenminplays));
 }
 
 sub handler {
