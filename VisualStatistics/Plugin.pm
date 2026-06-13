@@ -2210,7 +2210,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 			push(@result, $subData);
 		};
 		if ($@) {
-			$log->error("Database error in getDataTracksByBitrateAudioFileFormat: $DBI::errstr\n$@");
+			$log->error("Database error in getDataTracksByBitrateAudioFileFormat: $@");
 		}
 	}
 
@@ -2341,7 +2341,7 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 			push(@result, $subData);
 		};
 		if ($@) {
-			$log->error("Database error in getDataTracksByBitrateAudioFileFormatScatter: $DBI::errstr\n$@");
+			$log->error("Database error in getDataTracksByBitrateAudioFileFormatScatter: $@");
 		}
 	}
 	my @sortedbitRates = sort { $a <=> $b } @bitRates;
@@ -2440,7 +2440,7 @@ sub getDataTracksByFileSizeAudioFileFormat {
 			push(@result, $subData);
 		};
 		if ($@) {
-			$log->error("Database error in getDataTracksByFileSizeAudioFileFormat: $DBI::errstr\n$@");
+			$log->error("Database error in getDataTracksByFileSizeAudioFileFormat: $@");
 		}
 	}
 
@@ -2477,7 +2477,7 @@ sub getDataTracksByFileSizeAudioFileFormat {
 			push(@result, $subData);
 		};
 		if ($@) {
-			$log->error("Database error in getDataTracksByFileSizeAudioFileFormat (>100MB): $DBI::errstr\n$@");
+			$log->error("Database error in getDataTracksByFileSizeAudioFileFormat (>100MB): $@");
 		}
 	my @wrapper = (\@result, \@fileFormats);
 	main::DEBUGLOG && $log->is_debug && $log->debug('wrapper = '.Data::Dump::dump(\@wrapper));
@@ -2674,7 +2674,7 @@ sub getDataHistoricalLibrarySize {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataHistoricalLibrarySize: $DBI::errstr\n$@");
+		$log->error("Database error in getDataHistoricalLibrarySize: $@");
 	}
 	return \@result;
 }
@@ -2727,7 +2727,7 @@ sub getDataDurationDistribution {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataDurationDistribution: $DBI::errstr\n$@");
+		$log->error("Database error in getDataDurationDistribution: $@");
 	}
 	return \@result;
 }
@@ -2777,7 +2777,7 @@ sub getDataBpmTracks {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataBpmTracks: $DBI::errstr\n$@");
+		$log->error("Database error in getDataBpmTracks: $@");
 	}
 	return \@result;
 }
@@ -2827,7 +2827,7 @@ sub getDataBpmPlays {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataBpmPlays: $DBI::errstr\n$@");
+		$log->error("Database error in getDataBpmPlays: $@");
 	}
 	return \@result;
 }
@@ -2878,7 +2878,7 @@ sub getDataBpmPlaysAPC {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataBpmPlaysAPC: $DBI::errstr\n$@");
+		$log->error("Database error in getDataBpmPlaysAPC: $@");
 	}
 	return \@result;
 }
@@ -2928,7 +2928,7 @@ sub getDataPlayCountDistribution {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataPlayCountDistribution: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPlayCountDistribution: $@");
 	}
 	return \@result;
 }
@@ -4844,7 +4844,7 @@ sub getDataSankeyDecadeGenreArtist {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataSankeyDecadeGenreArtist (decades): $DBI::errstr\n$@");
+		$log->error("Database error in getDataSankeyDecadeGenreArtist (decades): $@");
 		return [];
 	}
 	return [] unless @topDecades;
@@ -4866,7 +4866,7 @@ sub getDataSankeyDecadeGenreArtist {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataSankeyDecadeGenreArtist (genres): $DBI::errstr\n$@");
+		$log->error("Database error in getDataSankeyDecadeGenreArtist (genres): $@");
 		return [];
 	}
 
@@ -4899,7 +4899,7 @@ sub getDataSankeyDecadeGenreArtist {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataSankeyDecadeGenreArtist (artists): $DBI::errstr\n$@");
+		$log->error("Database error in getDataSankeyDecadeGenreArtist (artists): $@");
 		return [];
 	}
 
@@ -4978,7 +4978,7 @@ sub getDataPhActivityTimeline {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhActivityTimeline: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhActivityTimeline: $@");
 	}
 	main::DEBUGLOG && $log->is_debug && $log->debug('sql = ' . Data::Dump::dump($sql));
 	main::DEBUGLOG && $log->is_debug && $log->debug('result = ' . Data::Dump::dump(\@result));
@@ -5034,7 +5034,7 @@ sub getDataPhPlaysPerWeekday {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhPlaysPerWeekday: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhPlaysPerWeekday: $@");
 	}
 	return \@result;
 }
@@ -5078,7 +5078,7 @@ sub getDataPhPlaysPerHour {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhPlaysPerHour: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhPlaysPerHour: $@");
 	}
 	return \@result;
 }
@@ -5454,7 +5454,7 @@ sub getDataPhPlayerUsage {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhPlayerUsage: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhPlayerUsage: $@");
 	}
 	return \@result;
 }
@@ -5498,7 +5498,7 @@ sub getDataPhRatingTrend {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhRatingTrend: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhRatingTrend: $@");
 	}
 	return \@result;
 }
@@ -5545,7 +5545,7 @@ sub getDataPhRatingDistribution {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhRatingDistribution: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhRatingDistribution: $@");
 		return [];
 	}
 
@@ -5608,7 +5608,7 @@ sub getDataPhGenrePreferencesOverTime {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhGenrePreferencesOverTime (top genres): $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhGenrePreferencesOverTime (top genres): $@");
 		return [];
 	}
 	return [] unless @topGenres;
@@ -5694,7 +5694,7 @@ sub getDataPhGenrePreferencesOverTime {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhGenrePreferencesOverTime (plays): $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhGenrePreferencesOverTime (plays): $@");
 		return [];
 	}
 	return [] unless @periods;
@@ -5777,7 +5777,7 @@ sub getDataPhDecadeGenreBreakdown {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhDecadeGenreBreakdown (top genres): $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhDecadeGenreBreakdown (top genres): $@");
 		return [];
 	}
 	return [] unless @topGenres;
@@ -5839,7 +5839,7 @@ sub getDataPhDecadeGenreBreakdown {
 			}
 		};
 		if ($@) {
-			$log->error("Database error in getDataPhDecadeGenreBreakdown (plays highest): $DBI::errstr\n$@");
+			$log->error("Database error in getDataPhDecadeGenreBreakdown (plays highest): $@");
 			return [];
 		}
 	} else {
@@ -5866,7 +5866,7 @@ sub getDataPhDecadeGenreBreakdown {
 			$sth->finish();
 		};
 		if ($@) {
-			$log->error("Database error in getDataPhDecadeGenreBreakdown (plays all): $DBI::errstr\n$@");
+			$log->error("Database error in getDataPhDecadeGenreBreakdown (plays all): $@");
 			return [];
 		}
 	}
@@ -5991,7 +5991,7 @@ sub getDataPhForgottenFavorites {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhForgottenFavorites: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhForgottenFavorites: $@");
 		return [];
 	}
 	return \@result;
@@ -6106,7 +6106,7 @@ sub getDataPhGenresListeningTime {
 			$sth->finish();
 		};
 		if ($@) {
-			$log->error("Database error in getDataPhGenresListeningTime (top genres): $DBI::errstr\n$@");
+			$log->error("Database error in getDataPhGenresListeningTime (top genres): $@");
 			return [];
 		}
 		return [] unless @topGenres;
@@ -6139,7 +6139,7 @@ sub getDataPhGenresListeningTime {
 			$sth->finish();
 		};
 		if ($@) {
-			$log->error("Database error in getDataPhGenresListeningTime (plays): $DBI::errstr\n$@");
+			$log->error("Database error in getDataPhGenresListeningTime (plays): $@");
 			return [];
 		}
 
@@ -6221,7 +6221,7 @@ sub getDataPhWeekdayHourHeatmap {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhWeekdayHourHeatmap: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhWeekdayHourHeatmap: $@");
 		return [];
 	}
 	return \@result;
@@ -6288,7 +6288,7 @@ sub getDataPhActivityHeatmap {
 		}
 	};
 	if ($@) {
-		$log->error("Database error in getDataPhActivityHeatmap: $DBI::errstr\n$@");
+		$log->error("Database error in getDataPhActivityHeatmap: $@");
 		return [];
 	}
 	return \@result;
@@ -6346,7 +6346,7 @@ sub executeSQLstatement {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in executeSQLstatement: $DBI::errstr\n$@");
+		$log->error("Database error in executeSQLstatement: $@");
 	}
 	main::DEBUGLOG && $log->is_debug && $log->debug('SQL result = '.Data::Dump::dump(\@result));
 	main::DEBUGLOG && $log->is_debug && $log->debug('Got '.scalar(@result).' items');
@@ -6365,7 +6365,7 @@ sub quickSQLcount {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in quickSQLcount: $DBI::errstr\n$@");
+		$log->error("Database error in quickSQLcount: $@");
 	}
 	return $thisCount;
 }
@@ -6449,7 +6449,7 @@ sub getDecades {
 		main::DEBUGLOG && $log->is_debug && $log->debug('decades query result = '.Data::Dump::dump(\@decades));
 	};
 	if ($@) {
-		$log->error("Database error: $DBI::errstr\n$@");
+		$log->error("Database error: $@");
 		return 'error';
 	}
 	unshift @decades, {
@@ -6483,7 +6483,7 @@ sub getPhPlayerList {
 		$sth->finish();
 	};
 	if ($@) {
-		$log->error("Database error in getPhPlayerList: $DBI::errstr\n$@");
+		$log->error("Database error in getPhPlayerList: $@");
 		return [];
 	}
 
