@@ -69,6 +69,7 @@ sub initPrefs {
 		clickablebars => 1,
 		savetoploverwrite => 1,
 		savetoplmaxtracks => 3000,
+		libstatstextvisitcount => 0,
 		minphcount => 500,
 		ph_filter_timerange => '',
 		ph_filter_player => '',
@@ -1144,6 +1145,7 @@ sub handleWeb {
 	$params->{'clickablebars'} = $prefs->get('clickablebars') || 'noclick';
 	$params->{'usefullscreen'} = $prefs->get('usefullscreen') ? 1 : 0;
 	$params->{'txtrefreshbtn'} = $prefs->get('txtrefreshbtn');
+	$params->{'libstatstextvisitcount'} = $prefs->get('libstatstextvisitcount') // 0;
 
 	my %jsChartConfig;
 	for my $section (values %CHART_REGISTRY) {
@@ -1249,7 +1251,13 @@ sub handleJSON {
 		} else {
 			my $sub = Plugins::VisualStatistics::Plugin->can($querytype);
 			if ($sub && $querytype =~ /^getData[A-Za-z]+$/) {
-				$response = { results => $sub->() };
+				my $result = eval { $sub->() };
+				if ($@) {
+					$log->error("Error executing $querytype: $@");
+					$response = { error => "Execution error in $querytype" };
+				} else {
+					$response = { results => $result };
+				}
 			} else {
 				$response = { error => 'Unknown query type: ' . $querytype };
 			}
@@ -1267,6 +1275,8 @@ sub handleJSON {
 ## ---- library stats text ---- ##
 
 sub getDataLibStatsText {
+	my $visitCount = $prefs->get('libstatstextvisitcount') // 0;
+	$prefs->set('libstatstextvisitcount', $visitCount + 1) if $visitCount < 2;
 	my @result = ();
 	my $selectedVL = $prefs->get('selectedvirtuallibrary');
 
@@ -1372,21 +1382,20 @@ sub getDataLibStatsText {
 	my $bandCount = quickSQLcount($bandCountSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_BANDS").':', 'value' => $bandCount}) if $bandCount > 0;
 
-	# number of artists played
-	my $artistsPlayedSQL = "select count(distinct contributor_track.contributor) from contributor_track
-		join tracks on
-			tracks.id = contributor_track.track";
-	if ($selectedVL && $selectedVL ne '') {
-		$artistsPlayedSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	# number of artists played (LMS + APC)
+	my @artistsPlayedTables = ('tracks_persistent');
+	push @artistsPlayedTables, 'alternativeplaycount' if $apc_enabled;
+
+	for my $dbTable (@artistsPlayedTables) {
+		my $artistsPlayedSQL = "select count(distinct contributor_track.contributor) from contributor_track join tracks on tracks.id = contributor_track.track";
+		if ($selectedVL && $selectedVL ne '') {
+			$artistsPlayedSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$artistsPlayedSQL .= " join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 and $dbTable.playcount > 0 where tracks.audio = 1 and contributor_track.role in (1,5,6)";
+		my $label = string("PLUGIN_VISUALSTATISTICS_TEXT_ARTISTSPLAYED").($dbTable eq 'alternativeplaycount' ? ' (APC)' : '').':';
+		my $percentage = sprintf("%.1f", $artistCount > 0 ? quickSQLcount($artistsPlayedSQL)/$artistCount * 100 : 0).'%';
+		push (@result, {'name' => $label, 'value' => $percentage});
 	}
-	$artistsPlayedSQL .= " join tracks_persistent on
-			tracks_persistent.urlmd5 = tracks.urlmd5 and tracks_persistent.playcount > 0
-		where
-			tracks.audio = 1
-			and contributor_track.role in (1,5,6)";
-	my $artistsPlayedFloat = $artistCount > 0 ? quickSQLcount($artistsPlayedSQL)/$artistCount * 100 : 0;
-	my $artistsPlayedPercentage = sprintf("%.1f", $artistsPlayedFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ARTISTSPLAYED").':', 'value' => $artistsPlayedPercentage});
 
 	# number of albums
 	my $albumsCountSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
@@ -1447,21 +1456,21 @@ sub getDataLibStatsText {
 	my $artistAlbumsCount = quickSQLcount($artistAlbumsCountSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_AALBUMS").':', 'value' => $artistAlbumsCount});
 
-	# number of albums played
-	my $albumsPlayedSQL = "select count(distinct albums.id) from albums
-		join tracks on
-			tracks.album = albums.id";
-	if ($selectedVL && $selectedVL ne '') {
-		$albumsPlayedSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+	# number of albums played (LMS + APC)
+	my @albumsPlayedTables = ('tracks_persistent');
+	push @albumsPlayedTables, 'alternativeplaycount' if $apc_enabled;
+
+	for my $dbTable (@albumsPlayedTables) {
+		my $albumsPlayedSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
+		if ($selectedVL && $selectedVL ne '') {
+			$albumsPlayedSQL .= " join library_album on library_album.album = albums.id and library_album.library = '$selectedVL'";
+		}
+			$albumsPlayedSQL .= " join $dbTable on $dbTable.urlmd5 = tracks.urlmd5 where tracks.audio = 1 and $dbTable.playcount > 0";
+		my $albumsPlayedFloat = $albumsCount > 0 ? quickSQLcount($albumsPlayedSQL)/$albumsCount * 100 : 0;
+		my $percentage = sprintf("%.1f", $albumsPlayedFloat).'%';
+		my $label = string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSPLAYED").($dbTable eq 'alternativeplaycount' ? ' (APC)' : '').':';
+		push (@result, {'name' => $label, 'value' => $percentage});
 	}
-		$albumsPlayedSQL .= " join tracks_persistent on
-			tracks_persistent.urlmd5 = tracks.urlmd5
-		where
-			tracks.audio = 1
-			and tracks_persistent.playcount > 0";
-	my $albumsPlayedFloat = $albumsCount > 0 ? quickSQLcount($albumsPlayedSQL)/$albumsCount * 100 : 0;
-	my $albumsPlayedPercentage = sprintf("%.1f", $albumsPlayedFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSPLAYED").':', 'value' => $albumsPlayedPercentage});
 
 	# number of albums without artwork
 	my $albumsNoArtworkSQL = "select count(distinct albums.id) from albums join tracks on tracks.album = albums.id";
@@ -1527,24 +1536,36 @@ sub getDataLibStatsText {
 	my $ratedTrackCountPercentage = $trackCount > 0 ? sprintf("%.1f", ($ratedTrackCount/$trackCount * 100)).'%' : '0.0%';
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_RATEDTRACKS").':', 'value' => $ratedTrackCountPercentage});
 
-	# number of tracks played at least once
-	my $songsPlayedOnceSQL = "select count(distinct tracks.id) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
-	if ($selectedVL && $selectedVL ne '') {
-		$songsPlayedOnceSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
-	}
-	$songsPlayedOnceSQL .= " where tracks.audio = 1 and tracks_persistent.playcount > 0";
-	my $songsPlayedOnceFloat = $trackCount > 0 ? quickSQLcount($songsPlayedOnceSQL)/$trackCount * 100 : 0;
-	my $songsPlayedOncePercentage = sprintf("%.1f", $songsPlayedOnceFloat).'%';
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSPLAYED").':', 'value' => $songsPlayedOncePercentage});
+	# number of tracks played at least once (LMS + APC)
+	my @tracksPlayedTables = ('tracks_persistent');
+	push @tracksPlayedTables, 'alternativeplaycount' if $apc_enabled;
 
-	# total play count
-	my $songsPlayedTotalSQL = "select sum(tracks_persistent.playcount) from tracks join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5";
-	if ($selectedVL && $selectedVL ne '') {
-		$songsPlayedTotalSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+	for my $dbTable (@tracksPlayedTables) {
+		my $songsPlayedOnceSQL = "select count(distinct tracks.id) from tracks join $dbTable on $dbTable.urlmd5 = tracks.urlmd5";
+		if ($selectedVL && $selectedVL ne '') {
+			$songsPlayedOnceSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$songsPlayedOnceSQL .= " where tracks.audio = 1 and $dbTable.playcount > 0";
+		my $label = string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSPLAYED").($dbTable eq 'alternativeplaycount' ? ' (APC)' : '').':';
+		my $songsPlayedOnceFloat = $trackCount > 0 ? quickSQLcount($songsPlayedOnceSQL)/$trackCount * 100 : 0;
+		my $percentage = sprintf("%.1f", $songsPlayedOnceFloat).'%';
+		push (@result, {'name' => $label, 'value' => $percentage});
 	}
-	$songsPlayedTotalSQL .= " where tracks.audio = 1 and tracks_persistent.playcount > 0";
-	my $songsPlayedTotal = quickSQLcount($songsPlayedTotalSQL);
-	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSPLAYCOUNTTOTAL").':', 'value' => $songsPlayedTotal});
+
+	# total play count (LMS + APC)
+	my @totalPlayCountTables = ('tracks_persistent');
+	push @totalPlayCountTables, 'alternativeplaycount' if $apc_enabled;
+
+	for my $dbTable (@totalPlayCountTables) {
+		my $songsPlayedTotalSQL = "select sum($dbTable.playcount) from tracks join $dbTable on $dbTable.urlmd5 = tracks.urlmd5";
+		if ($selectedVL && $selectedVL ne '') {
+			$songsPlayedTotalSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
+		}
+		$songsPlayedTotalSQL .= " where tracks.audio = 1 and $dbTable.playcount > 0";
+		my $songsPlayedTotal = quickSQLcount($songsPlayedTotalSQL);
+		my $label = string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSPLAYCOUNTTOTAL").($dbTable eq 'alternativeplaycount' ? ' (APC)' : '').':';
+		push (@result, {'name' => $label, 'value' => $songsPlayedTotal});
+	}
 
 	# average track length
 	my $avgTrackLengthSQL = "select strftime('%M:%S', avg(secs)/86400.0) from tracks";

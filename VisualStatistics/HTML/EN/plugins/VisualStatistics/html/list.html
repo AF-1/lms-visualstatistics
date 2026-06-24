@@ -25,6 +25,7 @@
 .updatebutton {font-size: 12px !important;}
 .info-circle {stroke: rgb(240, 240, 240);}
 .info-i {fill: rgb(240, 240, 240);}
+.info-hint-ring {stroke: rgb(240, 240, 240);}
 .savetoplicon {background-color: rgb(240, 240, 240);}
 @keyframes savetopliconglowing {
 	0% {background-color: rgb(240, 240, 240);}
@@ -37,6 +38,7 @@
 .updatebutton {height: 18px;font-size: 11px !important;padding: 0px 2px;}
 .info-circle {stroke: rgb(0, 0, 0);}
 .info-i {fill: rgb(0, 0, 0);}
+.info-hint-ring {stroke: rgb(0, 0, 0);}
 .savetoplicon {background-color: #666;}
 @keyframes savetopliconglowing {
 	0% {background-color: #666;}
@@ -92,6 +94,11 @@
 		</select>
 		<span class="libinfo" title="[% "PLUGIN_VISUALSTATISTICS_TEXT_INFOMOUSEOVERTITLE" | string %]" onclick="displayLibStatsText()">
 			<svg width="100%" height="100%" id="circularloader" class="circular-loader info-circle" viewBox="0 0 32 32" >
+[% IF libstatstextvisitcount < 2 %]
+				<circle class="info-hint-ring" cx="16" cy="16" r="15" fill="none" stroke-width="2" />
+				<circle class="info-hint-ring" cx="16" cy="16" r="15" fill="none" stroke-width="2" />
+				<circle class="info-hint-ring" cx="16" cy="16" r="15" fill="none" stroke-width="2" />
+[% END %]
 				<circle id="infocircle" cx="16" cy="16" r="15" fill="none" stroke-width="2" />
 			</svg>
 			<svg id="infoi" class="info-i" width="100%" height="16px" viewBox="0 -1 32 32">
