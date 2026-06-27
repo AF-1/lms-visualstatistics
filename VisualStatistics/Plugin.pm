@@ -2119,8 +2119,12 @@ sub saveResultsToTextFile {
 			return;
 		};
 
-		print $output "#### Text file created by Visual Statistics ####\n";
 		print $output "#### ".$statName."\n";
+		print $output "#### Text file created by Visual Statistics ####\n";
+		if ($playlistType eq 'deadtracks') {
+			print $output "#### Use the PotPourri plugin to remove dead tracks from the tracks_persistent table.\n";
+			print $output "#### Create a backup of the persist.db file and go to LMS > Settings > Advanced > PotPourri.\n";
+		}
 		print $output "#### This text file contains ".scalar(@items).(scalar(@items) == 1 ? ' item' : ' items').".\n\n";
 		for my $thisItem (@items) {
 			print $output "".$thisItem."\n";
