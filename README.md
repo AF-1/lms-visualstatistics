@@ -44,7 +44,7 @@ If you want to test a new patch that hasn't made it into a release version yet, 
 
 ## FAQ
 <details><summary>»<b>The text stats show a line for <i>Possibly dead tracks in tracks_persistent table</i>. What does that mean and how do I get rid of them?</b>«</summary><br><p>
-It just means that the tracks_persistent table where LMS stores values that survive rescans (normal play counts, ratings etc.) has entries for tracks that do not exists in the current library tables.<br>Save the result to a text file in the (parent folder of the) LMS preferences folder by clicking on the disk icon. Inspect the tracks. If you are certain that they're dead, create a backup copy of the LMS <i>persist.db</i> file and use the <a href="https://github.com/AF-1/#-potpourri"><b>PotPourri</b></a> plugin to purge them from the tracks_persistent table. Go to LMS Settings > Advanced > PotPourri.</p></details><br>
+It just means that the LMS <i>tracks_persistent</i> table where LMS stores values that survive rescans (normal play counts, ratings etc.) has entries for tracks that do not exist in the current library tables.<br><br>Save the result to a text file in the (parent folder of the) LMS preferences folder by clicking on the disk icon. Inspect the tracks. If you are certain that they're dead, create a backup copy of the LMS <i>persist.db</i> file and use the <a href="https://github.com/AF-1/#-potpourri"><b>PotPourri</b></a> plugin to purge them from the tracks_persistent table. Go to LMS Settings > Advanced > PotPourri.</p></details><br>
 <br><br>
 
 
