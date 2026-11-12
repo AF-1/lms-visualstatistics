@@ -1570,9 +1570,9 @@ PLUGIN_VISUALSTATISTICS_TEXT_TRACKSWITHLYRICS
 	NL	Nummers met songteksten
 
 PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOYEAR
-	EN	Tracks without year
-	FR	Morceaux sans année
-	NL	Nummers zonder jaar
+	EN	Local tracks without year
+	FR	Morceaux locaux sans année
+	NL	Lokale nummers zonder jaar
 
 PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOREPLAYGAIN
 	EN	Tracks without replay gain

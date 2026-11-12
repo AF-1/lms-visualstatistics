@@ -1576,12 +1576,12 @@ sub getDataLibStatsText {
 	my $avgTrackLength = quickSQLcount($avgTrackLengthSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_TRACKSAVGLENGTH").':', 'value' => $avgTrackLength.' '.string("PLUGIN_VISUALSTATISTICS_TEXT_TIMEMINS")});
 
-	# average bit rate
+	# average bit rate of local audio files
 	my $avgBitrateSQL = "select round((avg(bitrate)/10000)*10) from tracks";
 	if ($selectedVL && $selectedVL ne '') {
 		$avgBitrateSQL .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 	}
-	$avgBitrateSQL .= " where tracks.audio = 1 and tracks.bitrate is not null";
+	$avgBitrateSQL .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.bitrate is not null";
 	my $avgBitrate = quickSQLcount($avgBitrateSQL);
 	push (@result, {'name' => string("PLUGIN_VISUALSTATISTICS_TEXT_AVGBITRATE").':', 'value' => $avgBitrate.' kbps'});
 
@@ -1833,14 +1833,13 @@ sub saveResultsToPL {
 		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_ALBUMSWITHREPLAYPEAK');
 	}
 
-	# tracks without year
+	# local tracks without year
 	if ($playlistType eq 'trackswithoutyear') {
 		$sqlstatement = "select tracks.id from tracks";
 		if ($selectedVL && $selectedVL ne '') {
 			$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'";
 		}
-		$sqlstatement .= " where tracks.audio = 1 and ifnull(tracks.year, 0) = 0 group by tracks.id";
-
+		$sqlstatement .= " where tracks.audio = 1 and tracks.filesize is not null and ifnull(tracks.year, 0) = 0 group by tracks.id";
 		$sortOrder = 3;
 		$staticPLname .= string('PLUGIN_VISUALSTATISTICS_TEXT_TRACKSNOYEAR');
 	}
@@ -2152,7 +2151,7 @@ sub getDataTracksByAudioFileFormat {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where tracks.audio = 1";
+	$sqlstatement .= " where tracks.audio = 1 and tracks.remote = 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2171,7 +2170,7 @@ sub getDataTracksByBitrate {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where tracks.audio = 1 and tracks.bitrate is not null and tracks.bitrate > 0";
+	$sqlstatement .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.bitrate is not null and tracks.bitrate > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2211,7 +2210,7 @@ sub getDataTracksByBitrateAudioFileFormat {
 		if (defined($genreFilter) && $genreFilter ne '') {
 			$sqlbitrate .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 		}
-		$sqlbitrate .= " where tracks.audio = 1 and tracks.bitrate is not null
+		$sqlbitrate .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.bitrate is not null
 				and round(tracks.bitrate/10000)*10 >= $minVal
 				and round(tracks.bitrate/10000)*10 < $maxVal";
 		my $decadeFilterVal = $prefs->get('decadefilterval');
@@ -2310,7 +2309,7 @@ sub getDataTracksByBitrateAudioFileFormatScatter {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlfileformats .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlfileformats .= " where tracks.audio = 1 and tracks.bitrate is not null and tracks.bitrate > 0";
+	$sqlfileformats .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.bitrate is not null and tracks.bitrate > 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlfileformats .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2387,7 +2386,7 @@ sub getDataTracksBySampleRate {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where tracks.audio = 1 and tracks.samplerate is not null";
+	$sqlstatement .= " where tracks.audio = 1 and tracks.remote = 0 and tracks.samplerate is not null";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -2654,8 +2653,7 @@ sub getDataTracksByDateAdded {
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks_persistent.added > 0 and tracks_persistent.added is not null group by strftime('%Y-%m-%d',tracks_persistent.added, 'unixepoch', 'localtime')
-		order by strftime ('%Y',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%m',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%d',tracks_persistent.added, 'unixepoch', 'localtime') asc;";
+	$sqlstatement .= " left join tracks_persistent on tracks_persistent.urlmd5 = tracks.urlmd5 where tracks_persistent.added > 0 and tracks_persistent.added is not null and ifnull(tracks.content_type, '') not in ('cpl','src','ssp','dir') group by strftime('%Y-%m-%d',tracks_persistent.added, 'unixepoch', 'localtime') order by strftime ('%Y',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%m',tracks_persistent.added, 'unixepoch', 'localtime') asc, strftime('%d',tracks_persistent.added, 'unixepoch', 'localtime') asc;";
 	return executeSQLstatement($sqlstatement);
 }
 
@@ -2665,7 +2663,7 @@ sub getDataTracksByDateLastModified {
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " where tracks.timestamp > 0 and tracks.timestamp is not null
+	$sqlstatement .= " where tracks.remote = 0 and tracks.timestamp > 0 and tracks.timestamp is not null
 		group by strftime('%Y-%m-%d',tracks.timestamp, 'unixepoch', 'localtime')
 		order by strftime ('%Y',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%m',tracks.timestamp, 'unixepoch', 'localtime') asc, strftime('%d',tracks.timestamp, 'unixepoch', 'localtime') asc;";
 	return executeSQLstatement($sqlstatement);
@@ -2989,7 +2987,7 @@ sub getDataTrackTitleWordCloud {
 	if (defined($genreFilter) && $genreFilter ne '') {
 		$sqlstatement .= " join genre_track on genre_track.track = tracks.id and genre_track.genre == $genreFilter";
 	}
-	$sqlstatement .= " where length(tracks.title) > 2 and (tracks.audio = 1 or tracks.extid is not null)";
+	$sqlstatement .= " where length(tracks.title) > 2 and (tracks.audio = 1 or tracks.extid is not null) and ifnull(tracks.content_type, '') not in ('cpl','src','ssp','dir')";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
@@ -4442,7 +4440,7 @@ sub getDataGenresWithTopAverageBitrate {
 	if ($selectedVL && $selectedVL ne '') {
 		$sqlstatement .= " join library_track on library_track.track = tracks.id and library_track.library = '$selectedVL'"
 	}
-	$sqlstatement .= " join genre_track on tracks.id=genre_track.track join genres on genre_track.genre=genres.id where genres.name is not null and tracks.audio = 1";
+	$sqlstatement .= " join genre_track on tracks.id=genre_track.track join genres on genre_track.genre=genres.id where genres.name is not null and tracks.audio = 1 and tracks.remote = 0";
 	my $decadeFilterVal = $prefs->get('decadefilterval');
 	if (defined($decadeFilterVal) && $decadeFilterVal ne '') {
 		$sqlstatement .= " and ifnull(tracks.year, 0) >= $decadeFilterVal and ifnull(tracks.year, 0) < ($decadeFilterVal + 10)";
